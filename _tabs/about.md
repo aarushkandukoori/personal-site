@@ -10,3 +10,7 @@ I co-founded and lead **BUMP**, a patent-pending closed-loop wearable atropine p
 My research focuses on machine learning, with recent work in generative and multimodal models alongside applied ML for medicine. I've worked in labs at Harvard Medical School and Brigham & Women's Hospital, the Stanford Cardiovascular Institute, the UMD MIND Lab, and Carnegie Mellon.
 
 Away from the work, I've played piano since I was nine, with most of my hours going to Beethoven. I also paint with oils, run, and lift.
+
+{% include embed/youtube.html id='yo-G8nTclSk' %}
+
+*I still wish I could go back in time and fix the clam at 1:08!*
