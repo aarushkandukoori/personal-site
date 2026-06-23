@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>Logistic regression playground</title>
   <link rel="stylesheet" href="../gradient-descent/interactive.css">
   <style>
@@ -369,7 +370,10 @@
     setNextClass(0);
     draw();
     reportHeight();
-    window.addEventListener("load", reportHeight);
+    window.addEventListener("load", () => {
+      reportHeight();
+      setTimeout(runTraining, 500);
+    });
     window.addEventListener("resize", reportHeight);
     if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);

@@ -1,6 +1,6 @@
 ---
 title: "So how does a neural network actually learn?"
-date: 2026-06-23 05:15:00 -0400
+date: 2026-02-08 09:00:00 -0500
 categories: [Learning Interactively]
 tags: [machine-learning, gradient-descent, neural-network, pytorch]
 math: true

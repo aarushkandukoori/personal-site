@@ -1,6 +1,6 @@
 ---
 title: "Visualizing logistic regression: from a line to a probability"
-date: 2026-06-23 05:30:00 -0400
+date: 2026-04-14 09:00:00 -0400
 categories: [Learning Interactively]
 tags: [machine-learning, logistic-regression, classification, visualization]
 math: true
@@ -119,7 +119,7 @@ Start with **Reload demo** if you want sample data already on the canvas.
 
 <iframe
   class="interactive-embed interactive-embed--logistic"
-  src="/assets/files/logistic-regression/logistic_playground.html"
+  src="/assets/files/logistic-regression/logistic_playground.html?v=3"
   title="Logistic regression playground"
   width="100%"
   scrolling="no"
