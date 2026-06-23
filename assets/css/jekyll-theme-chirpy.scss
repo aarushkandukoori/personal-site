@@ -499,24 +499,25 @@ header .post-desc,
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   margin-top: 1.5rem;
-}
 
-.art-item {
-  display: block;
-  overflow: hidden;
-  border: 1px solid var(--main-border-color);
-  background: var(--card-bg);
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 0.85;
-  }
-
-  img {
+  a.popup,
+  a.img-link {
     display: block;
-    width: 100%;
-    height: auto;
-    vertical-align: middle;
+    overflow: hidden;
+    border: 1px solid var(--main-border-color);
+    background: var(--card-bg);
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+      vertical-align: middle;
+    }
   }
 }
 
