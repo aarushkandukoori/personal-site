@@ -1,6 +1,6 @@
 ---
 icon: fas fa-palette
-order: 2
+order: 3
 ---
 
 Paintings and sketches.
