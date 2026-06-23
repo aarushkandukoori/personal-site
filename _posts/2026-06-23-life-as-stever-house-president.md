@@ -1,5 +1,5 @@
 ---
-title: "Life as Stever House President"
+title: "Confessions of Stever Dorm's President"
 date: 2026-06-23 05:00:00 -0400
 categories: [Writing, Campus Life]
 tags: [cmu, stever, leadership, community]
