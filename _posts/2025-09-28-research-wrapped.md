@@ -1,6 +1,6 @@
 ---
 title: "My Research Wrapped"
-date: 2026-06-23 05:05:00 -0400
+date: 2025-09-28 10:00:00 -0400
 categories: [Writing, Research]
 tags: [research, data-analysis, imagej, wrapped]
 pin: true
