@@ -1,7 +1,7 @@
 <div class="intro-card">
   <div class="intro-card-photo">
     <img
-      src="{{ '/assets/img/home-intro.jpg' | relative_url }}"
+      src="{% include asset-url.html path='/assets/img/home-intro.jpg' %}"
       alt="{{ site.social.name | default: site.title }} speaking"
       loading="eager"
     >

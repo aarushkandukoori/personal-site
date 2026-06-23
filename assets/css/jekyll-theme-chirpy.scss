@@ -699,6 +699,13 @@ a {
   }
 }
 
+.shimmer {
+  &::before {
+    display: none !important;
+    content: none !important;
+  }
+}
+
 .post-content a.popup,
 .post-content a.img-link {
   display: block;

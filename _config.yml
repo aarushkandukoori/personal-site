@@ -13,6 +13,10 @@ description: >-
 url: "https://aarushkandukoori.com"
 baseurl: ""
 
+# Serves static assets from GitHub Pages until custom-domain DNS points here.
+# Remove or leave blank once aarushkandukoori.com is configured in GitHub Pages.
+github_pages_url: "https://aarushkandukoori.github.io"
+
 github:
   username: aarushkandukoori
 

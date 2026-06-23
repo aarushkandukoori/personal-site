@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 280" role="img" aria-label="Logistic regression neuron diagram">
-  <rect width="720" height="280" fill="#ffffff"/>
+  <rect width="720" height="280" fill="#f4f4f4"/>
   <rect x="40" y="90" width="90" height="44" rx="10" fill="#fff" stroke="#111" stroke-width="2"/>
   <rect x="40" y="150" width="90" height="44" rx="10" fill="#fff" stroke="#111" stroke-width="2"/>
   <text x="85" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">xÅ</text>
