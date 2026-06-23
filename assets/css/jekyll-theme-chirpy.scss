@@ -670,3 +670,34 @@ a {
   font-style: normal;
   background: var(--card-hover-bg);
 }
+
+.post-content iframe.interactive-embed {
+  display: block;
+  width: 100%;
+  margin: 1.25rem 0 0.5rem;
+  border: 1px solid var(--main-border-color);
+  border-radius: 16px;
+  background: var(--card-bg);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 8%);
+  overflow: hidden;
+}
+
+.post-content iframe.interactive-embed--landscape {
+  height: 640px;
+  min-height: 520px;
+}
+
+.post-content iframe.interactive-embed--rate {
+  height: 540px;
+  min-height: 460px;
+}
+
+@media (max-width: 768px) {
+  .post-content iframe.interactive-embed--landscape {
+    height: 760px;
+  }
+
+  .post-content iframe.interactive-embed--rate {
+    height: 580px;
+  }
+}
