@@ -1,6 +1,6 @@
 ---
 title: "Readings I think are Important"
-date: 2026-06-23 05:10:00 -0400
+date: 2025-07-12 10:00:00 -0400
 categories: [reading, books]
 tags: [books, leadership, ai, medicine, startups]
 pin: true

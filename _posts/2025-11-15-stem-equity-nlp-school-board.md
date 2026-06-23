@@ -1,6 +1,6 @@
 ---
 title: "Presenting STEM-equity research to my school board, and the NLP behind it"
-date: 2026-06-23 05:20:00 -0400
+date: 2025-11-15 09:00:00 -0500
 categories: [Research]
 tags: [machine-learning, nlp, tf-idf, education]
 math: true

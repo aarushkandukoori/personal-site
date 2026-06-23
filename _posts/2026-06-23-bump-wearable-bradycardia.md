@@ -1,6 +1,6 @@
 ---
 title: "BUMP: building a wearable for when a heart rate crashes"
-date: 2026-06-23 05:25:00 -0400
+date: 2026-06-23 09:00:00 -0400
 categories: [Building]
 tags: [bump, medical-devices, hardware, machine-learning, startups]
 math: true
