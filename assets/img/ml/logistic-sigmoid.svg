@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" role="img" aria-label="Sigmoid function mapping a score z to a probability between 0 and 1">
-  <rect width="720" height="320" fill="#ffffff"/>
+  <rect width="720" height="320" fill="#f4f4f4"/>
   <g stroke="#e6e6e6" stroke-width="1">
     <line x1="70" y1="260" x2="650" y2="260"/>
     <line x1="360" y1="40" x2="360" y2="260"/>

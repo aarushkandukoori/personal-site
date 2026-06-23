@@ -15,7 +15,7 @@ That is the job of **logistic regression**, one of the oldest and most important
 To understand logistic regression, I like to start the way I start most ML ideas: draw it. Once you can see the boundary, the sigmoid, and the update rule in the same picture, the whole model stops feeling like a formula sheet and starts feeling like a mechanism.
 
 <figure class="ml-figure" markdown="0">
-  <img src="/assets/img/ml/logistic-decision-boundary.svg" alt="Two classes of points separated by a logistic decision boundary" width="720" height="360" loading="lazy">
+  <img src="{% include asset-url.html path='/assets/img/ml/logistic-decision-boundary.svg' %}" alt="Two classes of points separated by a logistic decision boundary" width="720" height="360" loading="lazy">
   <figcaption>Logistic regression still splits the plane with a line, but it assigns graded probabilities on each side instead of a hard label.</figcaption>
 </figure>
 
@@ -37,7 +37,7 @@ The output is interpreted as $P(y=1 \mid x)$.
 Intuitively, if a point sits far above the line in the positive-score region, then $z$ is large and $\sigma(z)$ is near 1. If it sits far below, $\sigma(z)$ is near 0. Points hugging the line get probabilities near 0.5, which is exactly the behavior we want when the world is ambiguous.
 
 <figure class="ml-figure" markdown="0">
-  <img src="/assets/img/ml/logistic-sigmoid.svg" alt="The sigmoid maps a real-valued score z to a probability between 0 and 1" width="720" height="320" loading="lazy">
+  <img src="{% include asset-url.html path='/assets/img/ml/logistic-sigmoid.svg' %}" alt="The sigmoid maps a real-valued score z to a probability between 0 and 1" width="720" height="320" loading="lazy">
   <figcaption>The sigmoid squashes any real score into the interval (0, 1).</figcaption>
 </figure>
 
@@ -127,7 +127,7 @@ The yellow highlight during training marks a point the model still gets wrong un
 Once you write logistic regression as a weighted sum followed by a sigmoid, you have written down a single artificial neuron.
 
 <figure class="ml-figure" markdown="0">
-  <img src="/assets/img/ml/logistic-neuron.svg" alt="Logistic regression as one neuron with a sigmoid activation" width="720" height="280" loading="lazy">
+  <img src="{% include asset-url.html path='/assets/img/ml/logistic-neuron.svg' %}" alt="Logistic regression as one neuron with a sigmoid activation" width="720" height="280" loading="lazy">
   <figcaption>One neuron: weighted sum, sigmoid activation, probability out.</figcaption>
 </figure>
 

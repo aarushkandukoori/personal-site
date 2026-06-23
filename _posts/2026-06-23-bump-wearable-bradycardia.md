@@ -22,7 +22,7 @@ where $f(x)$ is the dose in milliliters and $x$ is the measured BPM, valid below
 
 <div class="bump-poster" markdown="0">
   <a href="https://www.peeref.com/posters/10753/bump-a-novel-atropine-pump-for-patients-with-crashing-bradycardia-via-continuous-bpm-monitoring" target="_blank" rel="noopener noreferrer">
-    <img src="/assets/img/bump/bump-poster.png" alt="BUMP research poster: A Novel Atropine Pump for Patients with Crashing Bradycardia via Continuous BPM Monitoring" width="1200" height="1553" loading="lazy">
+    <img src="{% include asset-url.html path='/assets/img/bump/bump-poster.png' %}" alt="BUMP research poster: A Novel Atropine Pump for Patients with Crashing Bradycardia via Continuous BPM Monitoring" width="1200" height="1553" loading="lazy">
   </a>
   <figcaption>Click the poster to view it on Peeref.</figcaption>
 </div>

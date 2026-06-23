@@ -160,7 +160,9 @@
 
     <!-- lazy-load images -->
     {% if _lazyload %}
-      {% assign _left = _left | append: ' loading="lazy"' %}
+      {% unless _left contains 'loading=' %}
+        {% assign _left = _left | append: ' loading="lazy"' %}
+      {% endunless %}
     {% endif %}
 
     {% assign _skip_wrapper = false %}
@@ -175,6 +177,13 @@
     {% if _img_content contains '<div class="bump-poster"' %}
       {% assign _poster_tail = _img_content | split: '<div class="bump-poster"' | last %}
       {% unless _poster_tail contains '</div>' %}
+        {% assign _skip_wrapper = true %}
+      {% endunless %}
+    {% endif %}
+
+    {% if _img_content contains '<div class="art-gallery"' %}
+      {% assign _gallery_tail = _img_content | split: '<div class="art-gallery"' | last %}
+      {% unless _gallery_tail contains '</div>' %}
         {% assign _skip_wrapper = true %}
       {% endunless %}
     {% endif %}
