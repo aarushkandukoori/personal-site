@@ -1,0 +1,487 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}'
+);
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* Monochrome restyle: strict grayscale, no hue anywhere */
+
+$mono-light-bg: #ffffff;
+$mono-light-text: #141414;
+$mono-light-muted: #757575;
+$mono-light-border: #d8d8d8;
+$mono-light-sidebar: #ffffff;
+$mono-light-code-bg: #f4f4f4;
+
+$mono-dark-bg: #0f0f0f;
+$mono-dark-text: #ededed;
+$mono-dark-muted: #8a8a8a;
+$mono-dark-border: #2e2e2e;
+$mono-dark-sidebar: #0a0a0a;
+$mono-dark-code-bg: #1a1a1a;
+
+@mixin mono-highlight-light {
+  .highlight,
+  .highlight .w {
+    color: #1a1a1a;
+    background-color: $mono-light-code-bg;
+  }
+
+  .highlight .k,
+  .highlight .kd,
+  .highlight .kn,
+  .highlight .kp,
+  .highlight .kr,
+  .highlight .kt,
+  .highlight .kv,
+  .highlight .kc,
+  .highlight .nc,
+  .highlight .nb,
+  .highlight .no,
+  .highlight .nn,
+  .highlight .nt,
+  .highlight .nf,
+  .highlight .fm,
+  .highlight .nd {
+    color: #000000;
+    font-weight: 600;
+  }
+
+  .highlight .s,
+  .highlight .sa,
+  .highlight .sc,
+  .highlight .dl,
+  .highlight .sd,
+  .highlight .s2,
+  .highlight .se,
+  .highlight .sh,
+  .highlight .sx,
+  .highlight .s1,
+  .highlight .ss,
+  .highlight .sr,
+  .highlight .na,
+  .highlight .gi {
+    color: #3a3a3a;
+  }
+
+  .highlight .l,
+  .highlight .ld,
+  .highlight .m,
+  .highlight .mb,
+  .highlight .mf,
+  .highlight .mh,
+  .highlight .mi,
+  .highlight .il,
+  .highlight .mo,
+  .highlight .mx,
+  .highlight .sb,
+  .highlight .bp,
+  .highlight .ne,
+  .highlight .nl,
+  .highlight .py,
+  .highlight .nv,
+  .highlight .vc,
+  .highlight .vg,
+  .highlight .vi,
+  .highlight .vm,
+  .highlight .o,
+  .highlight .ow,
+  .highlight .gh,
+  .highlight .gu {
+    color: #555555;
+  }
+
+  .highlight .c,
+  .highlight .ch,
+  .highlight .cd,
+  .highlight .cm,
+  .highlight .cp,
+  .highlight .cpf,
+  .highlight .c1,
+  .highlight .cs,
+  .highlight .gl,
+  .highlight .gt {
+    color: #888888;
+    font-style: italic;
+  }
+
+  .highlight .gd {
+    color: #1a1a1a;
+    background-color: #dddddd;
+  }
+
+  .highlight .gr,
+  .highlight .err {
+    color: #1a1a1a;
+    background-color: #cccccc;
+  }
+}
+
+@mixin mono-highlight-dark {
+  .highlight,
+  .highlight .w {
+    color: #e0e0e0;
+    background-color: $mono-dark-code-bg;
+  }
+
+  .highlight .k,
+  .highlight .kd,
+  .highlight .kn,
+  .highlight .kp,
+  .highlight .kr,
+  .highlight .kt,
+  .highlight .kv,
+  .highlight .kc,
+  .highlight .nc,
+  .highlight .nb,
+  .highlight .no,
+  .highlight .nn,
+  .highlight .nt,
+  .highlight .nf,
+  .highlight .fm,
+  .highlight .nd {
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .highlight .s,
+  .highlight .sa,
+  .highlight .sc,
+  .highlight .dl,
+  .highlight .sd,
+  .highlight .s2,
+  .highlight .se,
+  .highlight .sh,
+  .highlight .sx,
+  .highlight .s1,
+  .highlight .ss,
+  .highlight .sr,
+  .highlight .na,
+  .highlight .gi {
+    color: #c0c0c0;
+  }
+
+  .highlight .l,
+  .highlight .ld,
+  .highlight .m,
+  .highlight .mb,
+  .highlight .mf,
+  .highlight .mh,
+  .highlight .mi,
+  .highlight .il,
+  .highlight .mo,
+  .highlight .mx,
+  .highlight .sb,
+  .highlight .bp,
+  .highlight .ne,
+  .highlight .nl,
+  .highlight .py,
+  .highlight .nv,
+  .highlight .vc,
+  .highlight .vg,
+  .highlight .vi,
+  .highlight .vm,
+  .highlight .o,
+  .highlight .ow,
+  .highlight .gh,
+  .highlight .gu,
+  .highlight .gp,
+  .highlight .cp,
+  .highlight .si,
+  .highlight .se {
+    color: #9a9a9a;
+  }
+
+  .highlight .c,
+  .highlight .ch,
+  .highlight .cd,
+  .highlight .cm,
+  .highlight .cpf,
+  .highlight .c1,
+  .highlight .cs,
+  .highlight .gl,
+  .highlight .gt {
+    color: #666666;
+    font-style: italic;
+  }
+
+  .highlight .gd {
+    color: #ededed;
+    background-color: #333333;
+  }
+
+  .highlight .gr,
+  .highlight .err {
+    color: #ededed;
+    background-color: #444444;
+  }
+}
+
+html[data-bs-theme='light'] {
+  --main-bg: #{$mono-light-bg};
+  --mask-bg: #{$mono-light-border};
+  --main-border-color: #{$mono-light-border};
+  --text-color: #{$mono-light-text};
+  --text-muted-color: #{$mono-light-muted};
+  --text-muted-highlight-color: #{$mono-light-text};
+  --heading-color: #{$mono-light-text};
+  --label-color: #{$mono-light-muted};
+  --blockquote-border-color: #{$mono-light-border};
+  --blockquote-text-color: #{$mono-light-muted};
+  --link-color: #{$mono-light-text};
+  --link-underline-color: #{$mono-light-border};
+  --button-bg: #{$mono-light-bg};
+  --btn-border-color: #{$mono-light-border};
+  --btn-backtotop-color: #{$mono-light-muted};
+  --btn-backtotop-border-color: #{$mono-light-border};
+  --checkbox-color: #{$mono-light-border};
+  --checkbox-checked-color: #{$mono-light-text};
+  --img-bg: #{$mono-light-border};
+  --shimmer-bg: linear-gradient(90deg, transparent 0%, #{$mono-light-border} 50%, transparent 100%);
+  --menu-bg: #{$mono-light-bg};
+  --menu-border-color: #{$mono-light-border};
+  --menu-shadow-color: rgb(0 0 0 / 8%);
+  --menu-active-color: #{$mono-light-text};
+  --menu-highlight-bg: rgb(0 0 0 / 4%);
+  --site-title-color: #{$mono-light-text};
+  --site-subtitle-color: #{$mono-light-muted};
+  --sidebar-bg: #{$mono-light-sidebar};
+  --sidebar-border-color: #{$mono-light-border};
+  --sidebar-muted-color: #{$mono-light-muted};
+  --sidebar-active-color: #{$mono-light-text};
+  --sidebar-hover-bg: rgb(0 0 0 / 4%);
+  --sidebar-btn-bg: #{$mono-light-bg};
+  --sidebar-btn-color: #{$mono-light-muted};
+  --avatar-border-color: #{$mono-light-border};
+  --topbar-bg: rgb(255 255 255 / 92%);
+  --topbar-text-color: #{$mono-light-text};
+  --search-border-color: #{$mono-light-border};
+  --search-icon-color: #{$mono-light-muted};
+  --input-focus-border-color: #{$mono-light-text};
+  --post-list-text-color: #{$mono-light-muted};
+  --btn-patinator-text-color: #{$mono-light-text};
+  --btn-paginator-hover-color: #{$mono-light-border};
+  --toc-highlight: #{$mono-light-text};
+  --toc-popup-border-color: #{$mono-light-border};
+  --btn-share-color: #{$mono-light-muted};
+  --btn-share-hover-color: #{$mono-light-text};
+  --card-bg: #{$mono-light-bg};
+  --card-hover-bg: #{$mono-light-border};
+  --card-shadow: rgb(0 0 0 / 6%) 0 2px 6px 0, #{$mono-light-border} 0 0 0 1px;
+  --footnote-target-bg: #{$mono-light-border};
+  --tb-odd-bg: #fafafa;
+  --tb-border-color: #{$mono-light-border};
+  --dash-color: #{$mono-light-border};
+  --kbd-wrap-color: #{$mono-light-border};
+  --kbd-text-color: #{$mono-light-text};
+  --kbd-bg-color: #{$mono-light-bg};
+  --prompt-text-color: #{$mono-light-text};
+  --prompt-tip-bg: rgb(0 0 0 / 4%);
+  --prompt-tip-icon-color: #{$mono-light-text};
+  --prompt-info-bg: rgb(0 0 0 / 4%);
+  --prompt-info-icon-color: #{$mono-light-text};
+  --prompt-warning-bg: rgb(0 0 0 / 6%);
+  --prompt-warning-icon-color: #{$mono-light-text};
+  --prompt-danger-bg: rgb(0 0 0 / 6%);
+  --prompt-danger-icon-color: #{$mono-light-text};
+  --tag-border: #{$mono-light-border};
+  --tag-shadow: #{$mono-light-border};
+  --tag-hover: #{$mono-light-border};
+  --search-tag-bg: #fafafa;
+  --categories-border: #{$mono-light-border};
+  --categories-hover-bg: #{$mono-light-border};
+  --categories-icon-hover-color: #{$mono-light-text};
+  --timeline-color: #{$mono-light-border};
+  --timeline-node-bg: #{$mono-light-muted};
+  --timeline-year-dot-color: #{$mono-light-bg};
+  --language-border-color: #{$mono-light-border};
+  --highlight-bg-color: #{$mono-light-code-bg};
+  --highlighter-rouge-color: #{$mono-light-text};
+  --highlight-lineno-color: #{$mono-light-muted};
+  --inline-code-bg: rgb(0 0 0 / 5%);
+  --code-color: #{$mono-light-text};
+  --code-header-text-color: #{$mono-light-muted};
+  --code-header-muted-color: #{$mono-light-border};
+  --code-header-icon-color: #{$mono-light-muted};
+  --clipboard-checked-color: #{$mono-light-text};
+
+  @include mono-highlight-light;
+}
+
+html[data-bs-theme='dark'] {
+  --main-bg: #{$mono-dark-bg};
+  --mask-bg: #{$mono-dark-border};
+  --main-border-color: #{$mono-dark-border};
+  --text-color: #{$mono-dark-text};
+  --text-muted-color: #{$mono-dark-muted};
+  --text-muted-highlight-color: #{$mono-dark-text};
+  --heading-color: #{$mono-dark-text};
+  --label-color: #{$mono-dark-muted};
+  --blockquote-border-color: #{$mono-dark-border};
+  --blockquote-text-color: #{$mono-dark-muted};
+  --link-color: #{$mono-dark-text};
+  --link-underline-color: #{$mono-dark-border};
+  --button-bg: #{$mono-dark-bg};
+  --btn-border-color: #{$mono-dark-border};
+  --btn-backtotop-color: #{$mono-dark-muted};
+  --btn-backtotop-border-color: #{$mono-dark-border};
+  --checkbox-color: #{$mono-dark-border};
+  --checkbox-checked-color: #{$mono-dark-text};
+  --img-bg: #{$mono-dark-border};
+  --shimmer-bg: linear-gradient(90deg, transparent 0%, #{$mono-dark-border} 50%, transparent 100%);
+  --menu-bg: #{$mono-dark-sidebar};
+  --menu-border-color: #{$mono-dark-border};
+  --menu-shadow-color: rgb(0 0 0 / 40%);
+  --menu-active-color: #{$mono-dark-text};
+  --menu-highlight-bg: rgb(255 255 255 / 6%);
+  --site-title-color: #{$mono-dark-text};
+  --site-subtitle-color: #{$mono-dark-muted};
+  --sidebar-bg: #{$mono-dark-sidebar};
+  --sidebar-border-color: #{$mono-dark-border};
+  --sidebar-muted-color: #{$mono-dark-muted};
+  --sidebar-active-color: #{$mono-dark-text};
+  --sidebar-hover-bg: rgb(255 255 255 / 6%);
+  --sidebar-btn-bg: #{$mono-dark-bg};
+  --sidebar-btn-color: #{$mono-dark-muted};
+  --avatar-border-color: #{$mono-dark-border};
+  --topbar-bg: rgb(15 15 15 / 92%);
+  --topbar-text-color: #{$mono-dark-text};
+  --search-border-color: #{$mono-dark-border};
+  --search-icon-color: #{$mono-dark-muted};
+  --input-focus-border-color: #{$mono-dark-text};
+  --post-list-text-color: #{$mono-dark-muted};
+  --btn-patinator-text-color: #{$mono-dark-text};
+  --btn-paginator-hover-color: #{$mono-dark-border};
+  --toc-highlight: #{$mono-dark-text};
+  --toc-popup-border-color: #{$mono-dark-border};
+  --btn-share-color: #{$mono-dark-muted};
+  --btn-share-hover-color: #{$mono-dark-text};
+  --card-bg: #{$mono-dark-bg};
+  --card-header-bg: #{$mono-dark-sidebar};
+  --card-hover-bg: #{$mono-dark-border};
+  --card-shadow: rgb(0 0 0 / 50%) 0 4px 12px 0, #{$mono-dark-border} 0 0 0 1px;
+  --footnote-target-bg: #{$mono-dark-border};
+  --tb-odd-bg: #141414;
+  --tb-even-bg: #{$mono-dark-bg};
+  --tb-border-color: #{$mono-dark-border};
+  --dash-color: #{$mono-dark-border};
+  --kbd-wrap-color: #{$mono-dark-border};
+  --kbd-text-color: #{$mono-dark-text};
+  --kbd-bg-color: #{$mono-dark-sidebar};
+  --prompt-text-color: #{$mono-dark-text};
+  --prompt-tip-bg: rgb(255 255 255 / 6%);
+  --prompt-tip-icon-color: #{$mono-dark-text};
+  --prompt-info-bg: rgb(255 255 255 / 6%);
+  --prompt-info-icon-color: #{$mono-dark-text};
+  --prompt-warning-bg: rgb(255 255 255 / 8%);
+  --prompt-warning-icon-color: #{$mono-dark-text};
+  --prompt-danger-bg: rgb(255 255 255 / 8%);
+  --prompt-danger-icon-color: #{$mono-dark-text};
+  --tag-border: #{$mono-dark-border};
+  --tag-shadow: #{$mono-dark-border};
+  --tag-hover: #{$mono-dark-border};
+  --search-tag-bg: #{$mono-dark-sidebar};
+  --categories-border: #{$mono-dark-border};
+  --categories-hover-bg: #{$mono-dark-border};
+  --categories-icon-hover-color: #{$mono-dark-text};
+  --timeline-color: #{$mono-dark-border};
+  --timeline-node-bg: #{$mono-dark-muted};
+  --timeline-year-dot-color: #{$mono-dark-bg};
+  --language-border-color: #{$mono-dark-border};
+  --highlight-bg-color: #{$mono-dark-code-bg};
+  --highlighter-rouge-color: #{$mono-dark-text};
+  --highlight-lineno-color: #{$mono-dark-muted};
+  --inline-code-bg: rgb(255 255 255 / 6%);
+  --code-color: #{$mono-dark-text};
+  --code-header-text-color: #{$mono-dark-muted};
+  --code-header-muted-color: #{$mono-dark-border};
+  --code-header-icon-color: #{$mono-dark-muted};
+  --clipboard-checked-color: #{$mono-dark-text};
+  --filepath-text-color: #{$mono-dark-muted};
+
+  @include mono-highlight-dark;
+
+  #archives li:nth-child(odd) {
+    background-image: none;
+    background-color: var(--tb-odd-bg);
+  }
+}
+
+#sidebar {
+  border-right: 1px solid var(--sidebar-border-color);
+
+  .site-title,
+  .site-subtitle,
+  .nav-link {
+    font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
+    letter-spacing: -0.02em;
+  }
+
+  #avatar {
+    border-radius: 4px;
+    box-shadow: none;
+    border: 2px solid var(--avatar-border-color);
+  }
+}
+
+a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+
+  &:hover {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}
+
+.post-tag,
+.category,
+.btn,
+.badge,
+.page-item.active .page-link {
+  color: var(--text-color) !important;
+  background-color: var(--button-bg) !important;
+  border-color: var(--btn-border-color) !important;
+}
+
+.post-tag:hover,
+.category:hover,
+.btn:hover {
+  background-color: var(--card-hover-bg) !important;
+  font-weight: 600;
+}
+
+#toc-bar .progress-bar {
+  background-color: var(--text-color) !important;
+}
+
+.post-tail-wrapper .post-meta a {
+  color: var(--text-muted-color);
+
+  &:hover {
+    color: var(--text-color);
+  }
+}
+
+.share-wrapper a {
+  color: var(--btn-share-color) !important;
+
+  &:hover {
+    color: var(--btn-share-hover-color) !important;
+  }
+}
+
+#search-results .post-content em {
+  color: var(--text-color);
+  font-weight: 700;
+  font-style: normal;
+  background: var(--card-hover-bg);
+}
