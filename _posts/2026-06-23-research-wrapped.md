@@ -1,6 +1,6 @@
 ---
 title: "My Research Wrapped: Two Summers in a Lab"
-date: 2026-06-23 04:50:00 -0400
+date: 2026-06-23 05:05:00 -0400
 categories: [Writing, Research]
 tags: [research, data-analysis, imagej, wrapped]
 pin: true
