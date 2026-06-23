@@ -1,21 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Jumping spider">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AK initials favicon">
   <rect width="64" height="64" fill="#ffffff"/>
-  <!-- Abdomen -->
-  <ellipse cx="32" cy="40" rx="11" ry="14" fill="#000000"/>
-  <!-- Cephalothorax -->
-  <ellipse cx="32" cy="22" rx="13" ry="11" fill="#000000"/>
-  <!-- Front eyes -->
-  <circle cx="27" cy="19" r="2.2" fill="#ffffff"/>
-  <circle cx="37" cy="19" r="2.2" fill="#ffffff"/>
-  <circle cx="27" cy="19" r="1" fill="#000000"/>
-  <circle cx="37" cy="19" r="1" fill="#000000"/>
-  <!-- Legs (top-down, eight) -->
-  <path d="M22 24 L8 14" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M26 26 L12 28" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M30 28 L18 40" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M34 28 L46 40" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M38 26 L52 28" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M42 24 L56 14" stroke="#000000" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M24 30 L10 44" stroke="#000000" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M40 30 L54 44" stroke="#000000" stroke-width="2.2" stroke-linecap="round"/>
+  <text
+    x="32"
+    y="43"
+    text-anchor="middle"
+    font-family="Inter, SF Pro Display, Segoe UI, Arial, sans-serif"
+    font-size="34"
+    font-weight="800"
+    letter-spacing="-1"
+    fill="#000000"
+  >AK</text>
 </svg>

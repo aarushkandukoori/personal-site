@@ -1,0 +1,17 @@
+---
+title: "Readings I think are Important"
+date: 2026-06-23 04:40:00 -0400
+categories: [reading, books]
+tags: [books, leadership, ai, medicine, startups]
+pin: true
+---
+
+**The Emperor of All Maladies** by Siddhartha Mukherjee. I started building a medical device before I had any right to, and this book is the reason I slowed down. It is a biography of cancer, which sounds grim, but what stuck with me is how slow and humbling the wins are. Centuries of brilliant people being confidently wrong, killing patients with treatments that made sense on paper. The lesson for anyone pointing software or hardware at the human body: the body does not care how elegant your solution is, and the graveyard of medicine is full of smart people who forgot that. Move fast and break things is a fine motto until the thing is a person.
+
+**Superintelligence** by Nick Bostrom. I opened this expecting science fiction and got a philosophy problem set. Most people in AI treat alignment as either already solved or permanently imaginary, and Bostrom refuses both. The control problem, instrumental convergence, the idea that a system optimizing a goal you specified badly is the default outcome rather than the rare exception. You can argue with his timelines, and I do, and still walk away unable to wave the problem off. If you want to build at the frontier, you should be able to state the strongest version of why it is dangerous, and this is where that version lives. It made me take the work harder.
+
+**High Output Management** by Andy Grove. Every founder name-drops this book and most of them clearly skimmed it. The part nobody quotes is the boring part that matters: a manager's output is the output of their team, full stop. So the job is leverage. Your personal heroics barely move the number. I co-founded a company with close friends, which is the fastest way to learn that being right counts for nothing if you cannot get a team to move together. Grove is unsentimental in a way that is useful when you are eighteen and tempted to lead by vibes. Run on systems, measure the few things that predict the outcome, and stop confusing your effort with the company's results.
+
+**The Innovator's Dilemma** by Clayton Christensen. The uncomfortable thesis: well-run companies die precisely because they do everything right. They listen to their best customers, protect their fat margins, and ignore the cheap, worse product at the bottom of the market until it grows teeth and eats them. I think about this constantly with the company I am building. The incumbents in medical hardware are smart and well run, and that is exactly the trap, because their incentives will not let them chase a small, unproven market that a couple of students can. Christensen gets overcited to the point of parody in tech, but the core mechanic is real, and it changed how I read every large company I want to either work for or compete with.
+
+**Diary of a Wimpy Kid: Rodrick Rules** by Jeff Kinney. Yes, this one. I am an older brother, and somewhere around age nine I read a book about Greg getting tormented by his older brother Rodrick and quietly recognized myself as the villain. That is a strange thing to learn about yourself from a cartoon. I was still a menace for a few more years, but it was the first time a book showed me my own behavior from the outside, which is most of what good writing does. Everything else here taught me how to think about the world. This one taught me something about how I treat the person closest to me, and I would put that above any book on the list.
