@@ -3,6 +3,7 @@ title: "My Research Wrapped: Two Summers in a Lab"
 date: 2026-06-23 12:00:00 -0400
 categories: [Writing, Research]
 tags: [research, data-analysis, imagej, wrapped]
+pin: true
 ---
 
 I keep a journal for every research internship I do. Most of it is dated logistics, the kind of thing only my past self cares about. But reading back through three summers of entries, I realized there was a fun retrospective buried in the boring parts. So here is my Spotify Wrapped, except instead of top songs it is the data I stared at, the software I basically lived inside, and the experiments that worked (plus the ones that absolutely did not).
