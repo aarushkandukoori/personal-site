@@ -14,9 +14,10 @@ That is the job of **logistic regression**, one of the oldest and most important
 
 To understand logistic regression, I like to start the way I start most ML ideas: draw it. Once you can see the boundary, the sigmoid, and the update rule in the same picture, the whole model stops feeling like a formula sheet and starts feeling like a mechanism.
 
-![Two classes of points separated by a logistic decision boundary](/assets/img/ml/logistic-decision-boundary.svg)
-
-*Logistic regression still splits the plane with a line, but it assigns graded probabilities on each side instead of a hard label.*
+<figure class="ml-figure" markdown="0">
+  <img src="/assets/img/ml/logistic-decision-boundary.svg" alt="Two classes of points separated by a logistic decision boundary" width="720" height="360" loading="lazy">
+  <figcaption>Logistic regression still splits the plane with a line, but it assigns graded probabilities on each side instead of a hard label.</figcaption>
+</figure>
 
 ### Which side of the line?
 
@@ -35,10 +36,13 @@ The output is interpreted as $P(y=1 \mid x)$.
 
 Intuitively, if a point sits far above the line in the positive-score region, then $z$ is large and $\sigma(z)$ is near 1. If it sits far below, $\sigma(z)$ is near 0. Points hugging the line get probabilities near 0.5, which is exactly the behavior we want when the world is ambiguous.
 
-![The sigmoid maps a real-valued score z to a probability between 0 and 1](/assets/img/ml/logistic-sigmoid.svg)
+<figure class="ml-figure" markdown="0">
+  <img src="/assets/img/ml/logistic-sigmoid.svg" alt="The sigmoid maps a real-valued score z to a probability between 0 and 1" width="720" height="320" loading="lazy">
+  <figcaption>The sigmoid squashes any real score into the interval (0, 1).</figcaption>
+</figure>
 
 > **Info**
-> Multiple proofs of the sigmoid's shape and limits are collected in [this MIT note on logistic regression](https://web.mit.edu/jadbabae/www/classification.pdf). I kept returning to it while writing this post.
+> Multiple proofs of the sigmoid's shape and limits are collected in [MIT's Intro to ML classification notes (PDF)](https://introml.mit.edu/_static/spring24/LectureNotes/chapter_Classification.pdf). I kept returning to it while writing this post.
 
 Drag the slider below and watch a raw score turn into a probability. This is the entire "activation" step of the model in one function.
 
@@ -122,7 +126,10 @@ The yellow highlight during training marks a point the model still gets wrong un
 
 Once you write logistic regression as a weighted sum followed by a sigmoid, you have written down a single artificial neuron.
 
-![Logistic regression as one neuron with a sigmoid activation](/assets/img/ml/logistic-neuron.svg)
+<figure class="ml-figure" markdown="0">
+  <img src="/assets/img/ml/logistic-neuron.svg" alt="Logistic regression as one neuron with a sigmoid activation" width="720" height="280" loading="lazy">
+  <figcaption>One neuron: weighted sum, sigmoid activation, probability out.</figcaption>
+</figure>
 
 That is not just notation. A one-layer neural network for binary classification **is** logistic regression. Stack many of these neurons, add non-linearities between layers, and you are building the same object at larger scale. The sigmoid in this post is one activation function among many, but the pattern, linear score then non-linear squashing, is the repeating motif of modern deep learning.
 
@@ -131,12 +138,7 @@ That is not just notation. A one-layer neural network for binary classification 
 
 ### What I like about this model
 
-Logistic regression is old, which makes it easy to underestimate. But it is the cleanest place I know to connect four ideas that show up everywhere in ML:
-
-1. **Geometry:** a boundary in feature space.
-2. **Probability:** outputs you can calibrate and threshold.
-3. **Optimization:** gradient descent on a smooth loss.
-4. **Composition:** one neuron as a building block.
+Logistic regression is old, which makes it easy to underestimate. But it is the cleanest place I know to connect four ideas that show up everywhere in ML: a boundary in feature space, outputs you can calibrate and threshold, gradient descent on a smooth loss, and one neuron as a building block.
 
 If you are learning this for the first time, my advice is to play with the playground until the boundary motion feels predictable. Then re-read the update rule and notice how each term exists to fix a specific kind of mistake. That is the habit that turns formulas into intuition.
 
@@ -144,7 +146,7 @@ If you want to go deeper next, compare this post to a hard-margin classifier lik
 
 ### Sources
 
-- MIT notes on logistic regression and classification [(PDF)](https://web.mit.edu/jadbabae/www/classification.pdf)
+- MIT *Intro to Machine Learning* classification chapter [(PDF)](https://introml.mit.edu/_static/spring24/LectureNotes/chapter_Classification.pdf)
 - Andrew Ng, *CS229 Lecture Notes: Classification and Logistic Regression*
 - Bishop, *Pattern Recognition and Machine Learning*, Section 4.3
 - 3Blue1Brown, neural network series (excellent geometric intuition for activation functions)
