@@ -1,0 +1,16 @@
+# Sidebar contact links
+
+- type: github
+  icon: "fab fa-github"
+
+- type: email
+  icon: "fas fa-envelope"
+  noblank: true
+
+- type: linkedin
+  icon: "fab fa-linkedin"
+  url: "https://www.linkedin.com/in/aarush-kandukoori/"
+
+- type: scholar
+  icon: "fas fa-graduation-cap"
+  url: "https://scholar.google.com/citations?user=pmKcjfQAAAAJ"
