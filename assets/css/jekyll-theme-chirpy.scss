@@ -728,3 +728,23 @@ a {
     text-align: center;
   }
 }
+
+.post-content img[src*='assets/img/ml/'] {
+  display: block;
+  width: min(100%, 760px);
+  margin: 1.25rem auto;
+  border: 1px solid var(--main-border-color);
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 6%);
+}
+
+.post-content iframe.interactive-embed--sigmoid {
+  height: 520px;
+  min-height: 520px;
+}
+
+.post-content iframe.interactive-embed--logistic {
+  height: 680px;
+  min-height: 680px;
+}

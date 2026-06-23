@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-label="Two classes of points separated by a decision boundary line">
+  <rect width="720" height="360" fill="#ffffff"/>
+  <g stroke="#e6e6e6" stroke-width="1">
+    <line x1="60" y1="300" x2="660" y2="300"/>
+    <line x1="60" y1="300" x2="60" y2="40"/>
+    <line x1="160" y1="40" x2="160" y2="300"/>
+    <line x1="260" y1="40" x2="260" y2="300"/>
+    <line x1="360" y1="40" x2="360" y2="300"/>
+    <line x1="460" y1="40" x2="460" y2="300"/>
+    <line x1="560" y1="40" x2="560" y2="300"/>
+    <line x1="660" y1="40" x2="660" y2="300"/>
+    <line x1="60" y1="240" x2="660" y2="240"/>
+    <line x1="60" y1="180" x2="660" y2="180"/>
+    <line x1="60" y1="120" x2="660" y2="120"/>
+    <line x1="60" y1="60" x2="660" y2="60"/>
+  </g>
+  <line x1="120" y1="320" x2="620" y2="80" stroke="#111111" stroke-width="3"/>
+  <text x="630" y="74" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111">w∑x + b = 0</text>
+  <circle cx="180" cy="250" r="9" fill="#111"/>
+  <circle cx="220" cy="220" r="9" fill="#111"/>
+  <circle cx="250" cy="260" r="9" fill="#111"/>
+  <circle cx="300" cy="230" r="9" fill="#111"/>
+  <circle cx="340" cy="210" r="9" fill="#111"/>
+  <circle cx="430" cy="120" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="470" cy="90" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="510" cy="130" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="550" cy="100" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="590" cy="70" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <text x="90" y="250" font-family="Inter, Arial, sans-serif" font-size="13" fill="#555">P(y=1) &lt; 0.5</text>
+  <text x="470" y="170" font-family="Inter, Arial, sans-serif" font-size="13" fill="#555">P(y=1) &gt; 0.5</text>
+  <text x="670" y="305" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">xÅ</text>
+  <text x="45" y="50" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">xÇ</text>
+</svg>
