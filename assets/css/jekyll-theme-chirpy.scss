@@ -698,3 +698,33 @@ a {
     min-height: 1320px;
   }
 }
+
+.bump-poster {
+  margin: 1.5rem 0;
+
+  a {
+    display: block;
+    border: 1px solid var(--main-border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgb(0 0 0 / 12%);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    margin-top: 0.65rem;
+    font-size: 0.9rem;
+    color: var(--text-muted-color);
+    text-align: center;
+  }
+}
