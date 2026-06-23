@@ -1,6 +1,6 @@
 ---
 title: "Life as Stever House President"
-date: 2026-06-23 17:04:00 -0400
+date: 2026-06-23 05:00:00 -0400
 categories: [Writing, Campus Life]
 tags: [cmu, stever, leadership, community]
 pin: true
