@@ -551,6 +551,28 @@ header .post-desc,
   }
 }
 
+.resume-viewer {
+  margin-top: 0.5rem;
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: min(80vh, 900px);
+    min-height: 480px;
+    border: 1px solid var(--main-border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+  }
+
+  .resume-download {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    text-align: center;
+    color: var(--text-muted-color);
+    font-size: 0.95em;
+  }
+}
+
 .art-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
