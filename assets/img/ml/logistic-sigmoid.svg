@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" role="img" aria-label="Sigmoid function mapping a score z to a probability between 0 and 1">
   <rect width="720" height="320" fill="#f4f4f4"/>
   <g stroke="#e6e6e6" stroke-width="1">
@@ -15,9 +16,9 @@
   <path d="M 70 258 C 170 256, 250 240, 320 210 C 390 180, 430 120, 650 48" fill="none" stroke="#111" stroke-width="3"/>
   <line x1="70" y1="160" x2="650" y2="160" stroke="#999" stroke-dasharray="6 6" stroke-width="1.5"/>
   <circle cx="360" cy="160" r="6" fill="#111"/>
-  <text x="372" y="154" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">Ã(0) = 0.5</text>
+  <text x="372" y="154" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">&#963;(0) = 0.5</text>
   <text x="655" y="264" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">z</text>
-  <text x="48" y="50" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">Ã(z)</text>
+  <text x="48" y="50" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">&#963;(z)</text>
   <text x="78" y="168" font-family="Inter, Arial, sans-serif" font-size="12" fill="#555">0.5</text>
   <text x="78" y="68" font-family="Inter, Arial, sans-serif" font-size="12" fill="#555">1</text>
 </svg>

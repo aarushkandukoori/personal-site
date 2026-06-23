@@ -1,19 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 280" role="img" aria-label="Logistic regression neuron diagram">
   <rect width="720" height="280" fill="#f4f4f4"/>
   <rect x="40" y="90" width="90" height="44" rx="10" fill="#fff" stroke="#111" stroke-width="2"/>
   <rect x="40" y="150" width="90" height="44" rx="10" fill="#fff" stroke="#111" stroke-width="2"/>
-  <text x="85" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">xÅ</text>
-  <text x="85" y="177" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">xÇ</text>
-  <text x="170" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" fill="#555">wÅ</text>
-  <text x="170" y="177" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" fill="#555">wÇ</text>
+  <text x="85" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">x1</text>
+  <text x="85" y="177" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">x2</text>
+  <text x="170" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" fill="#555">w1</text>
+  <text x="170" y="177" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" fill="#555">w2</text>
   <line x1="130" y1="112" x2="250" y2="140" stroke="#111" stroke-width="2"/>
   <line x1="130" y1="172" x2="250" y2="140" stroke="#111" stroke-width="2"/>
   <circle cx="300" cy="140" r="42" fill="#fff" stroke="#111" stroke-width="2.5"/>
-  <text x="300" y="136" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" fill="#111">£ + b</text>
+  <text x="300" y="136" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" fill="#111">w&#183;x + b</text>
   <text x="300" y="154" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12" fill="#555">score z</text>
   <line x1="342" y1="140" x2="420" y2="140" stroke="#111" stroke-width="2"/>
   <rect x="420" y="110" width="120" height="60" rx="12" fill="#111"/>
-  <text x="480" y="146" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#fff">√(z)</text>
+  <text x="480" y="146" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#fff">&#963;(z)</text>
   <line x1="540" y1="140" x2="620" y2="140" stroke="#111" stroke-width="2"/>
   <text x="650" y="146" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" fill="#111">P(y=1)</text>
 </svg>
