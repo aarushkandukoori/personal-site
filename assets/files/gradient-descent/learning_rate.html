@@ -4,132 +4,167 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Learning rate comparison</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 1rem;
-      font-family: "Source Sans Pro", system-ui, sans-serif;
-      background: #fff;
-      color: #111;
-    }
-    .panel {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 0.75rem;
-      background: #fafafa;
-    }
-    h2 {
-      margin: 0 0 0.75rem;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-    canvas {
-      width: 100%;
-      height: 260px;
-      display: block;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    label {
-      display: block;
-      margin: 0.75rem 0 0.25rem;
-      font-size: 0.9rem;
-    }
-    input[type="range"] { width: 100%; }
-    .row {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.75rem;
-    }
-    button {
-      border: 1px solid #111;
-      background: #fff;
-      color: #111;
-      padding: 0.35rem 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    button:hover { background: #111; color: #fff; }
-    .status {
-      margin-top: 0.75rem;
-      font-size: 0.9rem;
-      color: #333;
-    }
-  </style>
+  <link rel="stylesheet" href="interactive.css">
 </head>
 <body>
-  <div class="panel">
-    <h2>Gradient descent on a 1D loss bowl</h2>
-    <canvas id="canvas" width="640" height="260"></canvas>
-    <label for="eta">Learning rate η: <span id="eta-val">0.10</span></label>
-    <input id="eta" type="range" min="0.01" max="0.45" step="0.01" value="0.10">
-    <div class="row">
-      <button id="run">Run descent</button>
-      <button id="reset">Reset</button>
-    </div>
-    <p class="status" id="status">Start far from the minimum and watch how step size changes the path.</p>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Learning rate lab</h2>
+          <p class="card-subtitle">Same bowl, different step sizes</p>
+        </div>
+        <div class="badge"><span class="badge-dot"></span>η <span id="eta-val">0.10</span></div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="760" height="320"></canvas>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <div class="control-top">
+            <span class="control-label">Learning rate η</span>
+            <span class="control-value" id="eta-display">0.10</span>
+          </div>
+          <input id="eta" type="range" min="0.01" max="0.45" step="0.01" value="0.10">
+        </div>
+
+        <div class="chip-row" id="presets">
+          <button class="chip" data-eta="0.05">Slow · 0.05</button>
+          <button class="chip is-active" data-eta="0.10">Balanced · 0.10</button>
+          <button class="chip" data-eta="0.22">Fast · 0.22</button>
+          <button class="chip" data-eta="0.38">Unstable · 0.38</button>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" id="run">Run descent</button>
+          <button class="btn" id="reset">Reset</button>
+        </div>
+
+        <div class="status-bar">
+          <p class="status-text" id="status">Start far from the minimum and watch how step size changes the path.</p>
+          <div class="metric-row">
+            <div class="metric">
+              <span class="metric-label">Step</span>
+              <span class="metric-value" id="step-count">0</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">w</span>
+              <span class="metric-value" id="w-metric">-2.80</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Loss</span>
+              <span class="metric-value" id="loss-metric">0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
+
   <script>
+    const styles = getComputedStyle(document.documentElement);
+    const colors = {
+      text: () => styles.getPropertyValue("--text").trim() || "#111",
+      muted: () => styles.getPropertyValue("--muted").trim() || "#666",
+      grid: () => styles.getPropertyValue("--grid").trim() || "rgba(0,0,0,0.08)",
+      accent: () => styles.getPropertyValue("--accent").trim() || "#000",
+      canvas: () => styles.getPropertyValue("--canvas-bg").trim() || "#fff",
+      border: () => styles.getPropertyValue("--border").trim() || "#ddd",
+    };
+
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     const etaInput = document.getElementById("eta");
     const etaVal = document.getElementById("eta-val");
+    const etaDisplay = document.getElementById("eta-display");
     const status = document.getElementById("status");
+    const stepCount = document.getElementById("step-count");
+    const wMetric = document.getElementById("w-metric");
+    const lossMetric = document.getElementById("loss-metric");
+    const presetRow = document.getElementById("presets");
 
     const xMin = -3.5;
     const xMax = 3.5;
+    const OPT = 1;
     let w = -2.8;
     let path = [w];
     let animating = false;
 
     function loss(x) {
-      return 0.5 * (x - 1) * (x - 1) + 0.2;
+      return 0.5 * (x - OPT) * (x - OPT) + 0.2;
     }
 
     function grad(x) {
-      return x - 1;
+      return x - OPT;
     }
 
-    function toX(x) {
+    function plotter() {
       const W = canvas.width;
-      return 30 + ((x - xMin) / (xMax - xMin)) * (W - 60);
-    }
-
-    function toY(y) {
       const H = canvas.height;
-      const yMax = 6;
-      return H - 24 - (y / yMax) * (H - 48);
+      const pad = 42;
+      return {
+        W,
+        H,
+        pad,
+        toX: (x) => pad + ((x - xMin) / (xMax - xMin)) * (W - pad * 2),
+        toY: (y) => H - pad - (y / 6.2) * (H - pad * 2),
+      };
     }
 
     function draw() {
-      const W = canvas.width;
-      const H = canvas.height;
+      const plot = plotter();
+      const { W, H, pad, toX, toY } = plot;
       ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = colors.canvas();
+      ctx.fillRect(0, 0, W, H);
 
-      ctx.strokeStyle = "#ddd";
+      ctx.save();
+      const fill = ctx.createLinearGradient(0, pad, 0, H - pad);
+      fill.addColorStop(0, colors.grid());
+      fill.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = fill;
       ctx.beginPath();
-      ctx.moveTo(30, toY(0));
-      ctx.lineTo(W - 30, toY(0));
-      ctx.stroke();
-
-      ctx.strokeStyle = "#000";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (let px = 30; px < W - 30; px++) {
-        const x = xMin + ((px - 30) / (W - 60)) * (xMax - xMin);
+      for (let px = pad; px < W - pad; px++) {
+        const x = xMin + ((px - pad) / (W - pad * 2)) * (xMax - xMin);
         const y = loss(x);
-        if (px === 30) ctx.moveTo(px, toY(y));
+        if (px === pad) ctx.moveTo(px, toY(y));
+        else ctx.lineTo(px, toY(y));
+      }
+      ctx.lineTo(W - pad, H - pad);
+      ctx.lineTo(pad, H - pad);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      ctx.strokeStyle = colors.grid();
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(toX(OPT), pad - 10);
+      ctx.lineTo(toX(OPT), H - pad + 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = colors.accent();
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      for (let px = pad; px < W - pad; px++) {
+        const x = xMin + ((px - pad) / (W - pad * 2)) * (xMax - xMin);
+        const y = loss(x);
+        if (px === pad) ctx.moveTo(px, toY(y));
         else ctx.lineTo(px, toY(y));
       }
       ctx.stroke();
 
       if (path.length > 1) {
-        ctx.strokeStyle = "#666";
-        ctx.setLineDash([4, 4]);
+        const gradient = ctx.createLinearGradient(toX(path[0]), 0, toX(path[path.length - 1]), 0);
+        gradient.addColorStop(0, colors.muted());
+        gradient.addColorStop(1, colors.accent());
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
         ctx.beginPath();
         for (let i = 0; i < path.length; i++) {
           const px = toX(path[i]);
@@ -139,19 +174,67 @@
         }
         ctx.stroke();
         ctx.setLineDash([]);
+
+        for (let i = 0; i < path.length; i += 1) {
+          const alpha = 0.15 + (i / path.length) * 0.75;
+          ctx.fillStyle = colors.accent();
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.arc(toX(path[i]), toY(loss(path[i])), 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
       }
+
+      const minX = toX(OPT);
+      const minY = toY(loss(OPT));
+      ctx.fillStyle = colors.canvas();
+      ctx.strokeStyle = colors.muted();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(minX, minY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
       const px = toX(w);
       const py = toY(loss(w));
-      ctx.fillStyle = "#000";
+      const glow = ctx.createRadialGradient(px, py, 0, px, py, 24);
+      glow.addColorStop(0, "rgba(255,255,255,0.45)");
+      glow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.arc(px, py, 24, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#333";
-      ctx.font = "12px sans-serif";
-      ctx.fillText(`w = ${w.toFixed(3)}`, px + 10, py - 10);
-      ctx.fillText(`loss = ${loss(w).toFixed(3)}`, px + 10, py + 16);
+      ctx.fillStyle = colors.canvas();
+      ctx.strokeStyle = colors.accent();
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(px, py, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = colors.accent();
+      ctx.beginPath();
+      ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.muted();
+      ctx.font = "600 11px Inter, sans-serif";
+      ctx.fillText("w", W - pad + 8, H - 12);
+      ctx.fillText("minimum", minX + 8, minY - 10);
+
+      stepCount.textContent = String(Math.max(0, path.length - 1));
+      wMetric.textContent = w.toFixed(2);
+      lossMetric.textContent = loss(w).toFixed(3);
+    }
+
+    function setEta(value) {
+      etaInput.value = String(value);
+      etaVal.textContent = value.toFixed(2);
+      etaDisplay.textContent = value.toFixed(2);
+      presetRow.querySelectorAll(".chip").forEach((chip) => {
+        chip.classList.toggle("is-active", parseFloat(chip.dataset.eta) === value);
+      });
     }
 
     function reset() {
@@ -159,7 +242,7 @@
       w = -2.8;
       path = [w];
       draw();
-      status.textContent = "Reset. Pick a learning rate and run descent.";
+      status.innerHTML = "<strong>Ready.</strong> Pick a learning rate and run descent.";
     }
 
     async function run() {
@@ -167,6 +250,7 @@
       animating = true;
       const eta = parseFloat(etaInput.value);
       let steps = 0;
+      status.innerHTML = `<strong>Running.</strong> Descending with η = ${eta.toFixed(2)}.`;
 
       while (steps < 40 && animating) {
         const g = grad(w);
@@ -175,30 +259,39 @@
         draw();
 
         if (!Number.isFinite(w) || Math.abs(w) > 20 || loss(w) > 20) {
-          status.textContent = `η = ${eta.toFixed(2)}: diverged (steps kept growing).`;
+          status.innerHTML = `<strong>Diverged.</strong> η = ${eta.toFixed(2)} overshot the bowl and blew up.`;
           animating = false;
           return;
         }
 
         if (Math.abs(g) < 0.001) {
-          status.textContent = `η = ${eta.toFixed(2)}: converged in ${steps + 1} steps.`;
+          status.innerHTML = `<strong>Converged.</strong> Reached the minimum in ${steps + 1} steps with η = ${eta.toFixed(2)}.`;
           animating = false;
           return;
         }
 
         steps += 1;
-        await new Promise((r) => setTimeout(r, 120));
+        await new Promise((r) => setTimeout(r, 110));
       }
 
-      status.textContent = `η = ${eta.toFixed(2)}: still moving after ${steps} steps.`;
+      status.innerHTML = `<strong>Still moving.</strong> η = ${eta.toFixed(2)} did not settle within 40 steps.`;
       animating = false;
     }
 
     etaInput.addEventListener("input", () => {
-      etaVal.textContent = parseFloat(etaInput.value).toFixed(2);
+      const value = parseFloat(etaInput.value);
+      setEta(value);
     });
+
+    presetRow.addEventListener("click", (event) => {
+      const chip = event.target.closest(".chip");
+      if (!chip) return;
+      setEta(parseFloat(chip.dataset.eta));
+    });
+
     document.getElementById("run").addEventListener("click", run);
     document.getElementById("reset").addEventListener("click", reset);
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
     draw();
   </script>
 </body>

@@ -44,12 +44,11 @@ That means we can picture $L$ as a landscape. Imagine a 3D surface where the flo
 > Try the interactive below. Drag the two sliders to change $w$ and $b$ and watch the loss value change. See if you can find the bottom of the bowl by hand.
 
 <iframe
+  class="interactive-embed interactive-embed--landscape"
   src="/assets/files/gradient-descent/loss_landscape.html"
   title="Loss landscape interactive"
   width="100%"
-  height="560"
   loading="lazy"
-  style="border: 1px solid #ccc; border-radius: 8px;"
 ></iframe>
 
 *The loss landscape: every point on the floor is a choice of knobs, height is how wrong that choice is.*
@@ -136,12 +135,11 @@ If $\eta$ is too small, each step is tiny and training crawls. You will reach th
 > Try the interactive below. Watch the same starting point descend the bowl under different learning rates, and see how a rate that is too high causes the loss to explode.
 
 <iframe
+  class="interactive-embed interactive-embed--rate"
   src="/assets/files/gradient-descent/learning_rate.html"
   title="Learning rate interactive"
   width="100%"
-  height="420"
   loading="lazy"
-  style="border: 1px solid #ccc; border-radius: 8px;"
 ></iframe>
 
 *Too small and you crawl, too big and you overshoot.*
