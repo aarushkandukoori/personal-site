@@ -109,7 +109,13 @@ Compare that to the perceptron update: if a point is misclassified, nudge the we
 
 ### Try it yourself
 
-Click to place points, switch the active class, and hit **Train one epoch** or **Auto train**. The shaded background shows the predicted probability field. The dashed line is where $\sigma(w\cdot x + b)=0.5$, the decision boundary.
+This widget is a tiny logistic regression trainer in 2D.
+
+1. Choose **hollow** or **filled** dots.
+2. Click the plot to place a few of each (hollow on one side, filled on the other).
+3. Press **Train**. The gray background is predicted probability; the **dashed line** is the decision boundary.
+
+Start with **Reload demo** if you want sample data already on the canvas.
 
 <iframe
   class="interactive-embed interactive-embed--logistic"
@@ -119,8 +125,6 @@ Click to place points, switch the active class, and hit **Train one epoch** or *
   scrolling="no"
   loading="lazy"
 ></iframe>
-
-The yellow highlight during training marks a point the model still gets wrong under the 0.5 threshold. Reload or reset if you want a clean slate.
 
 ### One neuron, one idea
 
