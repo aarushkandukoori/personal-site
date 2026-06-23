@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logistic regression playground</title>
+  <link rel="stylesheet" href="../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Try it yourself</h2>
+          <p class="card-subtitle">Click to place points, then train logistic regression</p>
+        </div>
+        <div class="badge"><span class="badge-dot"></span>loss <span id="loss">0.00</span></div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="760" height="420"></canvas>
+      </div>
+      <div class="controls">
+        <div class="chip-row">
+          <button class="chip is-active" id="class-0" type="button">Next point: class 0</button>
+          <button class="chip" id="class-1" type="button">Next point: class 1</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" id="train" type="button">Train one epoch</button>
+          <button class="btn" id="auto" type="button">Auto train</button>
+          <button class="btn" id="reset" type="button">Reset</button>
+        </div>
+        <div class="status-bar">
+          <p class="status-text" id="status"><strong>Tip:</strong> place a few points on each side, then hit Train. The dashed line is the 0.5 probability boundary.</p>
+          <div class="metric-row">
+            <div class="metric">
+              <span class="metric-label">w₁</span>
+              <span class="metric-value" id="w1">0.00</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">w₂</span>
+              <span class="metric-value" id="w2">0.00</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">b</span>
+              <span class="metric-value" id="b">0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+    const styles = getComputedStyle(document.documentElement);
+    const colors = {
+      text: () => styles.getPropertyValue("--text").trim() || "#111",
+      muted: () => styles.getPropertyValue("--muted").trim() || "#666",
+      grid: () => styles.getPropertyValue("--grid").trim() || "rgba(0,0,0,0.08)",
+      accent: () => styles.getPropertyValue("--accent").trim() || "#000",
+      canvas: () => styles.getPropertyValue("--canvas-bg").trim() || "#fff",
+      border: () => styles.getPropertyValue("--border").trim() || "#ddd",
+    };
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const lossEl = document.getElementById("loss");
+    const statusEl = document.getElementById("status");
+    const w1El = document.getElementById("w1");
+    const w2El = document.getElementById("w2");
+    const bEl = document.getElementById("b");
+    const class0Btn = document.getElementById("class-0");
+    const class1Btn = document.getElementById("class-1");
+
+    let points = [
+      { x: 0.25, y: 0.72, yTrue: 0 },
+      { x: 0.35, y: 0.62, yTrue: 0 },
+      { x: 0.18, y: 0.55, yTrue: 0 },
+      { x: 0.72, y: 0.28, yTrue: 1 },
+      { x: 0.82, y: 0.35, yTrue: 1 },
+      { x: 0.65, y: 0.18, yTrue: 1 },
+    ];
+    let nextClass = 0;
+    let w1 = 0;
+    let w2 = 0;
+    let b = 0;
+    let animating = false;
+    let highlightIndex = -1;
+
+    const lr = 0.8;
+
+    function sigmoid(z) {
+      if (z >= 0) {
+        const ez = Math.exp(-z);
+        return 1 / (1 + ez);
+      }
+      const ez = Math.exp(z);
+      return ez / (1 + ez);
+    }
+
+    function predict(x, y) {
+      return sigmoid(w1 * x + w2 * y + b);
+    }
+
+    function loss() {
+      if (!points.length) return 0;
+      let total = 0;
+      for (const p of points) {
+        const pred = Math.min(Math.max(predict(p.x, p.y), 1e-6), 1 - 1e-6);
+        total += -(p.yTrue * Math.log(pred) + (1 - p.yTrue) * Math.log(1 - pred));
+      }
+      return total / points.length;
+    }
+
+    function trainStep() {
+      if (!points.length) return;
+      let gw1 = 0;
+      let gw2 = 0;
+      let gb = 0;
+      highlightIndex = -1;
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const pred = predict(p.x, p.y);
+        const err = pred - p.yTrue;
+        if ((p.yTrue === 1 && pred < 0.5) || (p.yTrue === 0 && pred >= 0.5)) {
+          highlightIndex = i;
+        }
+        gw1 += err * p.x;
+        gw2 += err * p.y;
+        gb += err;
+      }
+
+      const n = points.length;
+      w1 -= (lr / n) * gw1;
+      w2 -= (lr / n) * gw2;
+      b -= (lr / n) * gb;
+    }
+
+    function plot() {
+      const W = canvas.width;
+      const H = canvas.height;
+      const pad = 36;
+      return {
+        W,
+        H,
+        pad,
+        toX: (x) => pad + x * (W - pad * 2),
+        toY: (y) => H - pad - y * (H - pad * 2),
+      };
+    }
+
+    function drawBackground(plot) {
+      const { W, H, pad, toX, toY } = plot;
+      const step = 18;
+      for (let px = pad; px < W - pad; px += step) {
+        for (let py = pad; py < H - pad; py += step) {
+          const x = (px - pad) / (W - pad * 2);
+          const y = 1 - (py - pad) / (H - pad * 2);
+          const p = predict(x, y);
+          const gray = Math.round(245 - p * 55);
+          ctx.fillStyle = `rgb(${gray}, ${gray}, ${gray})`;
+          ctx.fillRect(px, py, step, step);
+        }
+      }
+
+      if (Math.abs(w1) > 1e-4 || Math.abs(w2) > 1e-4) {
+        ctx.strokeStyle = colors.accent();
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        if (Math.abs(w2) > 1e-4) {
+          const x0 = 0;
+          const y0 = -(w1 * x0 + b) / w2;
+          const x1 = 1;
+          const y1 = -(w1 * x1 + b) / w2;
+          ctx.moveTo(toX(x0), toY(y0));
+          ctx.lineTo(toX(x1), toY(y1));
+        } else {
+          const x = -b / (w1 || 1e-6);
+          ctx.moveTo(toX(x), pad);
+          ctx.lineTo(toX(x), H - pad);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    function draw() {
+      const plot = plot();
+      const { W, H, pad, toX, toY } = plot;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = colors.canvas();
+      ctx.fillRect(0, 0, W, H);
+
+      drawBackground(plot);
+
+      ctx.strokeStyle = colors.border();
+      ctx.beginPath();
+      ctx.moveTo(pad, H - pad);
+      ctx.lineTo(W - pad, H - pad);
+      ctx.moveTo(pad, pad);
+      ctx.lineTo(pad, H - pad);
+      ctx.stroke();
+
+      points.forEach((p, i) => {
+        const px = toX(p.x);
+        const py = toY(p.y);
+        const pred = predict(p.x, p.y);
+        const mis = (p.yTrue === 1 && pred < 0.5) || (p.yTrue === 0 && pred >= 0.5);
+
+        if (i === highlightIndex) {
+          ctx.fillStyle = "rgba(255, 196, 0, 0.35)";
+          ctx.beginPath();
+          ctx.arc(px, py, 16, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = p.yTrue === 1 ? colors.accent() : colors.canvas();
+        ctx.strokeStyle = colors.accent();
+        ctx.lineWidth = mis ? 3 : 2;
+        ctx.beginPath();
+        ctx.arc(px, py, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      lossEl.textContent = loss().toFixed(3);
+      w1El.textContent = w1.toFixed(2);
+      w2El.textContent = w2.toFixed(2);
+      bEl.textContent = b.toFixed(2);
+    }
+
+    function setNextClass(label) {
+      nextClass = label;
+      class0Btn.classList.toggle("is-active", label === 0);
+      class1Btn.classList.toggle("is-active", label === 1);
+    }
+
+    canvas.addEventListener("click", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const plot = plot();
+      const px = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const py = (event.clientY - rect.top) * (canvas.height / rect.height);
+      const x = (px - plot.pad) / (plot.W - plot.pad * 2);
+      const y = 1 - (py - plot.pad) / (plot.H - plot.pad * 2);
+      if (x < 0 || x > 1 || y < 0 || y > 1) return;
+      points.push({ x, y, yTrue: nextClass });
+      highlightIndex = -1;
+      statusEl.innerHTML = `<strong>Added class ${nextClass} point.</strong> Current loss: ${loss().toFixed(3)}.`;
+      draw();
+      reportHeight();
+    });
+
+    document.getElementById("train").addEventListener("click", () => {
+      trainStep();
+      statusEl.innerHTML = `<strong>One epoch complete.</strong> Cross-entropy loss is now ${loss().toFixed(3)}.`;
+      draw();
+    });
+
+    document.getElementById("auto").addEventListener("click", async () => {
+      if (animating) return;
+      animating = true;
+      statusEl.innerHTML = "<strong>Training...</strong> Watch the boundary slide into place.";
+      for (let i = 0; i < 30; i++) {
+        trainStep();
+        draw();
+        await new Promise((r) => setTimeout(r, 80));
+        if (loss() < 0.05) break;
+      }
+      statusEl.innerHTML = `<strong>Done.</strong> Final loss: ${loss().toFixed(3)}.`;
+      animating = false;
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      w1 = 0;
+      w2 = 0;
+      b = 0;
+      highlightIndex = -1;
+      points = [
+        { x: 0.25, y: 0.72, yTrue: 0 },
+        { x: 0.35, y: 0.62, yTrue: 0 },
+        { x: 0.18, y: 0.55, yTrue: 0 },
+        { x: 0.72, y: 0.28, yTrue: 1 },
+        { x: 0.82, y: 0.35, yTrue: 1 },
+        { x: 0.65, y: 0.18, yTrue: 1 },
+      ];
+      statusEl.innerHTML = "<strong>Reset.</strong> Default points restored.";
+      draw();
+    });
+
+    class0Btn.addEventListener("click", () => setNextClass(0));
+    class1Btn.addEventListener("click", () => setNextClass(1));
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+
+    setNextClass(0);
+    draw();
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+  </script>
+</body>
+</html>

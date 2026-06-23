@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sigmoid explorer</title>
+  <link rel="stylesheet" href="../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Sigmoid explorer</h2>
+          <p class="card-subtitle">Move z and watch a score become a probability</p>
+        </div>
+        <div class="badge"><span class="badge-dot"></span>σ(z) = <span id="prob">0.50</span></div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="760" height="320"></canvas>
+      </div>
+      <div class="controls">
+        <div class="control">
+          <div class="control-top">
+            <span class="control-label">Score z</span>
+            <span class="control-value" id="z-val">0.00</span>
+          </div>
+          <input id="z" type="range" min="-8" max="8" step="0.05" value="0">
+        </div>
+        <div class="metric-row">
+          <div class="metric">
+            <span class="metric-label">σ(z)</span>
+            <span class="metric-value" id="sigma">0.50</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">1 − σ(z)</span>
+            <span class="metric-value" id="one-minus">0.50</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Decision</span>
+            <span class="metric-value" id="decision">0.5 threshold</span>
+          </div>
+        </div>
+        <p class="hint">At z = 0 the model is maximally uncertain. Large positive z pushes probability toward 1; large negative z pushes it toward 0.</p>
+      </div>
+    </section>
+  </div>
+  <script>
+    const styles = getComputedStyle(document.documentElement);
+    const colors = {
+      text: () => styles.getPropertyValue("--text").trim() || "#111",
+      muted: () => styles.getPropertyValue("--muted").trim() || "#666",
+      grid: () => styles.getPropertyValue("--grid").trim() || "rgba(0,0,0,0.08)",
+      accent: () => styles.getPropertyValue("--accent").trim() || "#000",
+      canvas: () => styles.getPropertyValue("--canvas-bg").trim() || "#fff",
+      border: () => styles.getPropertyValue("--border").trim() || "#ddd",
+    };
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const zInput = document.getElementById("z");
+    const zVal = document.getElementById("z-val");
+    const prob = document.getElementById("prob");
+    const sigmaEl = document.getElementById("sigma");
+    const oneMinusEl = document.getElementById("one-minus");
+    const decisionEl = document.getElementById("decision");
+
+    function sigmoid(z) {
+      return 1 / (1 + Math.exp(-z));
+    }
+
+    function draw(z) {
+      const W = canvas.width;
+      const H = canvas.height;
+      const pad = 42;
+      const zMin = -8;
+      const zMax = 8;
+      const toX = (v) => pad + ((v - zMin) / (zMax - zMin)) * (W - pad * 2);
+      const toY = (v) => H - pad - v * (H - pad * 2);
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = colors.canvas();
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = colors.grid();
+      ctx.setLineDash([4, 6]);
+      for (let t = 0; t <= 1.001; t += 0.25) {
+        const y = pad + (1 - t) * (H - pad * 2);
+        ctx.beginPath();
+        ctx.moveTo(pad, y);
+        ctx.lineTo(W - pad, y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = colors.border();
+      ctx.beginPath();
+      ctx.moveTo(pad, H - pad);
+      ctx.lineTo(W - pad, H - pad);
+      ctx.moveTo(pad, pad);
+      ctx.lineTo(pad, H - pad);
+      ctx.stroke();
+
+      ctx.strokeStyle = colors.muted();
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(pad, toY(0.5));
+      ctx.lineTo(W - pad, toY(0.5));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = colors.accent();
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let px = pad; px <= W - pad; px++) {
+        const zz = zMin + ((px - pad) / (W - pad * 2)) * (zMax - zMin);
+        const sy = sigmoid(zz);
+        const py = toY(sy);
+        if (px === pad) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      const sx = toX(z);
+      const sy = sigmoid(z);
+      const syPx = toY(sy);
+      ctx.strokeStyle = colors.muted();
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(sx, H - pad);
+      ctx.lineTo(sx, syPx);
+      ctx.lineTo(pad, syPx);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = colors.accent();
+      ctx.beginPath();
+      ctx.arc(sx, syPx, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = colors.muted();
+      ctx.font = "600 12px Inter, sans-serif";
+      ctx.fillText("z", W - pad + 6, H - 10);
+      ctx.fillText("σ(z)", 12, pad - 10);
+    }
+
+    function update() {
+      const z = parseFloat(zInput.value);
+      const s = sigmoid(z);
+      zVal.textContent = z.toFixed(2);
+      prob.textContent = s.toFixed(2);
+      sigmaEl.textContent = s.toFixed(2);
+      oneMinusEl.textContent = (1 - s).toFixed(2);
+      decisionEl.textContent = s >= 0.5 ? "predict 1" : "predict 0";
+      draw(z);
+    }
+
+    zInput.addEventListener("input", update);
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", update);
+    update();
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+  </script>
+</body>
+</html>
