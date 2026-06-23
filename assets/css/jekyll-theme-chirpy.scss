@@ -415,20 +415,108 @@ html[data-bs-theme='dark'] {
   }
 }
 
-#sidebar {
-  border-right: 1px solid var(--sidebar-border-color);
+/* Karthik / Chirpy typography: Lato headings, Source Sans Pro body */
+body,
+.post-content,
+.content {
+  font-family: 'Source Sans Pro', 'Microsoft Yahei', sans-serif;
+}
 
-  .site-title,
-  .site-subtitle,
+h1,
+h2,
+h3,
+h4,
+h5,
+header .post-desc,
+#topbar-title,
+#search-results a,
+.card-title {
+  font-family: Lato, 'Microsoft Yahei', sans-serif;
+}
+
+/* Sidebar: always solid black */
+#sidebar {
+  --sidebar-bg: #000000;
+  --site-title-color: #ffffff;
+  --site-subtitle-color: #b8b8b8;
+  --sidebar-muted-color: #b8b8b8;
+  --sidebar-active-color: #ffffff;
+  --sidebar-hover-bg: rgb(255 255 255 / 8%);
+  --sidebar-border-color: #1a1a1a;
+  --sidebar-btn-bg: #000000;
+  --sidebar-btn-color: #b8b8b8;
+  --avatar-border-color: #333333;
+
+  background: #000000 !important;
+  border-right: 1px solid #1a1a1a;
+
+  .site-title {
+    font-family: Lato, 'Microsoft Yahei', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.25px;
+  }
+
+  .site-subtitle {
+    font-family: 'Source Sans Pro', 'Microsoft Yahei', sans-serif;
+    font-style: normal;
+  }
+
   .nav-link {
-    font-family: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
-    letter-spacing: -0.02em;
+    font-family: Lato, 'Microsoft Yahei', sans-serif;
+    letter-spacing: 0.2px;
+
+    span {
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
   }
 
   #avatar {
-    border-radius: 4px;
+    border-radius: 50%;
     box-shadow: none;
     border: 2px solid var(--avatar-border-color);
+  }
+
+  a {
+    color: var(--sidebar-muted-color);
+
+    &:hover {
+      color: #ffffff;
+    }
+  }
+
+  .sidebar-bottom a {
+    color: var(--sidebar-btn-color);
+
+    &:hover {
+      color: #ffffff;
+    }
+  }
+}
+
+.art-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.art-item {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--main-border-color);
+  background: var(--card-bg);
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    vertical-align: middle;
   }
 }
 
