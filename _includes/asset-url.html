@@ -1,0 +1,10 @@
+{%- comment -%}
+  Emits a URL for a static asset. Uses github_pages_url when set so images load
+  from GitHub Pages while the custom domain DNS still points elsewhere.
+  Usage: {% include asset-url.html path='/assets/img/example.png' %}
+{%- endcomment -%}
+{%- if site.github_pages_url -%}
+  {{- site.github_pages_url | append: include.path -}}
+{%- else -%}
+  {{- include.path | relative_url -}}
+{%- endif -%}
