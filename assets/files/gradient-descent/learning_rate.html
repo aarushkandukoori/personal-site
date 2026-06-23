@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning rate comparison</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 1rem;
+      font-family: "Source Sans Pro", system-ui, sans-serif;
+      background: #fff;
+      color: #111;
+    }
+    .panel {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: #fafafa;
+    }
+    h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    canvas {
+      width: 100%;
+      height: 260px;
+      display: block;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    label {
+      display: block;
+      margin: 0.75rem 0 0.25rem;
+      font-size: 0.9rem;
+    }
+    input[type="range"] { width: 100%; }
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+    button {
+      border: 1px solid #111;
+      background: #fff;
+      color: #111;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { background: #111; color: #fff; }
+    .status {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h2>Gradient descent on a 1D loss bowl</h2>
+    <canvas id="canvas" width="640" height="260"></canvas>
+    <label for="eta">Learning rate η: <span id="eta-val">0.10</span></label>
+    <input id="eta" type="range" min="0.01" max="0.45" step="0.01" value="0.10">
+    <div class="row">
+      <button id="run">Run descent</button>
+      <button id="reset">Reset</button>
+    </div>
+    <p class="status" id="status">Start far from the minimum and watch how step size changes the path.</p>
+  </div>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const etaInput = document.getElementById("eta");
+    const etaVal = document.getElementById("eta-val");
+    const status = document.getElementById("status");
+
+    const xMin = -3.5;
+    const xMax = 3.5;
+    let w = -2.8;
+    let path = [w];
+    let animating = false;
+
+    function loss(x) {
+      return 0.5 * (x - 1) * (x - 1) + 0.2;
+    }
+
+    function grad(x) {
+      return x - 1;
+    }
+
+    function toX(x) {
+      const W = canvas.width;
+      return 30 + ((x - xMin) / (xMax - xMin)) * (W - 60);
+    }
+
+    function toY(y) {
+      const H = canvas.height;
+      const yMax = 6;
+      return H - 24 - (y / yMax) * (H - 48);
+    }
+
+    function draw() {
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.strokeStyle = "#ddd";
+      ctx.beginPath();
+      ctx.moveTo(30, toY(0));
+      ctx.lineTo(W - 30, toY(0));
+      ctx.stroke();
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let px = 30; px < W - 30; px++) {
+        const x = xMin + ((px - 30) / (W - 60)) * (xMax - xMin);
+        const y = loss(x);
+        if (px === 30) ctx.moveTo(px, toY(y));
+        else ctx.lineTo(px, toY(y));
+      }
+      ctx.stroke();
+
+      if (path.length > 1) {
+        ctx.strokeStyle = "#666";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        for (let i = 0; i < path.length; i++) {
+          const px = toX(path[i]);
+          const py = toY(loss(path[i]));
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      const px = toX(w);
+      const py = toY(loss(w));
+      ctx.fillStyle = "#000";
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#333";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`w = ${w.toFixed(3)}`, px + 10, py - 10);
+      ctx.fillText(`loss = ${loss(w).toFixed(3)}`, px + 10, py + 16);
+    }
+
+    function reset() {
+      animating = false;
+      w = -2.8;
+      path = [w];
+      draw();
+      status.textContent = "Reset. Pick a learning rate and run descent.";
+    }
+
+    async function run() {
+      if (animating) return;
+      animating = true;
+      const eta = parseFloat(etaInput.value);
+      let steps = 0;
+
+      while (steps < 40 && animating) {
+        const g = grad(w);
+        w = w - eta * g;
+        path.push(w);
+        draw();
+
+        if (!Number.isFinite(w) || Math.abs(w) > 20 || loss(w) > 20) {
+          status.textContent = `η = ${eta.toFixed(2)}: diverged (steps kept growing).`;
+          animating = false;
+          return;
+        }
+
+        if (Math.abs(g) < 0.001) {
+          status.textContent = `η = ${eta.toFixed(2)}: converged in ${steps + 1} steps.`;
+          animating = false;
+          return;
+        }
+
+        steps += 1;
+        await new Promise((r) => setTimeout(r, 120));
+      }
+
+      status.textContent = `η = ${eta.toFixed(2)}: still moving after ${steps} steps.`;
+      animating = false;
+    }
+
+    etaInput.addEventListener("input", () => {
+      etaVal.textContent = parseFloat(etaInput.value).toFixed(2);
+    });
+    document.getElementById("run").addEventListener("click", run);
+    document.getElementById("reset").addEventListener("click", reset);
+    draw();
+  </script>
+</body>
+</html>
