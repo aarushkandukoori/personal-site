@@ -48,6 +48,7 @@ That means we can picture $L$ as a landscape. Imagine a 3D surface where the flo
   src="/assets/files/gradient-descent/loss_landscape.html"
   title="Loss landscape interactive"
   width="100%"
+  scrolling="no"
   loading="lazy"
 ></iframe>
 
@@ -139,6 +140,7 @@ If $\eta$ is too small, each step is tiny and training crawls. You will reach th
   src="/assets/files/gradient-descent/learning_rate.html"
   title="Learning rate interactive"
   width="100%"
+  scrolling="no"
   loading="lazy"
 ></iframe>
 
@@ -180,3 +182,5 @@ Hope you got a deeper understanding of how neural networks learn. Thanks for rea
 - 3Blue1Brown, "Gradient descent, how neural networks learn" (Chapter 2 of his neural networks series)
 - StatQuest with Josh Starmer, "Gradient Descent, Step-by-Step"
 - *Why Machines Learn* by Anil Ananthaswamy
+
+<script defer src="/assets/js/interactive-embed-resize.js"></script>

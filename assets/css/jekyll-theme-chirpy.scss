@@ -683,21 +683,18 @@ a {
 }
 
 .post-content iframe.interactive-embed--landscape {
-  height: 640px;
-  min-height: 520px;
+  height: 700px;
+  min-height: 700px;
 }
 
 .post-content iframe.interactive-embed--rate {
-  height: 540px;
-  min-height: 460px;
+  height: 720px;
+  min-height: 720px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .post-content iframe.interactive-embed--landscape {
-    height: 760px;
-  }
-
-  .post-content iframe.interactive-embed--rate {
-    height: 580px;
+    height: 1320px;
+    min-height: 1320px;
   }
 }
