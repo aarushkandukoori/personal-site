@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loss landscape</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 1rem;
+      font-family: "Source Sans Pro", system-ui, sans-serif;
+      background: #fff;
+      color: #111;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .panel {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0.75rem;
+      background: #fafafa;
+    }
+    h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .controls label {
+      display: block;
+      margin: 0.5rem 0 0.25rem;
+      font-size: 0.9rem;
+    }
+    input[type="range"] { width: 100%; }
+    .loss {
+      margin-top: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .hint {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <div class="panel">
+      <h2>Fitted line over data</h2>
+      <canvas id="line-canvas" width="480" height="220"></canvas>
+      <div class="controls">
+        <label for="w">w (slope): <span id="w-val">0.0</span></label>
+        <input id="w" type="range" min="-2" max="4" step="0.05" value="0">
+        <label for="b">b (intercept): <span id="b-val">0.0</span></label>
+        <input id="b" type="range" min="-2" max="6" step="0.05" value="0">
+      </div>
+      <div class="loss">MSE loss: <span id="loss">0.00</span></div>
+      <p class="hint">Try to slide w and b until the loss is as small as possible.</p>
+    </div>
+    <div class="panel">
+      <h2>Loss contour (w vs b)</h2>
+      <canvas id="contour-canvas" width="480" height="220"></canvas>
+      <p class="hint">The dot marks your current (w, b). The center of the bowl is the best fit.</p>
+    </div>
+  </div>
+  <script>
+    const data = [
+      [0, 1], [1, 2.1], [2, 3.9], [3, 5.8], [4, 7.9], [5, 9.8]
+    ];
+    const trueW = 2;
+    const trueB = 1;
+
+    const wInput = document.getElementById("w");
+    const bInput = document.getElementById("b");
+    const wVal = document.getElementById("w-val");
+    const bVal = document.getElementById("b-val");
+    const lossEl = document.getElementById("loss");
+    const lineCanvas = document.getElementById("line-canvas");
+    const contourCanvas = document.getElementById("contour-canvas");
+    const lineCtx = lineCanvas.getContext("2d");
+    const contourCtx = contourCanvas.getContext("2d");
+
+    function mse(w, b) {
+      let sum = 0;
+      for (const [x, y] of data) {
+        const err = w * x + b - y;
+        sum += err * err;
+      }
+      return sum / data.length;
+    }
+
+    function drawLinePlot(w, b, loss) {
+      const ctx = lineCtx;
+      const W = lineCanvas.width;
+      const H = lineCanvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const xMin = -0.5;
+      const xMax = 5.5;
+      const yMin = -1;
+      const yMax = 11;
+
+      const toX = (x) => ((x - xMin) / (xMax - xMin)) * (W - 40) + 20;
+      const toY = (y) => H - 20 - ((y - yMin) / (yMax - yMin)) * (H - 40);
+
+      ctx.strokeStyle = "#ddd";
+      ctx.beginPath();
+      ctx.moveTo(20, toY(0));
+      ctx.lineTo(W - 20, toY(0));
+      ctx.moveTo(toX(0), 20);
+      ctx.lineTo(toX(0), H - 20);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(toX(xMin), toY(w * xMin + b));
+      ctx.lineTo(toX(xMax), toY(w * xMax + b));
+      ctx.stroke();
+
+      ctx.fillStyle = "#000";
+      for (const [x, y] of data) {
+        ctx.beginPath();
+        ctx.arc(toX(x), toY(y), 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#333";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(`loss = ${loss.toFixed(3)}`, 24, 24);
+    }
+
+    function drawContour(w, b) {
+      const ctx = contourCtx;
+      const W = contourCanvas.width;
+      const H = contourCanvas.height;
+      const wMin = -2, wMax = 4, bMin = -2, bMax = 6;
+      const image = ctx.createImageData(W, H);
+      let maxL = 0;
+      const grid = [];
+
+      for (let py = 0; py < H; py++) {
+        const row = [];
+        for (let px = 0; px < W; px++) {
+          const ww = wMin + (px / (W - 1)) * (wMax - wMin);
+          const bb = bMax - (py / (H - 1)) * (bMax - bMin);
+          const l = mse(ww, bb);
+          row.push(l);
+          maxL = Math.max(maxL, l);
+        }
+        grid.push(row);
+      }
+
+      for (let py = 0; py < H; py++) {
+        for (let px = 0; px < W; px++) {
+          const t = 1 - grid[py][px] / maxL;
+          const gray = Math.floor(255 * (0.85 + 0.15 * t));
+          const i = (py * W + px) * 4;
+          image.data[i] = gray;
+          image.data[i + 1] = gray;
+          image.data[i + 2] = gray;
+          image.data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(image, 0, 0);
+
+      const dotX = ((w - wMin) / (wMax - wMin)) * (W - 1);
+      const dotY = ((bMax - b) / (bMax - bMin)) * (H - 1);
+      ctx.fillStyle = "#fff";
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#000";
+      ctx.font = "11px sans-serif";
+      ctx.fillText("w", W - 18, H - 6);
+      ctx.save();
+      ctx.translate(10, 18);
+      ctx.fillText("b", 0, 0);
+      ctx.restore();
+    }
+
+    function update() {
+      const w = parseFloat(wInput.value);
+      const b = parseFloat(bInput.value);
+      const loss = mse(w, b);
+      wVal.textContent = w.toFixed(2);
+      bVal.textContent = b.toFixed(2);
+      lossEl.textContent = loss.toFixed(3);
+      drawLinePlot(w, b, loss);
+      drawContour(w, b);
+    }
+
+    wInput.addEventListener("input", update);
+    bInput.addEventListener("input", update);
+    wInput.value = "0";
+    bInput.value = "0";
+    update();
+  </script>
+</body>
+</html>
