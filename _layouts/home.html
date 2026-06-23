@@ -30,7 +30,16 @@ layout: default
 
 <!-- Get normal posts on current page -->
 
-{% assign normal_size = paginator.posts | size | minus: pinned_size %}
+{% assign slots_left = paginator.per_page | minus: pinned_size %}
+
+{% if paginator.page == 1 and pinned_size > 0 %}
+  {% assign normal_size = all_normal.size %}
+  {% if normal_size > slots_left %}
+    {% assign normal_size = slots_left %}
+  {% endif %}
+{% else %}
+  {% assign normal_size = paginator.posts | size | minus: pinned_size %}
+{% endif %}
 
 {% if normal_size > 0 %}
   {% if pinned_size > 0 %}

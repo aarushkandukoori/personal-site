@@ -97,6 +97,7 @@ pwa:
     deny_paths:
 
 paginate: 10
+future: true
 
 kramdown:
   footnote_backlink: "&#8617;&#xfe0e;"
