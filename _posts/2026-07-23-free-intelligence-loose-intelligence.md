@@ -10,13 +10,13 @@ I started the week reading a Berkeley post that opens with the Gettysburg Addres
 
 ### When the marginal cost of a query goes to zero
 
-The [BAIR perspective on data systems for agents](http://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/) makes a claim I keep turning over: inference prices have fallen somewhere between 9x and 900x per year, with a median near 50x, and the intelligence sufficient for most knowledge work is already here and getting cheaper monthly. The part I love is what they do with that observation. When a query is nearly free, an agent does not behave like a careful human analyst issuing one clean SQL statement. It does what the authors call agentic speculation: it fires thousands of overlapping queries, exploring the hypothesis space in parallel. On a text-to-SQL benchmark, only 10 to 20 percent of the sub-plans were distinct, so 80 to 90 percent of the work was duplicated. And yet success rates went up with more attempts. The redundancy is wasteful and helpful at the same time.
+The [BAIR perspective on data systems for agents](https://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/) makes a claim I keep turning over: inference prices have fallen somewhere between 9x and 900x per year, with a median near 50x, and the intelligence sufficient for most knowledge work is already here and getting cheaper monthly. The part I love is what they do with that observation. When a query is nearly free, an agent does not behave like a careful human analyst issuing one clean SQL statement. It does what the authors call agentic speculation: it fires thousands of overlapping queries, exploring the hypothesis space in parallel. On a text-to-SQL benchmark, only 10 to 20 percent of the sub-plans were distinct, so 80 to 90 percent of the work was duplicated. And yet success rates went up with more attempts. The redundancy is wasteful and helpful at the same time.
 
 That tension is the whole week in miniature. Cheap intelligence does not just let us do the old things faster. It changes the shape of the workload into something swarm-like, redundant, and speculative, and our systems were not designed for that.
 
 <figure class="ml-figure" markdown="0">
   <img src="{% include asset-url.html path='/assets/img/weekly/free-intelligence-loose-intelligence/figure.svg' %}" alt="Notice how steep the drop is: when a curve falls between 9x and 900x per year, the interesting decisions move from 'can we afford to run it' to 'what happens when everyone can.'" width="720" loading="lazy">
-  <figcaption>Notice how steep the drop is: when a curve falls between 9x and 900x per year, the interesting decisions move from 'can we afford to run it' to 'what happens when everyone can.' (Figure generated for this post, inspired by <a href="http://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/">Intelligence is Free, Now What? Data Systems for, of, and by Agents</a>. BAIR anchors the whole week: GPT-4-class inference went from ~$30 per million tokens in 2023 to under $1, with a median ~50x annual decline.)</figcaption>
+  <figcaption>Notice how steep the drop is: when a curve falls between 9x and 900x per year, the interesting decisions move from 'can we afford to run it' to 'what happens when everyone can.' (Figure generated for this post, inspired by <a href="https://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/">Intelligence is Free, Now What? Data Systems for, of, and by Agents</a>. BAIR anchors the whole week: GPT-4-class inference went from ~$30 per million tokens in 2023 to under $1, with a median ~50x annual decline.)</figcaption>
 </figure>
 
 ### The swarm that broke into Hugging Face
@@ -54,7 +54,7 @@ Free intelligence and loose intelligence are the same coin. The BAIR story says 
 
 ### Sources
 
-- [Intelligence is Free, Now What? Data Systems for, of, and by Agents](http://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/) (Berkeley AI Research)
+- [Intelligence is Free, Now What? Data Systems for, of, and by Agents](https://bair.berkeley.edu/blog/2026/07/07/intelligence-is-free-now-what/) (Berkeley AI Research)
 - [OpenAI’s accidental cyberattack against Hugging Face is science fiction that happened](https://simonwillison.net/2026/Jul/22/openai-cyberattack/#atom-everything) (Simon Willison)
 - [The Oracle's Gambit: A Game-Theoretic Framework for Responsible AI Release](https://arxiv.org/abs/2607.05442v1) (Marta Kwiatkowska)
 - [Methods to Madness](https://www.argmin.net/p/methods-to-madness) (Ben Recht)
