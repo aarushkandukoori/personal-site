@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The defender&#x27;s head start</title>
+  <link rel="stylesheet" href="../../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">The defender&#x27;s head start</h2>
+          <p class="card-subtitle">Slide the release window and watch who wins the offense/defense race.</p>
+        </div>
+      </div>
+      
+      <div class="controls" style="padding-top:1rem">
+        <div class="control">
+          <div class="control-top"><span class="control-label">Threshold</span><span class="control-value" id="th">0.50</span></div>
+          <input id="t" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
+        </div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">precision</span><span class="metric-value" id="pr">-</span></div>
+          <div class="metric"><span class="metric-label">recall</span><span class="metric-value" id="rc">-</span></div>
+          <div class="metric"><span class="metric-label">F1</span><span class="metric-value" id="f1">-</span></div>
+        </div>
+        <p class="hint">Raise the threshold: fewer false positives, more missed positives. There is no free lunch.</p>
+      </div>
+    
+    </section>
+  </div>
+  <script>
+
+    // Approximate curves with smooth formulas for a stable demo
+    function metrics(t) {
+      const recall = Math.max(0, Math.min(1, 1.15 - 1.05*t));
+      const precision = Math.max(0.05, Math.min(1, 0.35 + 0.7*t));
+      const f1 = (2*precision*recall) / Math.max(precision+recall, 1e-9);
+      return {precision, recall, f1};
+    }
+    const input = document.getElementById("t");
+    function update() {
+      const t = parseFloat(input.value);
+      const m = metrics(t);
+      document.getElementById("th").textContent = t.toFixed(2);
+      document.getElementById("pr").textContent = m.precision.toFixed(3);
+      document.getElementById("rc").textContent = m.recall.toFixed(3);
+      document.getElementById("f1").textContent = m.f1.toFixed(3);
+      reportHeight();
+    }
+    input.addEventListener("input", update);
+    update();
+    
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+  </script>
+</body>
+</html>
