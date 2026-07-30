@@ -1,0 +1,9 @@
+---
+permalink: /robots.txt
+# Site override of the Chirpy theme's assets/robots.txt: drops the stale
+# 'Disallow: /norobots/' rule (no such directory on this site).
+---
+
+User-agent: *
+
+Sitemap: {{ '/sitemap.xml' | absolute_url }}
