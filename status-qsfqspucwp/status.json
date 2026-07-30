@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T03:37:18-04:00",
+  "generated_at": "2026-07-30T04:39:56-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -55,7 +55,7 @@
           "value": "5"
         },
         {
-          "label": "Parents",
+          "label": "Recipients",
           "value": "2"
         }
       ],
@@ -176,12 +176,12 @@
     "ai_emails_week": 10,
     "ai_emails_total": 20,
     "bounces": 4,
+    "parent_last_sent": "2026-07-29T19:05:24-04:00",
     "blog_latest": {
       "title": "The Specialty Keeps Losing, So Who Gets To Hold the General Thing?",
       "url": "https://aarushkandukoori.com/posts/who-holds-the-general-thing/",
       "date": "2026-07-29"
-    },
-    "parent_last_sent": "2026-07-29T19:05:24-04:00"
+    }
   },
   "doctor": {
     "last_run_at": "2026-07-30T03:30:04-04:00",
