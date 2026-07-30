@@ -1,0 +1,196 @@
+{
+  "generated_at": "2026-07-30T03:37:18-04:00",
+  "hostname": "home mac",
+  "overall": "ok",
+  "automations": [
+    {
+      "id": "scholarship-daily",
+      "name": "Scholarship Daily Apply",
+      "state": "pending_today",
+      "schedule_label": "Daily 10:00",
+      "last_run": {
+        "at": "2026-07-29T19:51:45-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-07-30T10:00:00-04:00",
+      "week_done": null,
+      "metrics": [
+        {
+          "label": "Submitted (cycle)",
+          "value": "8"
+        },
+        {
+          "label": "Awards submitted",
+          "value": "3"
+        },
+        {
+          "label": "Auto-apply pool",
+          "value": "4"
+        },
+        {
+          "label": "Discovered today",
+          "value": "0"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "parent-weekly",
+      "name": "Parent Weekly Email",
+      "state": "ok",
+      "schedule_label": "Daily 09:00 (weekly guard)",
+      "last_run": {
+        "at": "2026-07-29T19:05:24-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-08-03T09:00:00-04:00",
+      "week_done": true,
+      "metrics": [
+        {
+          "label": "Last sent",
+          "value": "2026-07-29T19:05:24-04:00"
+        },
+        {
+          "label": "Opportunities last email",
+          "value": "5"
+        },
+        {
+          "label": "Parents",
+          "value": "2"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "prof-outreach",
+      "name": "Professor Outreach",
+      "state": "ok",
+      "schedule_label": "Daily 08:03 (weekly guard)",
+      "last_run": {
+        "at": "2026-07-29T18:58:42-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-08-03T08:03:00-04:00",
+      "week_done": true,
+      "metrics": [
+        {
+          "label": "Sent this week",
+          "value": "30"
+        },
+        {
+          "label": "Sent total",
+          "value": "81"
+        },
+        {
+          "label": "Bounces",
+          "value": "4"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "ai-outreach",
+      "name": "AI Researcher Outreach",
+      "state": "ok",
+      "schedule_label": "Daily 09:02 (weekly guard)",
+      "last_run": {
+        "at": "2026-07-29T19:04:15-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-08-03T09:02:00-04:00",
+      "week_done": true,
+      "metrics": [
+        {
+          "label": "Sent this week",
+          "value": "10"
+        },
+        {
+          "label": "Sent total",
+          "value": "20"
+        },
+        {
+          "label": "Bounces",
+          "value": "0"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "blog",
+      "name": "Weekly AI Blog",
+      "state": "ok",
+      "schedule_label": "Daily 11:00 (weekly guard)",
+      "last_run": {
+        "at": "2026-07-29T19:58:53-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-08-03T11:00:00-04:00",
+      "week_done": true,
+      "metrics": [
+        {
+          "label": "Latest post",
+          "value": "The Specialty Keeps Losing, So Who Gets To Hold the General Thing?"
+        },
+        {
+          "label": "Published",
+          "value": "2026-07-29"
+        },
+        {
+          "label": "URL",
+          "value": "https://aarushkandukoori.com/posts/who-holds-the-general-thing/"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "id": "heartbeat",
+      "name": "Heartbeat Health Check",
+      "state": "ok",
+      "schedule_label": "Mon 10:30 & 18:00",
+      "last_run": {
+        "at": "2026-07-29T20:05:38-04:00",
+        "exit": 0
+      },
+      "next_run_at": "2026-08-03T10:30:00-04:00",
+      "week_done": null,
+      "metrics": [
+        {
+          "label": "Last verdict",
+          "value": "ALL GOOD"
+        },
+        {
+          "label": "Last heartbeat",
+          "value": "2026-07-29T20:05:38-04:00"
+        }
+      ],
+      "issues": []
+    }
+  ],
+  "totals": {
+    "scholarships_submitted_cycle": 8,
+    "awards_submitted_cycle": 3,
+    "auto_apply_pool": 4,
+    "discovered_new_today": 0,
+    "prof_emails_week": 30,
+    "prof_emails_total": 81,
+    "ai_emails_week": 10,
+    "ai_emails_total": 20,
+    "bounces": 4,
+    "blog_latest": {
+      "title": "The Specialty Keeps Losing, So Who Gets To Hold the General Thing?",
+      "url": "https://aarushkandukoori.com/posts/who-holds-the-general-thing/",
+      "date": "2026-07-29"
+    },
+    "parent_last_sent": "2026-07-29T19:05:24-04:00"
+  },
+  "doctor": {
+    "last_run_at": "2026-07-30T03:30:04-04:00",
+    "actions": [],
+    "needs_human": []
+  },
+  "system": {
+    "disk_free_gb": 135,
+    "claude_auth_ok": true,
+    "network_ok": true
+  }
+}
