@@ -5,790 +5,452 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#050a07">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#eaf4ea">
 <meta name="robots" content="noindex,nofollow">
 <title>Status</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Crect%20width='16'%20height='16'%20rx='3'%20fill='%23050a07'/%3E%3Crect%20x='.5'%20y='.5'%20width='15'%20height='15'%20rx='2.5'%20fill='none'%20stroke='%2336ad6e'%20stroke-opacity='.55'/%3E%3Ctext%20x='2.2'%20y='11.6'%20font-family='monospace'%20font-size='9'%20fill='%2336ad6e'%3E%3E_%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%3E%3Ccircle%20cx='8'%20cy='8'%20r='6.5'%20fill='%230ca30c'/%3E%3C/svg%3E">
 <style>
 /* ==========================================================================
-   AARUSH AUTOMATION CONTROL — CRT command deck
-   Surface #050a07 · status palette validated (dataviz six checks, dark mode,
-   adjacent AND all-pairs CVD): good #36ad6e · warn #be8b0f · fault #bc484b.
-   Status is never color-alone: every state ships a bracket tag + word.
+   AARUSH AUTOMATION STATUS — the "a baby can read it" board.
+   One giant verdict, six plain cards, one quiet strip. Nothing else.
+   Status colors validated (dataviz validator, all checks PASS, both modes):
+     light on card #ffffff : good #0ca30c · working #2a78d6 · warn #c98500 · bad #d03b3b
+     dark  on card #232623 : good #0ca30c · working #3987e5 · warn #bd8600 · bad #d03b3b
+   Status is never color-alone — every chip and the verdict carry symbol + word.
    ========================================================================== */
 :root{
-  --bg:#050a07;
-  --grn:#36ad6e; --amb:#be8b0f; --red:#bc484b;
-  --ink:#a9dcba;   /* primary phosphor text  (≈12.5:1 on bg) */
-  --ink2:#68a981;  /* secondary text         (≈6.5:1)        */
-  --ink3:#3b6a4f;  /* muted / leaders / grid (decorative)     */
-  --line:rgba(76,170,120,.30);
-  font-size:clamp(10px,1.45vmin,16px);
+  --ok:#0ca30c; --work:#2a78d6; --warn:#c98500; --bad:#d03b3b; --wait:#68716b;
+  --card:#ffffff;
+  --ink:#1b221c; --ink2:#57615a;
+  --iconbg:#f0f2ef;
+  --tint-ok:#eaf4ea; --tint-degraded:#f7f0df; --tint-down:#f9ecec; --tint-none:#eff1ef;
+  --shadow:0 8px 28px rgba(20,40,25,.08), 0 2px 6px rgba(20,40,25,.05);
+  --veilbg:rgba(240,243,240,.97);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --work:#3987e5; --warn:#bd8600; --wait:#7b857e;
+    --card:#232623;
+    --ink:#eef1ee; --ink2:#a7afa8;
+    --iconbg:#2d312d;
+    --tint-ok:#121a12; --tint-degraded:#1c1710; --tint-down:#1f1214; --tint-none:#161816;
+    --shadow:0 8px 28px rgba(0,0,0,.35);
+    --veilbg:rgba(18,20,18,.97);
+  }
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+html,body{width:100%;height:100%;overflow:hidden}
 body{
-  position:fixed;inset:0;overscroll-behavior:none;
-  font-family:ui-monospace,'SF Mono',Menlo,monospace;
-  color:var(--ink);-webkit-font-smoothing:antialiased;
+  position:fixed;inset:0;width:100dvw;height:100dvh;overflow:hidden;
+  overscroll-behavior:none;
+  font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--tint-none);
+  transition:background-color 1.2s ease;
+  -webkit-font-smoothing:antialiased;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
 }
-canvas{display:block}
+body[data-overall="ok"]{background:var(--tint-ok)}
+body[data-overall="degraded"]{background:var(--tint-degraded)}
+body[data-overall="down"]{background:var(--tint-down)}
 
-/* ---------- deck grid ---------- */
-#deck{
-  position:absolute;inset:0;z-index:1;
-  display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:.8rem;
-  padding:calc(.7rem + env(safe-area-inset-top)) calc(.9rem + env(safe-area-inset-right))
-          calc(.7rem + env(safe-area-inset-bottom)) calc(.9rem + env(safe-area-inset-left));
-  animation:drift 300s ease-in-out infinite;
-}
-@keyframes drift{ /* burn-in kindness: 1–2px positional wander */
-  0%{transform:translate(0,0)}25%{transform:translate(1.5px,-1px)}
-  50%{transform:translate(-1px,1.5px)}75%{transform:translate(1px,1px)}
-  100%{transform:translate(0,0)}
+#app{
+  position:absolute;inset:0;
+  display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+  gap:clamp(10px,1.8vmin,22px);
+  padding:calc(clamp(12px,2vmin,26px) + env(safe-area-inset-top))
+          calc(clamp(14px,2.4vmin,30px) + env(safe-area-inset-right))
+          calc(clamp(10px,1.6vmin,20px) + env(safe-area-inset-bottom))
+          calc(clamp(14px,2.4vmin,30px) + env(safe-area-inset-left));
 }
 
-/* ---------- panel frame (fieldset-legend terminal frame) ---------- */
-.panel{
-  position:relative;border:1px solid var(--line);border-radius:2px;
-  background:var(--bg);min-height:0;min-width:0;
-  padding:1.1rem .9rem .55rem;
-  opacity:0;transform:translateY(8px);
-  transition:opacity .55s ease,transform .55s ease;
-}
-body.live .panel{opacity:1;transform:none}
-body.live .panel:nth-of-type(1){transition-delay:.02s}
-#main .panel:nth-child(1){transition-delay:.08s}
-#main .panel:nth-child(2){transition-delay:.14s}
-#main .panel:nth-child(3){transition-delay:.20s}
-#main .panel:nth-child(4){transition-delay:.26s}
-#main .panel:nth-child(5){transition-delay:.32s}
-#main .panel:nth-child(6){transition-delay:.38s}
-#main .panel:nth-child(7){transition-delay:.44s}
-#logpanel{transition-delay:.52s}
-.panel::before,.panel::after{ /* corner ticks */
-  content:'+';position:absolute;color:var(--ink3);font-size:.9rem;line-height:1;
-}
-.panel::before{top:-.5em;left:-.32em}
-.panel::after{bottom:-.5em;right:-.32em}
-.ptitle,.ptag{
-  position:absolute;top:-.68em;background:var(--bg);padding:0 .45em;
-  font-size:.92rem;letter-spacing:.14em;white-space:nowrap;
-}
-.ptitle{left:.6rem;color:var(--ink2);max-width:72%;overflow:hidden;text-overflow:ellipsis;letter-spacing:.11em}
-.ptag{right:.6rem;letter-spacing:.06em}
-
-/* ---------- status tags ---------- */
-.tag-ok{color:var(--grn);text-shadow:0 0 .5em rgba(54,173,110,.55)}
-.tag-run{color:var(--grn);text-shadow:0 0 .5em rgba(54,173,110,.55)}
-.tag-hold{color:var(--amb);text-shadow:0 0 .5em rgba(190,139,15,.5)}
-.tag-fault{color:var(--red);animation:invflash 1.5s steps(1) infinite}
-.tag-unk{color:var(--ink3)}
-@keyframes invflash{
-  0%,54%{background:var(--red);color:var(--bg);text-shadow:none}
-  55%,100%{background:var(--bg);color:var(--red);text-shadow:0 0 .5em rgba(188,72,75,.55)}
-}
-
-/* ---------- header ---------- */
-#hdr{display:flex;align-items:center;gap:1.2rem;padding:.8rem 1rem .7rem}
-#h-title{font-size:1.12rem;letter-spacing:.3em;color:var(--ink);white-space:nowrap}
-#h-sub{margin-top:.25rem;font-size:.82rem;letter-spacing:.1em;color:var(--ink3);white-space:nowrap}
-#h-sub .stale{color:var(--amb)}
-#readout{
-  margin:0 auto;font-size:1.62rem;letter-spacing:.34em;white-space:nowrap;
-  text-align:center;padding-left:.34em; /* optical: balance tracking */
-}
-.ro-ok{color:var(--grn);text-shadow:0 0 .7em rgba(54,173,110,.6)}
-.ro-deg{color:var(--amb);text-shadow:0 0 .7em rgba(190,139,15,.55)}
-.ro-down{color:var(--red);text-shadow:0 0 .7em rgba(188,72,75,.6);animation:slowpulse 2.8s ease-in-out infinite}
-.ro-unk{color:var(--ink3)}
-@keyframes slowpulse{0%,100%{opacity:1}50%{opacity:.4}}
-#h-right{text-align:right;white-space:nowrap}
-#clock{font-size:2.35rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:.04em;text-shadow:0 0 .55em rgba(169,220,186,.35)}
-#cur{display:inline-block;color:var(--grn);animation:blink 1.06s steps(1) infinite;margin-left:.12em}
-@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-#hdate{margin-top:.3rem;font-size:.86rem;letter-spacing:.22em;color:var(--ink2)}
-
-/* ---------- main grid ---------- */
-#main{
-  display:grid;gap:.85rem;min-height:0;
-  grid-template-columns:repeat(3,minmax(0,1fr)) clamp(15rem,23vw,24rem);
-  grid-template-rows:repeat(2,minmax(0,1fr));
-}
-#side{grid-column:4;grid-row:1/3;display:flex;flex-direction:column;gap:.85rem;min-height:0;min-width:0}
-
-/* ---------- job panels ---------- */
-.job{display:flex;flex-direction:column}
-.rows{display:flex;flex-direction:column;justify-content:space-evenly;flex:1;min-height:0;overflow:hidden}
-.row{display:flex;align-items:center;gap:.5em;font-size:1.02rem;line-height:1.5;white-space:nowrap}
-.row .lbl{color:var(--ink2);letter-spacing:.08em;overflow:hidden;text-overflow:ellipsis;max-width:58%}
-.row .dots{flex:1;min-width:.8em;border-bottom:1px dotted var(--ink3);position:relative;top:.42em}
-.row .val{color:var(--ink);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;max-width:60%}
-.row .val.err{color:var(--red)}
-.bar{display:flex;align-items:center;gap:.7em;font-size:.98rem;white-space:nowrap;overflow:hidden}
-.cells{letter-spacing:.06em}
-.s-ok .cells{color:var(--grn)} .s-run .cells{color:var(--grn)}
-.s-hold .cells{color:var(--amb)} .s-fault .cells{color:var(--red)}
-.s-unk .cells{color:var(--ink3)}
-.pct{color:var(--ink2);font-size:.88rem}
-.foot{font-size:.82rem;letter-spacing:.06em;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem}
-.foot.iss{color:var(--red)}
-
-/* ---------- side: scope + diag ---------- */
-#scopebox{flex:1.15;display:flex;flex-direction:column}
-#scope{flex:1;min-height:0;width:100%}
-#scopecap{font-size:.8rem;letter-spacing:.18em;color:var(--ink3);text-align:right;margin-top:.2rem}
-#diagbox{flex:1;display:flex;flex-direction:column}
-#diagbox .rows{justify-content:space-evenly}
-
-/* ---------- event log ---------- */
-#logpanel{height:clamp(7.4rem,16dvh,11.5rem);padding-top:1rem}
-#loglines{
-  position:absolute;inset:.95rem .9rem .5rem;display:flex;flex-direction:column;
-  justify-content:flex-end;overflow:hidden;
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 1.6em);
-  mask-image:linear-gradient(to bottom,transparent 0,#000 1.6em);
-}
-#loglines .ln{
-  font-size:.95rem;line-height:1.55;color:var(--ink2);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;flex:none;
-}
-#loglines .ln.hot{color:var(--ink)}
-#totals{color:var(--ink2);letter-spacing:.08em}
-
-/* ---------- CRT overlays ---------- */
-#glow,#scan,#vig{position:fixed;inset:0;pointer-events:none}
-#glow{
-  z-index:60;
-  background:radial-gradient(ellipse at 50% 38%,rgba(70,200,130,.10),rgba(70,200,130,.03) 46%,transparent 72%);
-  animation:flick 9s linear infinite;
-}
-@keyframes flick{ /* gentle brightness wander */
-  0%{opacity:.9}4%{opacity:.72}6%{opacity:.94}31%{opacity:.85}33%{opacity:.7}
-  35%{opacity:.9}62%{opacity:.82}64%{opacity:.95}83%{opacity:.75}85%{opacity:.9}100%{opacity:.9}
-}
-#scan{
-  z-index:96;
-  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.28) 0 1px,transparent 1px 3px);
-}
-#vig{z-index:97;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.44) 100%)}
-
-/* ---------- boot ---------- */
-#boot{
-  position:fixed;inset:0;z-index:85;background:var(--bg);
+/* ---------------- the one giant verdict ---------------- */
+#verdict{
   display:flex;align-items:center;justify-content:center;
-  transition:opacity .5s ease;
+  gap:clamp(14px,2.6vmin,30px);min-width:0;
 }
-#boot.off{opacity:0;pointer-events:none}
-#bootpre{
-  font-family:inherit;font-size:1.05rem;line-height:1.75;color:var(--grn);
-  letter-spacing:.06em;text-shadow:0 0 .6em rgba(54,173,110,.5);
-  min-width:26em;max-width:92vw;white-space:pre-wrap;
+#vcircle{
+  flex:none;
+  width:clamp(68px,11.5vmin,124px);height:clamp(68px,11.5vmin,124px);
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--wait);
+  color:#fff;font-size:clamp(38px,6.6vmin,72px);font-weight:900;line-height:1;
+  box-shadow:var(--shadow);
+  transition:background-color .8s ease;
+  animation:breathe 3s ease-in-out infinite;
+}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+#vcircle span{transform:translateY(-2%)}
+#vwords{
+  min-width:0;
+  font-size:clamp(26px,5.3vmin,58px);
+  font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
 
-/* ---------- carrier-lost veil ---------- */
+/* ---------------- six big cards ---------------- */
+#cards{
+  display:grid;min-height:0;min-width:0;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  gap:clamp(10px,1.8vmin,22px);
+}
+@media (orientation: portrait){
+  #cards{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+}
+.card{
+  min-height:0;min-width:0;overflow:hidden;
+  background:var(--card);border-radius:24px;box-shadow:var(--shadow);
+  padding:clamp(12px,2.2vmin,26px);
+  display:flex;flex-direction:column;justify-content:space-between;
+  gap:clamp(6px,1.1vmin,14px);
+}
+.card.pop{animation:pop .55s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.045)}100%{transform:scale(1)}}
+.top{display:flex;align-items:center;gap:clamp(8px,1.5vmin,16px);min-width:0}
+.iconbox{
+  flex:none;width:clamp(38px,6.2vmin,62px);height:clamp(38px,6.2vmin,62px);
+  border-radius:clamp(10px,1.8vmin,18px);
+  background:var(--iconbg);display:grid;place-items:center;color:var(--ink);
+}
+.iconbox svg{width:72%;height:72%}
+.name{
+  min-width:0;font-size:clamp(17px,2.75vmin,29px);font-weight:800;
+  letter-spacing:-.01em;line-height:1.05;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.chip{
+  align-self:flex-start;max-width:100%;
+  display:inline-flex;align-items:center;gap:.45em;
+  font-size:clamp(15px,2.45vmin,24px);font-weight:800;color:#fff;
+  padding:.42em .85em;border-radius:999px;
+  background:var(--wait);
+  transition:background-color .6s ease;
+  white-space:nowrap;
+}
+.chip .sym{font-weight:900}
+.c-ok{background:var(--ok)}
+.c-work{background:var(--work)}
+.c-wait{background:var(--wait)}
+.c-bad{background:var(--bad)}
+.spin{
+  width:.85em;height:.85em;flex:none;border-radius:50%;
+  border:.16em solid rgba(255,255,255,.4);border-top-color:#fff;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.say{
+  font-size:clamp(13px,2.05vmin,20px);font-weight:600;color:var(--ink2);
+  line-height:1.3;min-width:0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+
+/* ---------------- quiet bottom strip ---------------- */
+#strip{
+  display:flex;align-items:center;gap:clamp(12px,2.4vmin,32px);
+  font-size:clamp(12px,1.8vmin,17px);font-weight:600;color:var(--ink2);
+  min-width:0;white-space:nowrap;
+}
+#doctor{flex:none}
+#blogline{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:center}
+#updated{flex:none;margin-left:auto}
+
+/* ---------------- offline veil ---------------- */
 #veil{
-  position:fixed;inset:0;z-index:88;background:rgba(2,5,3,.86);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;
-  text-align:center;
+  position:absolute;inset:0;z-index:40;
+  background:var(--veilbg);
+  display:grid;place-items:center;text-align:center;
+  padding:6vmin;
+  opacity:0;pointer-events:none;transition:opacity .5s ease;
 }
-#veil[hidden]{display:none}
-#veil .v-big{font-size:2.4rem;letter-spacing:.4em;padding-left:.4em;color:var(--red);text-shadow:0 0 .8em rgba(188,72,75,.6)}
-#veil .v-sub{font-size:1.15rem;letter-spacing:.28em;color:var(--amb)}
-#veil .v-sub .bk{display:inline-block;animation:blink 1.06s steps(1) infinite}
-#veil .v-last{font-size:.95rem;letter-spacing:.14em;color:var(--ink3)}
+#veil.show{opacity:1;pointer-events:auto}
+#veil .zzz{font-size:clamp(54px,12vmin,120px);line-height:1}
+#veil h2{font-size:clamp(22px,4.4vmin,46px);font-weight:800;margin-top:2vmin;letter-spacing:-.01em}
+#veil p{font-size:clamp(14px,2.4vmin,22px);font-weight:600;color:var(--ink2);margin-top:1.2vmin}
 
-/* ---------- portrait ---------- */
-@media (orientation:portrait){
-  #hdr{flex-wrap:wrap;row-gap:.15rem;padding-bottom:.5rem}
-  #readout{order:3;flex-basis:100%;font-size:1.5rem;padding-top:.35rem}
-  #main{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    grid-template-rows:repeat(3,minmax(0,1fr)) minmax(8.6rem,.72fr);
-  }
-  #side{grid-column:1/3;grid-row:4;flex-direction:row}
-  #scopebox{flex:1.05}
-  #logpanel{height:clamp(7.4rem,13dvh,11rem)}
-}
-
-/* ---------- reduced motion: static deck, opacity fades only ---------- */
-@media (prefers-reduced-motion:reduce){
-  #deck{animation:none}
-  #glow{animation:none;opacity:.85}
-  #scan{display:none}
-  #cur,#veil .v-sub .bk{animation:none}
-  .tag-fault{animation:none;background:var(--red);color:var(--bg);text-shadow:none}
-  .ro-down{animation:none}
-  .panel{transform:none;transition:opacity .4s ease}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
 }
 </style>
 </head>
-<body class="o-unk">
-
-<div id="deck">
-  <header id="hdr" class="panel">
-    <span class="ptitle">MISSION CONSOLE</span>
-    <div id="h-left">
-      <div id="h-title">AARUSH AUTOMATION CONTROL</div>
-      <div id="h-sub">HOST ---- &middot; FRAME ----</div>
-    </div>
-    <div id="readout" class="ro-unk" role="status">AWAITING TELEMETRY</div>
-    <div id="h-right">
-      <div id="clock">--:--:--<span id="cur">&#9609;</span></div>
-      <div id="hdate">----</div>
-    </div>
+<body data-overall="none">
+<main id="app">
+  <header id="verdict">
+    <div id="vcircle" class="v-none"><span id="vglyph">…</span></div>
+    <div id="vwords">Checking…</div>
   </header>
-
-  <div id="main">
-    <section id="side">
-      <div id="scopebox" class="panel">
-        <span class="ptitle">SIGNAL TRACE</span>
-        <span class="ptag tag-unk" id="scopetag">[ -- ]</span>
-        <canvas id="scope"></canvas>
-        <div id="scopecap">CH-1 &middot; TELEMETRY CARRIER</div>
-      </div>
-      <div id="diagbox" class="panel">
-        <span class="ptitle">SYS DIAG</span>
-        <span class="ptag tag-unk" id="diagtag">[ -- ]</span>
-        <div class="rows" id="diagrows"></div>
-      </div>
-    </section>
-    <!-- job panels injected here -->
+  <section id="cards"></section>
+  <footer id="strip">
+    <span id="doctor">🤖 Robot doctor hasn’t checked yet today</span>
+    <span id="blogline" hidden></span>
+    <span id="updated">Waiting for the first update…</span>
+  </footer>
+</main>
+<div id="veil" aria-hidden="true">
+  <div>
+    <div class="zzz">😴</div>
+    <h2>Can’t reach the Mac right now</h2>
+    <p id="veilsub">Waiting for the first update…</p>
   </div>
-
-  <section id="logpanel" class="panel">
-    <span class="ptitle">EVENT LOG</span>
-    <span class="ptag" id="totals">SCHOL - &middot; POOL - &middot; MAIL - &middot; BNC -</span>
-    <div id="loglines"></div>
-  </section>
 </div>
-
-<div id="glow"></div>
-<div id="scan"></div>
-<div id="vig"></div>
-
-<div id="veil" hidden>
-  <div class="v-big">CARRIER LOST</div>
-  <div class="v-sub">RECONNECTING <span class="bk">&#9609;</span></div>
-  <div class="v-last" id="veillast">LAST GOOD FRAME: NONE</div>
-</div>
-
-<div id="boot"><pre id="bootpre"></pre></div>
-
 <script>
-'use strict';
-/* ================= helpers ================= */
-var RM = false;
-try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
-function $(s){ return document.querySelector(s); }
-function pad2(n){ return (n < 10 ? '0' : '') + n; }
-function parseISO(s){
-  if (typeof s !== 'string' || !s) return null;
-  var d = new Date(s);
-  return isNaN(d.getTime()) ? null : d;
-}
-function fmtClock(d){ return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
-function fmtHM(d){ return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
-function fmtStamp(d){
-  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' + fmtHM(d);
-}
-var DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-function fmtDate(d){
-  return DAYS[d.getDay()] + ' ' + d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-}
-function fmtRel(ms){
-  if (ms < 0) ms = 0;
-  var s = Math.floor(ms / 1000);
-  if (s < 60) return 'JUST NOW';
-  var m = Math.floor(s / 60);
-  if (m < 60) return m + 'M AGO';
-  var h = Math.floor(m / 60);
-  if (h < 24) return h + 'H AGO';
-  return Math.floor(h / 24) + 'D AGO';
-}
-function fmtCountdown(ms){
-  if (ms <= 0) return 'DUE NOW';
-  var s = Math.floor(ms / 1000);
-  var d = Math.floor(s / 86400);
-  if (d >= 1) {
-    s -= d * 86400;
-    return 'T-' + d + 'D ' + pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s % 3600 / 60));
-  }
-  return 'T-' + pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s % 3600 / 60)) + ':' + pad2(s % 60);
-}
-function clamp01(x){ return x < 0 ? 0 : (x > 1 ? 1 : x); }
-function up(s){ return String(s).toUpperCase(); }
-function num(v){ return (typeof v === 'number' && isFinite(v)) ? v : null; }
-
-/* state -> tag text + classes.  Never color-alone: tag word carries state. */
-var TAGS = {
-  ok:            { txt: '[ OK ]',  cls: 'tag-ok',    scls: 's-ok'    },
-  in_progress:   { txt: '[ RUN ]', cls: 'tag-run',   scls: 's-run'   },
-  pending_today: { txt: '[ HOLD ]',cls: 'tag-hold',  scls: 's-hold'  },
-  issue:         { txt: '[FAULT]', cls: 'tag-fault', scls: 's-fault' },
-  unk:           { txt: '[ -- ]',  cls: 'tag-unk',   scls: 's-unk'   }
+"use strict";
+/* ------------------------------------------------ the six cards, fixed order */
+var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat"];
+var NICE = {
+  "scholarship-daily":"Scholarships",
+  "parent-weekly":"Email to Parents",
+  "prof-outreach":"Professor Emails",
+  "ai-outreach":"AI Researcher Emails",
+  "blog":"Blog",
+  "heartbeat":"Health Check"
 };
-function tagFor(state){ return TAGS[state] || TAGS.unk; }
-var SPIN = ['|','/','-','\\'];
-var BAR_N = 16;
-function barText(f){
-  var k = Math.max(0, Math.min(BAR_N, Math.round(f * BAR_N)));
-  var out = '';
-  for (var i = 0; i < BAR_N; i++) out += (i < k ? '▓' : '░');
-  return out;
-}
+/* friendly rounded inline icons — stroke follows ink color, never status color */
+var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
+var ICONS = {
+  "scholarship-daily": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M4 18 24 9l20 9-20 9z"/><path d="M13 22.8v7.2c0 2.9 4.9 5.2 11 5.2s11-2.3 11-5.2v-7.2"/><path d="M44 18v9"/></svg>',
+  "parent-weekly": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M24 35.5c-3.4-2.5-5.6-4.4-5.6-6.7a3.1 3.1 0 0 1 5.6-1.8 3.1 3.1 0 0 1 5.6 1.8c0 2.3-2.2 4.2-5.6 6.7z"/></svg>',
+  "prof-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M4 18 24 7l20 11z"/><path d="M10 22.5V36M18 22.5V36M30 22.5V36M38 22.5V36"/><path d="M6 40h36"/></svg>',
+  "ai-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="10" y="16" width="28" height="23" rx="7"/><path d="M24 16v-5.5"/><circle cx="24" cy="8" r="2.4"/><circle cx="18.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><circle cx="29.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><path d="M18 32.5c1.8 1.6 10.2 1.6 12 0"/></svg>',
+  "blog": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M31 9.5 38.5 17 17 38.5 7 41l2.5-10z"/><path d="M27 13.5 34.5 21"/></svg>',
+  "heartbeat": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 7v11a9.5 9.5 0 0 0 19 0V7"/><path d="M22.5 27.2V31a8 8 0 0 0 16 0v-4.5"/><circle cx="38.5" cy="22.5" r="4"/></svg>'
+};
+var CHIP = {
+  ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
+  in_progress:   {cls:"c-work", html:'<span class="spin" aria-hidden="true"></span><span>Working…</span>'},
+  pending_today: {cls:"c-wait", html:'<span class="sym">🕐</span><span>Waiting</span>'},
+  issue:         {cls:"c-bad",  html:'<span class="sym">!</span><span>Needs Help</span>'}
+};
+var VERDICT = {
+  ok:       {glyph:"✓", words:"All Good"},
+  degraded: {glyph:"!", words:"Something Needs Attention"},
+  down:     {glyph:"✕", words:"Things Are Broken"},
+  none:     {glyph:"…", words:"Checking…"}
+};
+var VCOLOR = {ok:"var(--ok)", degraded:"var(--warn)", down:"var(--bad)", none:"var(--wait)"};
+var TINT = {
+  light:{ok:"#eaf4ea", degraded:"#f7f0df", down:"#f9ecec", none:"#eff1ef"},
+  dark: {ok:"#121a12", degraded:"#1c1710", down:"#1f1214", none:"#161816"}
+};
 
-/* ================= global state ================= */
-var data = null;
-var subBase = '';
-var lastGoodAt = null;
-var failCount = 0;
-var veilOn = false;
-var prevOverall = null;
-var spinIdx = 0;
-var jobEls = {};   // id -> node refs
-var jobState = {}; // id -> {last:Date|null, next:Date|null, state:str}
-var jobOrder = [];
-
-/* ================= panels ================= */
-function makeJobPanel(id){
-  var p = document.createElement('section');
-  p.className = 'panel job s-unk';
-  p.innerHTML =
-    '<span class="ptitle"></span><span class="ptag tag-unk">[ -- ]</span>' +
-    '<div class="rows">' +
-      '<div class="row"><span class="lbl">LAST RUN</span><span class="dots"></span><span class="val v-last">----</span></div>' +
-      '<div class="row"><span class="lbl">NEXT</span><span class="dots"></span><span class="val v-next">----</span></div>' +
-      '<div class="row"><span class="lbl v-mlbl">METRIC</span><span class="dots"></span><span class="val v-mval">----</span></div>' +
-      '<div class="bar"><span class="cells">' + barText(0) + '</span><span class="pct">--</span></div>' +
-      '<div class="foot v-foot">----</div>' +
-    '</div>';
-  $('#main').appendChild(p);
-  jobEls[id] = {
-    root: p,
-    title: p.querySelector('.ptitle'),
-    tag: p.querySelector('.ptag'),
-    last: p.querySelector('.v-last'),
-    next: p.querySelector('.v-next'),
-    mlbl: p.querySelector('.v-mlbl'),
-    mval: p.querySelector('.v-mval'),
-    cells: p.querySelector('.cells'),
-    pct: p.querySelector('.pct'),
-    foot: p.querySelector('.v-foot')
-  };
-  return jobEls[id];
-}
-
-function updateJob(a, idx){
-  var id = (a && typeof a.id === 'string' && a.id) ? a.id : ('slot' + idx);
-  var els = jobEls[id] || makeJobPanel(id);
-  if (jobOrder.indexOf(id) < 0) jobOrder.push(id);
-
-  var state = (a.state === 'ok' || a.state === 'issue' || a.state === 'in_progress' ||
-               a.state === 'pending_today') ? a.state : 'unk';
-  var t = tagFor(state);
-  els.root.className = 'panel job ' + t.scls;
-  els.title.textContent = up(a.name || id);
-  els.tag.className = 'ptag ' + t.cls;
-  els.tag.textContent = t.txt;
-
-  var lr = (a.last_run && typeof a.last_run === 'object') ? a.last_run : {};
-  var lastAt = parseISO(lr.at);
-  var nextAt = parseISO(a.next_run_at);
-  jobState[id] = { last: lastAt, next: nextAt, state: state };
-
-  els.last.classList.toggle('err', typeof lr.exit === 'number' && lr.exit !== 0);
-
-  /* headline metric: first metric, else schedule */
-  var m = (a.metrics && a.metrics.length && a.metrics[0] &&
-           typeof a.metrics[0] === 'object') ? a.metrics[0] : null;
-  if (m && m.label != null) {
-    els.mlbl.textContent = up(m.label);
-    els.mval.textContent = (m.value == null || m.value === '') ? '--' : up(m.value);
-  } else {
-    els.mlbl.textContent = 'SCHED';
-    els.mval.textContent = a.schedule_label ? up(a.schedule_label) : '--';
-  }
-
-  /* footer: first issue (fault) else schedule + week flag */
-  var iss = (a.issues && a.issues.length) ? a.issues[0] : null;
-  if (iss) {
-    els.foot.className = 'foot v-foot iss';
-    els.foot.textContent = '⚠ ' + up(iss);
-  } else {
-    els.foot.className = 'foot v-foot';
-    var wk = a.week_done === true ? ' · WK DONE' : (a.week_done === false ? ' · WK OPEN' : '');
-    els.foot.textContent = (a.schedule_label ? up(a.schedule_label) : ' ') + wk;
-  }
-  tickJob(id, new Date());
-}
-
-function tickJob(id, now){
-  var js = jobState[id], els = jobEls[id];
-  if (!js || !els) return;
-  els.last.textContent = js.last ? fmtRel(now - js.last) : 'NEVER';
-  if (js.state === 'in_progress') {
-    els.next.textContent = 'PROC ' + (RM ? '' : SPIN[spinIdx]);
-    els.cells.textContent = barText(1);
-    els.pct.textContent = 'RUN';
-    return;
-  }
-  els.next.textContent = js.next ? fmtCountdown(js.next - now) : 'UNSCHED';
-  var f = 0;
-  if (js.next) {
-    if (js.last && js.next > js.last) f = (now - js.last) / (js.next - js.last);
-    else f = 1 - (js.next - now) / 86400000;
-  }
-  f = clamp01(f);
-  els.cells.textContent = barText(f);
-  els.pct.textContent = Math.round(f * 100) + '%';
-}
-
-/* ================= sys diag ================= */
-var DIAG_KEYS = ['NET', 'DISK', 'CLAUDE AUTH', 'DOCTOR'];
-var diagEls = {};
-(function buildDiag(){
-  var host = $('#diagrows');
-  for (var i = 0; i < DIAG_KEYS.length; i++) {
-    var r = document.createElement('div');
-    r.className = 'row';
-    r.innerHTML = '<span class="lbl"></span><span class="dots"></span><span class="val">----</span>';
-    r.querySelector('.lbl').textContent = DIAG_KEYS[i];
-    host.appendChild(r);
-    diagEls[DIAG_KEYS[i]] = r.querySelector('.val');
-  }
+/* ------------------------------------------------ build the card skeletons once */
+var cardEls = {};
+(function build(){
+  var wrap = document.getElementById("cards");
+  ORDER.forEach(function(id){
+    var card = document.createElement("article");
+    card.className = "card";
+    var top = document.createElement("div"); top.className = "top";
+    var box = document.createElement("div"); box.className = "iconbox"; box.innerHTML = ICONS[id];
+    var name = document.createElement("div"); name.className = "name"; name.textContent = NICE[id];
+    top.appendChild(box); top.appendChild(name);
+    var chip = document.createElement("span"); chip.className = "chip c-wait";
+    chip.innerHTML = CHIP.pending_today.html;
+    var say = document.createElement("div"); say.className = "say"; say.textContent = "No news yet";
+    card.appendChild(top); card.appendChild(chip); card.appendChild(say);
+    wrap.appendChild(card);
+    cardEls[id] = {card:card, chip:chip, say:say};
+  });
 })();
-function setDiagVal(key, text, mood){ /* mood: ok|fault|warn|unk */
-  var el = diagEls[key];
-  el.textContent = text;
-  el.style.color = mood === 'ok' ? 'var(--grn)' : mood === 'fault' ? 'var(--red)'
-    : mood === 'warn' ? 'var(--amb)' : 'var(--ink3)';
-}
-function doctorWord(doc){
-  var nh = (doc.needs_human || []).length, na = (doc.actions || []).length;
-  if (nh) return { txt: nh + ' NEED OPERATOR', mood: 'fault' };
-  if (na) return { txt: na + ' FIXED [ OK ]', mood: 'ok' };
-  if (!parseISO(doc.last_run_at)) return { txt: 'STANDBY', mood: 'unk' };
-  return { txt: 'ALL QUIET [ OK ]', mood: 'ok' };
-}
-function updateDiag(d){
-  var sys = (d.system && typeof d.system === 'object') ? d.system : {};
-  var doc = (d.doctor && typeof d.doctor === 'object') ? d.doctor : {};
-  setDiagVal('NET', sys.network_ok === true ? '[ OK ]' : sys.network_ok === false ? '[FAULT]' : 'NO DATA',
-             sys.network_ok === true ? 'ok' : sys.network_ok === false ? 'fault' : 'unk');
-  var disk = num(sys.disk_free_gb);
-  if (disk == null) setDiagVal('DISK', 'NO DATA', 'unk');
-  else setDiagVal('DISK', Math.round(disk) + 'G FREE ' + (disk < 10 ? '[ LOW ]' : '[ OK ]'),
-                  disk < 10 ? 'fault' : 'ok');
-  setDiagVal('CLAUDE AUTH', sys.claude_auth_ok === true ? '[ OK ]' : sys.claude_auth_ok === false ? '[FAULT]' : 'NO DATA',
-             sys.claude_auth_ok === true ? 'ok' : sys.claude_auth_ok === false ? 'fault' : 'unk');
-  var dw = doctorWord(doc);
-  setDiagVal('DOCTOR', dw.txt, dw.mood);
-  var anyFault = sys.network_ok === false || sys.claude_auth_ok === false ||
-                 (disk != null && disk < 10) || (doc.needs_human || []).length > 0;
-  var dt = $('#diagtag');
-  dt.textContent = anyFault ? '[FAULT]' : '[ OK ]';
-  dt.className = 'ptag ' + (anyFault ? 'tag-fault' : 'tag-ok');
-}
 
-/* ================= event log ================= */
-var logQ = [], logTyping = false, logEl = $('#loglines');
-var synthLines = [], synthIdx = 0;
-function trimLog(){ while (logEl.children.length > 12) logEl.removeChild(logEl.firstChild); }
-function pushLog(lines, hot){
-  for (var i = 0; i < lines.length; i++) logQ.push({ t: lines[i], hot: !!hot });
-  if (!logTyping) typeNextLog();
+/* ------------------------------------------------ friendly time, never ISO */
+function parseISO(s){ if(!s) return null; var d = new Date(s); return isNaN(d) ? null : d; }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function weekdayName(d){ return d.toLocaleDateString(undefined,{weekday:"long"}); }
+function monthDay(d){ return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function clockStr(d){
+  var h = d.getHours()%12 || 12, m = d.getMinutes();
+  return m ? h + ":" + String(m).padStart(2,"0") : String(h);
 }
-function typeNextLog(){
-  if (!logQ.length) { logTyping = false; return; }
-  logTyping = true;
-  var item = logQ.shift();
-  var div = document.createElement('div');
-  div.className = 'ln' + (item.hot ? ' hot' : '');
-  logEl.appendChild(div);
-  trimLog();
-  if (RM) { div.textContent = item.t; setTimeout(typeNextLog, 350); return; }
-  var t0 = performance.now(); /* time-based: immune to timer throttling */
-  var iv = setInterval(function(){
-    var i = Math.floor((performance.now() - t0) / 9);
-    div.textContent = item.t.slice(0, i);
-    if (i >= item.t.length) { clearInterval(iv); setTimeout(typeNextLog, 750); }
-  }, 26);
+function friendlyDay(d){
+  var now = new Date();
+  if(sameDay(d,now)) return "today";
+  var y = new Date(now); y.setDate(y.getDate()-1);
+  if(sameDay(d,y)) return "yesterday";
+  if(now - d < 6.5*86400000 && now > d) return weekdayName(d);
+  return monthDay(d);
 }
-function totalsLine(t){
-  function n(v){ var x = num(v); return x == null ? '-' : x; }
-  return 'SCHOL ' + n(t.scholarships_submitted_cycle) + ' · POOL ' + n(t.auto_apply_pool) +
-         ' · MAIL ' + n(t.prof_emails_week) + 'P/' + n(t.ai_emails_week) + 'A' +
-         ' · BNC ' + n(t.bounces);
+function relTime(d){
+  if(!d) return "a little while ago";
+  var s = (Date.now() - d.getTime())/1000; if(s < 0) s = 0;
+  if(s < 90) return "just now";
+  var m = Math.round(s/60);
+  if(m < 60) return m === 1 ? "a minute ago" : m + " minutes ago";
+  var h = Math.round(m/60);
+  if(h < 24) return h === 1 ? "an hour ago" : h + " hours ago";
+  var day = friendlyDay(d);
+  return day === "yesterday" ? "yesterday" : "on " + day;
 }
-function synth(d){
-  var L = [];
-  var g = parseISO(d.generated_at);
-  L.push('FRAME RX ' + (g ? fmtClock(g) : '--:--:--') + ' · OVERALL: ' + up(d.overall || 'UNKNOWN'));
-  var autos = d.automations || [];
-  for (var i = 0; i < autos.length; i++) {
-    var a = autos[i] || {};
-    var nm = up(a.name || a.id || 'JOB');
-    var lr = a.last_run || {};
-    var at = parseISO(lr.at);
-    if (a.state === 'in_progress') L.push(nm + ': PROC ACTIVE' + (at ? ' SINCE ' + fmtClock(at) : ''));
-    else if (at) L.push(nm + ': EXIT ' + (typeof lr.exit === 'number' ? lr.exit : '--') +
-                        ' @ ' + fmtClock(at) + (typeof lr.exit === 'number' && lr.exit !== 0 ? ' — FAULT LOGGED' : ''));
-    else L.push(nm + ': NEVER RUN — AWAITING FIRST PASS');
-    var iss = a.issues || [];
-    for (var k = 0; k < iss.length && k < 2; k++) L.push('⚠ ' + nm + ': ' + up(iss[k]));
+function plural(n, one, many){ return n === 1 ? one : many; }
+
+/* ------------------------------------------------ plain-English sentences */
+function pendingSentence(a){
+  var d = parseISO(a && a.next_run_at);
+  if(!d) return "Runs later today";
+  var now = new Date(), c = clockStr(d);
+  if(sameDay(d, now)){
+    var h = d.getHours();
+    var tod = h < 12 ? "this morning" : (h < 17 ? "this afternoon" : "tonight");
+    return "Runs " + tod + " at " + c;
   }
-  var t = (d.totals && typeof d.totals === 'object') ? d.totals : {};
-  L.push('TOTALS: ' + totalsLine(t) + ' · AWD ' + (num(t.awards_submitted_cycle) == null ? '-' : t.awards_submitted_cycle) +
-         ' · NEW ' + (num(t.discovered_new_today) == null ? '-' : t.discovered_new_today));
-  var bl = t.blog_latest;
-  if (bl && typeof bl === 'object' && bl.title) L.push('BLOG TX: "' + up(bl.title) + '"' + (bl.date ? ' · ' + bl.date : ''));
-  else L.push('BLOG TX: NO TRANSMISSIONS');
-  var pls = parseISO(t.parent_last_sent);
-  L.push(pls ? 'PARENT DIGEST SENT ' + fmtStamp(pls) : 'PARENT DIGEST: NONE ON RECORD');
-  var doc = (d.doctor && typeof d.doctor === 'object') ? d.doctor : {};
-  L.push('DOCTOR: ' + doctorWord(doc).txt +
-         (parseISO(doc.last_run_at) ? ' · LAST PASS ' + fmtClock(parseISO(doc.last_run_at)) : ''));
-  for (var j = 0; j < L.length; j++) L[j] = '▸ ' + L[j];
-  return L;
+  var tom = new Date(now); tom.setDate(tom.getDate()+1);
+  if(sameDay(d, tom)) return "Runs tomorrow at " + c;
+  return "Runs " + weekdayName(d) + " at " + c;
 }
-/* ambient teletype: when idle, feed the next synthesized line */
-setInterval(function(){
-  if (document.hidden) return;
-  if (!logTyping && !logQ.length && synthLines.length) {
-    pushLog([synthLines[synthIdx % synthLines.length]]);
-    synthIdx++;
-  }
-}, 6500);
-
-/* ================= header / overall ================= */
-var READOUTS = {
-  ok:   { txt: 'ALL SYSTEMS NOMINAL',          cls: 'ro-ok'   },
-  degraded: { txt: 'DEGRADED — ANOMALY DETECTED', cls: 'ro-deg' },
-  down: { txt: 'SYSTEMS DOWN',                 cls: 'ro-down' },
-  unk:  { txt: 'STATUS UNKNOWN',               cls: 'ro-unk'  }
-};
-var SCOPETAGS = { ok: ['[ OK ]', 'tag-ok'], degraded: ['[ANOM]', 'tag-hold'], down: ['[FAULT]', 'tag-fault'], unk: ['[ -- ]', 'tag-unk'] };
-function overallKey(d){
-  return (d.overall === 'ok' || d.overall === 'degraded' || d.overall === 'down') ? d.overall : 'unk';
+function doneFallback(a){
+  var d = parseISO(a && a.last_run && a.last_run.at);
+  return d ? "Finished " + relTime(d) + " ✓" : "Hasn’t run yet";
 }
-
-/* ================= apply frame ================= */
-function applyData(d){
-  if (!d || typeof d !== 'object') throw new Error('bad frame');
-  var firstFrame = (data === null);
-  data = d;
-  var ok = overallKey(d);
-  document.body.className = (document.body.classList.contains('live') ? 'live ' : '') + 'o-' + ok;
-  var ro = $('#readout');
-  ro.textContent = READOUTS[ok].txt;
-  ro.className = READOUTS[ok].cls;
-  var st = $('#scopetag');
-  st.textContent = SCOPETAGS[ok][0];
-  st.className = 'ptag ' + SCOPETAGS[ok][1];
-
-  var host = typeof d.hostname === 'string' && d.hostname ? d.hostname.replace(/\.local$/i, '') : '----';
-  var g = parseISO(d.generated_at);
-  subBase = 'HOST ' + up(host) + ' · FRAME ' + (g ? fmtClock(g) : '----');
-  $('#h-sub').textContent = subBase;
-
-  var autos = d.automations || [];
-  for (var i = 0; i < autos.length && i < 8; i++) {
-    if (autos[i] && typeof autos[i] === 'object') updateJob(autos[i], i);
+function sentenceFor(a, totals, doctor){
+  if(!a) return "No news yet";
+  var st = a.state;
+  if(st === "in_progress") return "Working on it right now…";
+  if(st === "pending_today") return pendingSentence(a);
+  if(st === "issue"){
+    var needs = doctor && doctor.needs_human && doctor.needs_human.length;
+    return needs ? "Something went wrong — it needs you"
+                 : "Something went wrong — it will try again tomorrow";
   }
-  updateDiag(d);
-  $('#totals').textContent = totalsLine((d.totals && typeof d.totals === 'object') ? d.totals : {});
-  synthLines = synth(d);
-  if (firstFrame) {
-    synthIdx = Math.min(3, synthLines.length);
-    pushLog(synthLines.slice(0, synthIdx));
-  } else if (prevOverall !== null && prevOverall !== ok) {
-    pushLog(['▸ ' + fmtClock(new Date()) + ' OVERALL CHANGED: ' + up(prevOverall) + ' → ' + up(ok)], true);
+  /* ok (and anything unexpected) → say what it accomplished */
+  var t = totals || {};
+  switch(a.id){
+    case "scholarship-daily":
+      if(typeof t.scholarships_submitted_cycle === "number")
+        return "Applied to " + t.scholarships_submitted_cycle + " " +
+               plural(t.scholarships_submitted_cycle,"scholarship","scholarships") + " so far";
+      return doneFallback(a);
+    case "parent-weekly":
+      var sent = parseISO(t.parent_last_sent);
+      return sent ? "Sent " + friendlyDay(sent) + " ✓" : "Sent this week ✓";
+    case "prof-outreach":
+      if(typeof t.prof_emails_week === "number")
+        return "Sent " + t.prof_emails_week + " " + plural(t.prof_emails_week,"email","emails") + " this week";
+      return doneFallback(a);
+    case "ai-outreach":
+      if(typeof t.ai_emails_week === "number")
+        return "Sent " + t.ai_emails_week + " " + plural(t.ai_emails_week,"email","emails") + " this week";
+      return doneFallback(a);
+    case "blog":
+      return t.blog_latest ? "New post is up!" : doneFallback(a);
+    case "heartbeat":
+      var d = parseISO(a.last_run && a.last_run.at);
+      if(!d) return "Hasn’t run yet";
+      var day = friendlyDay(d);
+      return "Checked " + day + " — all good";
+    default:
+      return doneFallback(a);
   }
-  prevOverall = ok;
 }
 
-/* ================= polling ================= */
+/* ------------------------------------------------ render */
+var data = null, lastGen = null, prevStates = {}, firstRender = true;
+var themeMeta = document.querySelector('meta[name="theme-color"]');
+var darkMQ = matchMedia("(prefers-color-scheme: dark)");
+
+function setTheme(state){
+  var mode = darkMQ.matches ? "dark" : "light";
+  themeMeta.setAttribute("content", TINT[mode][state] || TINT[mode].none);
+}
+function render(){
+  if(!data) return;
+  var overall = data.overall === "ok" || data.overall === "down" ? data.overall
+              : (data.overall ? "degraded" : "none");
+  document.body.setAttribute("data-overall", overall);
+  setTheme(overall);
+
+  var v = VERDICT[overall] || VERDICT.none;
+  document.getElementById("vglyph").textContent = v.glyph;
+  document.getElementById("vwords").textContent = v.words;
+  document.getElementById("vcircle").style.background = VCOLOR[overall] || VCOLOR.none;
+
+  var byId = {};
+  (data.automations || []).forEach(function(a){ if(a && a.id) byId[a.id] = a; });
+
+  ORDER.forEach(function(id){
+    var a = byId[id], el = cardEls[id];
+    var st = a && CHIP[a.state] ? a.state : "pending_today";
+    var chip = CHIP[st];
+    el.chip.className = "chip " + chip.cls;
+    el.chip.innerHTML = chip.html;
+    el.say.textContent = sentenceFor(a, data.totals, data.doctor);
+    if(!firstRender && prevStates[id] && prevStates[id] !== st && st === "ok"){
+      el.card.classList.remove("pop");
+      void el.card.offsetWidth; /* restart animation */
+      el.card.classList.add("pop");
+    }
+    prevStates[id] = st;
+  });
+
+  /* bottom strip */
+  var doc = data.doctor, docLine;
+  if(!doc || !doc.last_run_at){
+    docLine = "🤖 Robot doctor hasn’t checked yet today";
+  } else if(doc.needs_human && doc.needs_human.length){
+    var n = doc.needs_human.length;
+    docLine = "🤖 " + n + " " + plural(n,"thing needs","things need") + " you ❗";
+  } else if(doc.actions && doc.actions.length){
+    var f = doc.actions.length;
+    docLine = "🤖 Robot doctor fixed " + f + " " + plural(f,"thing","things") + " today";
+  } else {
+    docLine = "🤖 Robot doctor: nothing to fix today";
+  }
+  document.getElementById("doctor").textContent = docLine;
+
+  var blogEl = document.getElementById("blogline");
+  var latest = data.totals && data.totals.blog_latest;
+  if(latest && latest.title){
+    blogEl.hidden = false;
+    blogEl.textContent = "Newest post: “" + latest.title + "”";
+  } else {
+    blogEl.hidden = true;
+    blogEl.textContent = "";
+  }
+
+  document.getElementById("updated").textContent = "Updated " + relTime(lastGen);
+  firstRender = false;
+}
+
+/* ------------------------------------------------ polling + offline veil */
+var fails = 0;
+var veil = document.getElementById("veil");
+
 function showVeil(){
-  if (veilOn) return;
-  veilOn = true;
-  $('#veillast').textContent = 'LAST GOOD FRAME: ' + (lastGoodAt ? fmtClock(lastGoodAt) : 'NONE');
-  $('#veil').hidden = false;
+  var sub = lastGen ? "Showing the last update from " + relTime(lastGen)
+                    : "Waiting for the first update…";
+  document.getElementById("veilsub").textContent = sub;
+  veil.classList.add("show");
+  veil.setAttribute("aria-hidden","false");
 }
 function hideVeil(){
-  if (!veilOn) return;
-  veilOn = false;
-  $('#veil').hidden = true;
-  pushLog(['▸ ' + fmtClock(new Date()) + ' LINK RESTORED — TELEMETRY RESUMED'], true);
+  veil.classList.remove("show");
+  veil.setAttribute("aria-hidden","true");
 }
 function poll(){
-  fetch('./status.json', { cache: 'no-store' })
-    .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-    .then(function(d){
-      applyData(d);
-      lastGoodAt = new Date();
-      failCount = 0;
+  fetch("./status.json", {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(json){
+      fails = 0;
+      data = json || {};
+      lastGen = parseISO(data.generated_at) || new Date();
       hideVeil();
+      render();
     })
     .catch(function(){
-      failCount++;
-      if (failCount >= 2) showVeil();
+      fails++;
+      if(fails >= 2) showVeil();
     });
 }
-setInterval(poll, 30000);
 poll();
-document.addEventListener('visibilitychange', function(){ if (!document.hidden) poll(); });
-
-/* ================= 1s tick ================= */
-function tick(){
-  var now = new Date();
-  $('#clock').firstChild.nodeValue = fmtClock(now);
-  $('#hdate').textContent = fmtDate(now);
-  for (var i = 0; i < jobOrder.length; i++) tickJob(jobOrder[i], now);
-  if (veilOn) $('#veillast').textContent = 'LAST GOOD FRAME: ' + (lastGoodAt ? fmtClock(lastGoodAt) : 'NONE');
-  if (data && subBase) { /* stale-frame notice past 20 min */
-    var g = parseISO(data.generated_at);
-    $('#h-sub').textContent = (g && now - g > 20 * 60000)
-      ? subBase + ' · STALE ' + fmtRel(now - g) : subBase;
-  }
-}
-setInterval(tick, 1000);
-tick();
-
-/* spinner for in_progress panels */
-if (!RM) {
-  setInterval(function(){
-    spinIdx = (spinIdx + 1) % SPIN.length;
-    var now = new Date();
-    for (var i = 0; i < jobOrder.length; i++) {
-      var id = jobOrder[i];
-      if (jobState[id] && jobState[id].state === 'in_progress' && jobEls[id]) {
-        jobEls[id].next.textContent = 'PROC ' + SPIN[spinIdx];
-      }
-    }
-  }, 210);
-}
-
-/* ================= oscilloscope ================= */
-var cv = $('#scope'), cx = cv.getContext('2d');
-var scopeDirty = true;
-function sizeScope(){
-  var r = cv.getBoundingClientRect();
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
-  if (r.width < 4 || r.height < 4) return;
-  cv.width = Math.round(r.width * dpr);
-  cv.height = Math.round(r.height * dpr);
-  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  scopeDirty = true;
-}
-window.addEventListener('resize', function(){ sizeScope(); drawScope(performance.now()); });
-function prand(x){ var v = Math.sin(x * 12.9898) * 43758.5453; return v - Math.floor(v); }
-var SCOPE_COLORS = { ok: '#36ad6e', degraded: '#be8b0f', down: '#bc484b', unk: '#3b6a4f' };
-function drawScope(tms){
-  var r = cv.getBoundingClientRect();
-  var w = r.width, h = r.height;
-  if (w < 4 || h < 4) return;
-  cx.clearRect(0, 0, w, h);
-  /* graticule */
-  cx.strokeStyle = 'rgba(59,106,79,.35)';
-  cx.lineWidth = 1;
-  cx.beginPath();
-  for (var gy = 1; gy < 4; gy++) { cx.moveTo(0, h * gy / 4); cx.lineTo(w, h * gy / 4); }
-  for (var gx = 1; gx < 8; gx++) { cx.moveTo(w * gx / 8, 0); cx.lineTo(w * gx / 8, h); }
-  cx.stroke();
-
-  var mode = data ? overallKey(data) : 'unk';
-  var col = SCOPE_COLORS[mode];
-  var ph = tms / 1000;
-  var mid = h / 2;
-  function yAt(x){
-    if (mode === 'ok') return Math.sin(x * 0.055 + ph * 2.4) * h * 0.28;
-    if (mode === 'degraded')
-      return Math.sin(x * 0.06 + ph * 2.8) * h * 0.2 +
-             (prand(Math.floor(x / 5) + Math.floor(ph * 14) * 7) - 0.5) * h * 0.3;
-    if (mode === 'down') {
-      var cell = Math.floor(x / 9) + Math.floor(ph * 1.5) * 131;
-      var s = prand(cell);
-      if (s > 0.97) return -h * 0.36 * prand(cell + 1);
-      return (prand(cell + 2) - 0.5) * h * 0.03;
-    }
-    return Math.sin(x * 0.03 + ph) * h * 0.05; /* unknown: faint idle ripple */
-  }
-  /* glow pass then trace pass */
-  for (var pass = 0; pass < 2; pass++) {
-    cx.beginPath();
-    for (var x = 0; x <= w; x += 3) {
-      var y = mid + yAt(x);
-      if (x === 0) cx.moveTo(x, y); else cx.lineTo(x, y);
-    }
-    cx.strokeStyle = col;
-    cx.globalAlpha = pass === 0 ? 0.16 : 0.92;
-    cx.lineWidth = pass === 0 ? 5 : 1.6;
-    cx.stroke();
-  }
-  cx.globalAlpha = 1;
-}
-var lastDraw = 0;
-function scopeLoop(t){
-  requestAnimationFrame(scopeLoop);
-  if (document.hidden) return;
-  if (t - lastDraw < 40) return; /* ~25 fps is plenty for phosphor */
-  lastDraw = t;
-  drawScope(t);
-}
-sizeScope();
-drawScope(0); /* first paint so the tube is never blank */
-if (RM) { setInterval(function(){ sizeScope(); drawScope(0); }, 30000); }
-else {
-  requestAnimationFrame(scopeLoop);
-  /* fallback: keep the trace alive if rAF is throttled (webview quirks) */
-  setInterval(function(){
-    var t = performance.now();
-    if (!document.hidden && t - lastDraw > 900) { lastDraw = t; drawScope(t); }
-  }, 450);
-}
-
-/* ================= boot sequence ================= */
-var BOOT_LINES = [
-  'AARUSH AUTOMATION CONTROL',
-  'CRT-6 CONSOLE · FW 7.3.1',
-  '',
-  'COLD START ............. OK',
-  'ESTABLISHING LINK ...... OK',
-  'CHANNEL STATUS.JSON .... OPEN',
-  'TELEMETRY ONLINE',
-  '',
-  'DRAWING PANELS'
-];
-function goLive(){
-  document.body.classList.add('live');
-  var b = $('#boot');
-  b.classList.add('off');
-  setTimeout(function(){ if (b.parentNode) b.parentNode.removeChild(b); sizeScope(); drawScope(performance.now()); }, 600);
-}
-(function boot(){
-  var b = $('#boot');
-  var seen = false; /* boot plays on first load only; refreshes skip it */
-  try { seen = sessionStorage.getItem('crtBooted') === '1'; } catch (e) {}
-  if (RM || seen) { goLive(); return; }
-  try { sessionStorage.setItem('crtBooted', '1'); } catch (e) {}
-  var pre = $('#bootpre');
-  var text = BOOT_LINES.join('\n');
-  var done = false;
-  function finish(){ if (done) return; done = true; setTimeout(goLive, 350); }
-  var t0 = performance.now(); /* time-based: boot always lands in 2–4s */
-  var iv = setInterval(function(){
-    if (done) { clearInterval(iv); return; }
-    var i = Math.floor((performance.now() - t0) / 13);
-    if (i >= text.length) { clearInterval(iv); pre.textContent = text; finish(); return; }
-    pre.textContent = text.slice(0, i) + '▉';
-  }, 24);
-  b.addEventListener('pointerdown', function(){ clearInterval(iv); pre.textContent = text; finish(); });
-  /* hard cap: never hold the deck hostage past 4s */
-  setTimeout(function(){ if (!done) { clearInterval(iv); pre.textContent = text; finish(); } }, 4000);
-})();
+setInterval(poll, 30000);
+/* tick relative labels so “just now” grows old gracefully */
+setInterval(function(){
+  if(data) render();
+  if(veil.classList.contains("show")) showVeil();
+}, 20000);
+darkMQ.addEventListener("change", function(){
+  setTheme(document.body.getAttribute("data-overall") || "none");
+});
 </script>
 </body>
 </html>
