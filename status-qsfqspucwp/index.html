@@ -217,6 +217,7 @@ body.live .panel:nth-of-type(1){transition-delay:.02s}
 @media (prefers-reduced-motion:reduce){
   #deck{animation:none}
   #glow{animation:none;opacity:.85}
+  #scan{display:none}
   #cur,#veil .v-sub .bk{animation:none}
   .tag-fault{animation:none;background:var(--red);color:var(--bg);text-shadow:none}
   .ro-down{animation:none}
@@ -682,7 +683,7 @@ function sizeScope(){
   cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   scopeDirty = true;
 }
-window.addEventListener('resize', function(){ sizeScope(); if (RM) drawScope(performance.now()); });
+window.addEventListener('resize', function(){ sizeScope(); drawScope(performance.now()); });
 function prand(x){ var v = Math.sin(x * 12.9898) * 43758.5453; return v - Math.floor(v); }
 var SCOPE_COLORS = { ok: '#36ad6e', degraded: '#be8b0f', down: '#bc484b', unk: '#3b6a4f' };
 function drawScope(tms){
@@ -769,7 +770,10 @@ function goLive(){
 }
 (function boot(){
   var b = $('#boot');
-  if (RM) { goLive(); return; }
+  var seen = false; /* boot plays on first load only; refreshes skip it */
+  try { seen = sessionStorage.getItem('crtBooted') === '1'; } catch (e) {}
+  if (RM || seen) { goLive(); return; }
+  try { sessionStorage.setItem('crtBooted', '1'); } catch (e) {}
   var pre = $('#bootpre');
   var text = BOOT_LINES.join('\n');
   var done = false;
