@@ -523,7 +523,116 @@ setInterval(function(){
 }, 20000);
 darkMQ.addEventListener("change", function(){
   setTheme(document.body.getAttribute("data-overall") || "none");
+  refreshEkgColor();
+  if(motionMQ.matches) drawEkg(0);
 });
+
+/* ------------------------------------------------ live heartbeat line (EKG)
+   The primary “it’s alive” signal: a thin scrolling trace in the overall
+   status color. Steady beats when ok, irregular when degraded, slow weak
+   beats with long flat stretches when down. Canvas, ~60fps-cheap, with a
+   setInterval fallback for panes/tabs where rAF is throttled. */
+var motionMQ = matchMedia("(prefers-reduced-motion: reduce)");
+var ekgCanvas = document.getElementById("ekg");
+var ekgCtx = ekgCanvas.getContext("2d");
+var ekgColor = "#68716b";
+var ekgW = 0, ekgH = 0;
+var EKG_VAR = {ok:"--ok", degraded:"--warn", down:"--bad", none:"--wait"};
+/* heart rhythm per overall state: repeating beat gaps (seconds) + amplitude */
+var RHYTHM = {
+  ok:       {gaps:[2.0],                    amp:1.0},
+  degraded: {gaps:[1.35, 1.05, 1.75, 1.2],  amp:0.9},
+  down:     {gaps:[3.6, 5.4],               amp:0.45},
+  none:     {gaps:[2.6],                    amp:0.55}
+};
+var PX_PER_SEC = 90;
+
+function refreshEkgColor(){
+  var overall = document.body.getAttribute("data-overall") || "none";
+  var v = getComputedStyle(document.documentElement)
+            .getPropertyValue(EKG_VAR[overall] || "--wait").trim();
+  ekgColor = v || "#68716b";
+}
+/* one PQRST-ish beat, p = seconds since beat onset, returns -0.35..1 */
+function beatShape(p){
+  if(p < 0 || p > 0.5) return 0;
+  if(p < 0.08)  return 0.15 * Math.sin(p / 0.08 * Math.PI);          /* P bump */
+  if(p < 0.12)  return 0;
+  if(p < 0.15)  return -0.22 * ((p - 0.12) / 0.03);                  /* Q dip */
+  if(p < 0.19)  return -0.22 + 1.22 * ((p - 0.15) / 0.04);           /* R spike */
+  if(p < 0.235) return 1.0 - 1.35 * ((p - 0.19) / 0.045);            /* S drop */
+  if(p < 0.27)  return -0.35 + 0.35 * ((p - 0.235) / 0.035);         /* settle */
+  if(p < 0.33)  return 0;
+  return 0.28 * Math.sin((p - 0.33) / 0.17 * Math.PI);               /* T bump */
+}
+function signalAt(t, r){
+  var total = 0, i;
+  for(i = 0; i < r.gaps.length; i++) total += r.gaps[i];
+  var tc = t % total; if(tc < 0) tc += total;
+  var acc = 0;
+  for(i = 0; i < r.gaps.length; i++){
+    if(tc < acc + r.gaps[i]) return beatShape(tc - acc) * r.amp;
+    acc += r.gaps[i];
+  }
+  return 0;
+}
+function drawEkg(tSec){
+  if(!ekgW || !ekgH) return;
+  var r = RHYTHM[document.body.getAttribute("data-overall")] || RHYTHM.none;
+  var mid = ekgH * 0.62, amp = ekgH * 0.42;
+  ekgCtx.clearRect(0, 0, ekgW, ekgH);
+  ekgCtx.globalAlpha = 0.5;
+  ekgCtx.strokeStyle = ekgColor;
+  ekgCtx.lineWidth = 2;
+  ekgCtx.lineJoin = "round";
+  ekgCtx.lineCap = "round";
+  ekgCtx.beginPath();
+  for(var x = 0; x <= ekgW; x += 2){
+    var y = mid - signalAt(tSec - (ekgW - x) / PX_PER_SEC, r) * amp;
+    if(x === 0) ekgCtx.moveTo(x, y); else ekgCtx.lineTo(x, y);
+  }
+  ekgCtx.stroke();
+  ekgCtx.globalAlpha = 1;
+}
+function sizeEkg(){
+  var rect = ekgCanvas.getBoundingClientRect();
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  ekgW = Math.max(1, Math.round(rect.width));
+  ekgH = Math.max(1, Math.round(rect.height));
+  ekgCanvas.width = Math.round(ekgW * dpr);
+  ekgCanvas.height = Math.round(ekgH * dpr);
+  ekgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawEkg(motionMQ.matches ? 0 : performance.now() / 1000);
+}
+var ekgRunning = false, lastRafTick = 0;
+function ekgFrame(now){
+  if(motionMQ.matches){ ekgRunning = false; return; }
+  lastRafTick = now;
+  drawEkg(now / 1000);
+  requestAnimationFrame(ekgFrame);
+}
+function startEkg(){
+  refreshEkgColor();
+  sizeEkg();
+  if(motionMQ.matches){ ekgRunning = false; drawEkg(0); return; }
+  if(!ekgRunning){ ekgRunning = true; requestAnimationFrame(ekgFrame); }
+}
+/* fallback: hidden/throttled panes suppress rAF and ResizeObserver — keep
+   the trace moving and the canvas correctly sized on a 1s timer */
+setInterval(function(){
+  if(Math.abs(ekgCanvas.clientWidth - ekgW) > 1 ||
+     Math.abs(ekgCanvas.clientHeight - ekgH) > 1) sizeEkg();
+  if(motionMQ.matches) return;
+  var now = performance.now();
+  if(now - lastRafTick > 700) drawEkg(now / 1000);
+}, 1000);
+window.addEventListener("resize", sizeEkg);
+/* some panes resize without a window resize event — watch the strip itself */
+if(typeof ResizeObserver === "function"){
+  new ResizeObserver(sizeEkg).observe(document.getElementById("ekgwrap"));
+}
+motionMQ.addEventListener("change", startEkg);
+startEkg();
 </script>
 </body>
 </html>
