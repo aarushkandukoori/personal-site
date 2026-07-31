@@ -516,6 +516,23 @@ function poll(){
 }
 poll();
 setInterval(poll, 30000);
+/* Self-update: an always-open screensaver tab never reloads on deploys, so
+   every 10 min re-fetch this page and reload when its content has changed.
+   Never reload while the veil is up (a fetch failure must not blank the page). */
+var selfHash = null;
+function hashText(t){var h=0,i;for(i=0;i<t.length;i++){h=(h*31+t.charCodeAt(i))|0}return h}
+function checkSelf(){
+  fetch(window.location.pathname, {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw 0; return r.text(); })
+    .then(function(t){
+      var h = hashText(t);
+      if(selfHash === null){ selfHash = h; return; }
+      if(h !== selfHash && !veil.classList.contains("show")) window.location.reload();
+    })
+    .catch(function(){});
+}
+checkSelf();
+setInterval(checkSelf, 600000);
 /* tick relative labels so “just now” grows old gracefully */
 setInterval(function(){
   if(data) render();
