@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T21:10:40-04:00",
+  "generated_at": "2026-07-30T21:50:42-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -25,7 +25,7 @@
         },
         {
           "label": "Auto-apply pool",
-          "value": "2"
+          "value": "0"
         },
         {
           "label": "Discovered today",
@@ -169,7 +169,7 @@
   "totals": {
     "scholarships_submitted_cycle": 11,
     "awards_submitted_cycle": 3,
-    "auto_apply_pool": 2,
+    "auto_apply_pool": 0,
     "discovered_new_today": 5,
     "prof_emails_week": 30,
     "prof_emails_total": 81,
