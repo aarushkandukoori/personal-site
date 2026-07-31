@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T10:05:04-04:00",
+  "generated_at": "2026-07-31T13:15:09-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -9,7 +9,7 @@
       "state": "ok",
       "schedule_label": "Daily 10:00",
       "last_run": {
-        "at": "2026-07-30T13:05:27-04:00",
+        "at": "2026-07-31T13:05:57-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-01T10:00:00-04:00",
@@ -29,7 +29,7 @@
         },
         {
           "label": "Discovered today",
-          "value": "0"
+          "value": "4"
         }
       ],
       "issues": []
@@ -170,7 +170,7 @@
     "scholarships_submitted_cycle": 16,
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 0,
-    "discovered_new_today": 0,
+    "discovered_new_today": 4,
     "prof_emails_week": 30,
     "prof_emails_total": 81,
     "ai_emails_week": 10,
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 128,
+    "disk_free_gb": 127,
     "claude_auth_ok": true,
     "network_ok": true
   }
