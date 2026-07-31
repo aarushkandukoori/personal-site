@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T02:34:47-04:00",
+  "generated_at": "2026-07-31T03:04:50-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -17,7 +17,7 @@
       "metrics": [
         {
           "label": "Submitted (cycle)",
-          "value": "11"
+          "value": "12"
         },
         {
           "label": "Awards submitted",
@@ -167,7 +167,7 @@
     }
   ],
   "totals": {
-    "scholarships_submitted_cycle": 11,
+    "scholarships_submitted_cycle": 12,
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 0,
     "discovered_new_today": 0,
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 129,
+    "disk_free_gb": 128,
     "claude_auth_ok": true,
     "network_ok": true
   }
