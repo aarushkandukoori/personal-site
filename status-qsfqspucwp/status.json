@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T21:00:38-04:00",
+  "generated_at": "2026-07-30T21:10:40-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -17,7 +17,7 @@
       "metrics": [
         {
           "label": "Submitted (cycle)",
-          "value": "10"
+          "value": "11"
         },
         {
           "label": "Awards submitted",
@@ -25,7 +25,7 @@
         },
         {
           "label": "Auto-apply pool",
-          "value": "4"
+          "value": "2"
         },
         {
           "label": "Discovered today",
@@ -167,9 +167,9 @@
     }
   ],
   "totals": {
-    "scholarships_submitted_cycle": 10,
+    "scholarships_submitted_cycle": 11,
     "awards_submitted_cycle": 3,
-    "auto_apply_pool": 4,
+    "auto_apply_pool": 2,
     "discovered_new_today": 5,
     "prof_emails_week": 30,
     "prof_emails_total": 81,
