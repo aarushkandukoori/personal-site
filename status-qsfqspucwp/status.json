@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T03:14:51-04:00",
+  "generated_at": "2026-07-31T06:14:57-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -17,7 +17,7 @@
       "metrics": [
         {
           "label": "Submitted (cycle)",
-          "value": "11"
+          "value": "16"
         },
         {
           "label": "Awards submitted",
@@ -167,7 +167,7 @@
     }
   ],
   "totals": {
-    "scholarships_submitted_cycle": 11,
+    "scholarships_submitted_cycle": 16,
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 0,
     "discovered_new_today": 0,
