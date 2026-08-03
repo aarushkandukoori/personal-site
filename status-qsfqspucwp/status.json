@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T13:07:06-04:00",
+  "generated_at": "2026-08-03T14:50:56-04:00",
   "hostname": "home mac",
   "overall": "down",
   "automations": [
@@ -118,11 +118,11 @@
     {
       "id": "blog",
       "name": "Weekly AI Blog",
-      "state": "ok",
+      "state": "issue",
       "schedule_label": "Daily 11:00 (weekly guard)",
       "last_run": {
-        "at": "2026-07-29T19:58:53-04:00",
-        "exit": 0
+        "at": "2026-08-03T14:32:37-04:00",
+        "exit": 1
       },
       "next_run_at": "2026-08-04T11:00:00-04:00",
       "week_done": false,
@@ -148,7 +148,7 @@
       "state": "ok",
       "schedule_label": "Mon 10:30 & 18:00",
       "last_run": {
-        "at": "2026-07-29T20:05:38-04:00",
+        "at": "2026-08-03T13:30:17-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-03T18:00:00-04:00",
@@ -156,11 +156,11 @@
       "metrics": [
         {
           "label": "Last verdict",
-          "value": "ALL GOOD"
+          "value": "PARTIAL"
         },
         {
           "label": "Last heartbeat",
-          "value": "2026-07-29T20:05:38-04:00"
+          "value": "2026-08-03T13:30:17-04:00"
         }
       ],
       "issues": []
