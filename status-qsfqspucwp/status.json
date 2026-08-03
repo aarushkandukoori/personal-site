@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T08:06:52-04:00",
+  "generated_at": "2026-08-03T09:06:55-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -37,13 +37,13 @@
     {
       "id": "parent-weekly",
       "name": "Parent Weekly Email",
-      "state": "pending_today",
+      "state": "ok",
       "schedule_label": "Daily 09:00 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T19:05:24-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-03T09:00:00-04:00",
+      "next_run_at": "2026-08-04T09:00:00-04:00",
       "week_done": false,
       "metrics": [
         {
@@ -91,13 +91,13 @@
     {
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
-      "state": "pending_today",
+      "state": "ok",
       "schedule_label": "Daily 09:02 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T19:04:15-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-03T09:02:00-04:00",
+      "next_run_at": "2026-08-04T09:02:00-04:00",
       "week_done": false,
       "metrics": [
         {
