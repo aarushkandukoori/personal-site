@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-02T15:59:03-04:00",
+  "generated_at": "2026-08-03T00:06:39-04:00",
   "hostname": "home mac",
-  "overall": "degraded",
+  "overall": "ok",
   "automations": [
     {
       "id": "scholarship-daily",
       "name": "Scholarship Daily Apply",
-      "state": "issue",
+      "state": "pending_today",
       "schedule_label": "Daily 10:00",
       "last_run": {
         "at": "2026-08-02T14:22:16-04:00",
@@ -37,14 +37,14 @@
     {
       "id": "parent-weekly",
       "name": "Parent Weekly Email",
-      "state": "ok",
+      "state": "pending_today",
       "schedule_label": "Daily 09:00 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T19:05:24-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-03T09:00:00-04:00",
-      "week_done": true,
+      "week_done": false,
       "metrics": [
         {
           "label": "Last sent",
@@ -64,18 +64,18 @@
     {
       "id": "prof-outreach",
       "name": "Professor Outreach",
-      "state": "ok",
+      "state": "pending_today",
       "schedule_label": "Daily 08:03 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T18:58:42-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-03T08:03:00-04:00",
-      "week_done": true,
+      "week_done": false,
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "30"
+          "value": "0"
         },
         {
           "label": "Sent total",
@@ -91,18 +91,18 @@
     {
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
-      "state": "ok",
+      "state": "pending_today",
       "schedule_label": "Daily 09:02 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T19:04:15-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-03T09:02:00-04:00",
-      "week_done": true,
+      "week_done": false,
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "10"
+          "value": "0"
         },
         {
           "label": "Sent total",
@@ -118,14 +118,14 @@
     {
       "id": "blog",
       "name": "Weekly AI Blog",
-      "state": "ok",
+      "state": "pending_today",
       "schedule_label": "Daily 11:00 (weekly guard)",
       "last_run": {
         "at": "2026-07-29T19:58:53-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-03T11:00:00-04:00",
-      "week_done": true,
+      "week_done": false,
       "metrics": [
         {
           "label": "Latest post",
@@ -171,9 +171,9 @@
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 1,
     "discovered_new_today": 0,
-    "prof_emails_week": 30,
+    "prof_emails_week": 0,
     "prof_emails_total": 81,
-    "ai_emails_week": 10,
+    "ai_emails_week": 0,
     "ai_emails_total": 20,
     "bounces": 4,
     "parent_last_sent": "2026-07-29T19:05:24-04:00",
