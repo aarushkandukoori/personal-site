@@ -242,7 +242,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   <footer id="strip">
     <span id="doctor">🤖 Robot doctor hasn’t checked yet today</span>
     <span id="blogline" hidden></span>
-    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span></span>
+    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-04.2</span></span>
   </footer>
 </main>
 <div id="veil" aria-hidden="true">
@@ -479,7 +479,26 @@ function render(){
 
 /* ------------------------------------------------ polling + offline veil */
 var fails = 0;
+var staleCount = 0;
 var veil = document.getElementById("veil");
+
+function showStaleBanner(when){
+  var b = document.getElementById("stalebanner");
+  if(!b){
+    b = document.createElement("div");
+    b.id = "stalebanner";
+    b.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:900;text-align:center;" +
+      "padding:10px 16px;font-weight:700;font-size:15px;background:#c98500;color:#fff;cursor:pointer";
+    b.onclick = function(){ window.location.replace(window.location.pathname + "?r=" + Date.now()); };
+    document.body.appendChild(b);
+  }
+  b.textContent = "⚠️ Showing data from " + relTime(when) + " — the Mac may be asleep or offline. Tap to retry.";
+  b.style.display = "block";
+}
+function hideStaleBanner(){
+  var b = document.getElementById("stalebanner");
+  if(b) b.style.display = "none";
+}
 
 function showVeil(){
   var sub = lastGen ? "Showing the last update from " + relTime(lastGen)
@@ -500,6 +519,26 @@ function poll(){
       fails = 0;
       data = json || {};
       lastGen = parseISO(data.generated_at) || new Date();
+      /* Stale-tab self-rescue: if our freshest fetch is >90 min old, some
+         cache layer is lying (or the Mac is off). Reload ONCE with a
+         cache-busting URL; if still stale afterwards, show the honest
+         banner instead of looping. */
+      var ageMin = (Date.now() - lastGen.getTime()) / 60000;
+      if(ageMin > 90){
+        staleCount++;
+        var rescued = false;
+        try { rescued = sessionStorage.getItem("staleRescued") === "1"; } catch(e){}
+        if(staleCount >= 2 && !rescued){
+          try { sessionStorage.setItem("staleRescued", "1"); } catch(e){}
+          window.location.replace(window.location.pathname + "?r=" + Date.now());
+          return;
+        }
+        if(staleCount >= 2) showStaleBanner(lastGen);
+      } else {
+        staleCount = 0;
+        try { sessionStorage.removeItem("staleRescued"); } catch(e){}
+        hideStaleBanner();
+      }
       hideVeil();
       render();
       /* refresh blip: single radar-ping on the “Updated” dot */
