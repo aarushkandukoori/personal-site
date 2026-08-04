@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T21:02:38-04:00",
+  "generated_at": "2026-08-03T21:12:40-04:00",
   "hostname": "home mac",
   "overall": "down",
   "automations": [
@@ -184,10 +184,8 @@
     }
   },
   "doctor": {
-    "last_run_at": "2026-08-03T15:16:49-04:00",
-    "actions": [
-      "4 action(s) taken"
-    ],
+    "last_run_at": null,
+    "actions": [],
     "needs_human": []
   },
   "system": {
