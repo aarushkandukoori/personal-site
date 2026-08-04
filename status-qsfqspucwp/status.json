@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-03T21:12:40-04:00",
+  "generated_at": "2026-08-03T21:36:20-04:00",
   "hostname": "home mac",
-  "overall": "down",
+  "overall": "degraded",
   "automations": [
     {
       "id": "scholarship-daily",
@@ -64,10 +64,10 @@
     {
       "id": "prof-outreach",
       "name": "Professor Outreach",
-      "state": "issue",
+      "state": "in_progress",
       "schedule_label": "Daily 08:03 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T16:19:53-04:00",
+        "at": "2026-08-03T21:36:15-04:00",
         "exit": 1
       },
       "next_run_at": "2026-08-04T08:03:00-04:00",
