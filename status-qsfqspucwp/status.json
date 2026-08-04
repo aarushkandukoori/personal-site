@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T21:56:23-04:00",
+  "generated_at": "2026-08-03T22:06:24-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -91,22 +91,22 @@
     {
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
-      "state": "in_progress",
+      "state": "ok",
       "schedule_label": "Daily 09:02 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T21:52:18-04:00",
-        "exit": 1
+        "at": "2026-08-03T21:59:07-04:00",
+        "exit": 0
       },
-      "next_run_at": "2026-08-04T09:02:00-04:00",
-      "week_done": false,
+      "next_run_at": "2026-08-10T09:02:00-04:00",
+      "week_done": true,
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "0"
+          "value": "3"
         },
         {
           "label": "Sent total",
-          "value": "20"
+          "value": "23"
         },
         {
           "label": "Bounces",
@@ -173,8 +173,8 @@
     "discovered_new_today": 5,
     "prof_emails_week": 30,
     "prof_emails_total": 111,
-    "ai_emails_week": 0,
-    "ai_emails_total": 20,
+    "ai_emails_week": 3,
+    "ai_emails_total": 23,
     "bounces": 4,
     "parent_last_sent": "2026-08-03T12:02:00-04:00",
     "blog_latest": {
