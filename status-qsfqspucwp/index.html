@@ -493,7 +493,8 @@ function hideVeil(){
   veil.setAttribute("aria-hidden","true");
 }
 function poll(){
-  fetch("./status.json", {cache:"no-store"})
+  /* ?t= defeats CDN edge caching (GitHub Pages ignores request no-store) */
+  fetch("./status.json?t=" + Date.now(), {cache:"no-store"})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(json){
       fails = 0;
@@ -516,13 +517,19 @@ function poll(){
 }
 poll();
 setInterval(poll, 30000);
+/* Chrome freezes background tabs (timers fully suspended): on refocus/unfreeze,
+   refresh instantly instead of showing a stale frame until the next tick. */
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){ poll(); if(data) render(); checkSelf(); }
+});
+window.addEventListener("pageshow", function(){ poll(); });
 /* Self-update: an always-open screensaver tab never reloads on deploys, so
    every 10 min re-fetch this page and reload when its content has changed.
    Never reload while the veil is up (a fetch failure must not blank the page). */
 var selfHash = null;
 function hashText(t){var h=0,i;for(i=0;i<t.length;i++){h=(h*31+t.charCodeAt(i))|0}return h}
 function checkSelf(){
-  fetch(window.location.pathname, {cache:"no-store"})
+  fetch(window.location.pathname + "?t=" + Date.now(), {cache:"no-store"})
     .then(function(r){ if(!r.ok) throw 0; return r.text(); })
     .then(function(t){
       var h = hashText(t);
