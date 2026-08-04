@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-04T03:01:12-04:00",
+  "generated_at": "2026-08-04T04:01:15-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -38,12 +38,12 @@
       "id": "parent-weekly",
       "name": "Parent Weekly Email",
       "state": "ok",
-      "schedule_label": "Daily 09:00 (weekly guard)",
+      "schedule_label": "Daily 05:20 (weekly guard)",
       "last_run": {
         "at": "2026-08-03T12:02:00-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T09:00:00-04:00",
+      "next_run_at": "2026-08-10T05:20:00-04:00",
       "week_done": true,
       "metrics": [
         {
@@ -65,12 +65,12 @@
       "id": "prof-outreach",
       "name": "Professor Outreach",
       "state": "ok",
-      "schedule_label": "Daily 08:03 (weekly guard)",
+      "schedule_label": "Daily 05:00 (weekly guard)",
       "last_run": {
         "at": "2026-08-03T21:51:22-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T08:03:00-04:00",
+      "next_run_at": "2026-08-10T05:00:00-04:00",
       "week_done": true,
       "metrics": [
         {
@@ -92,12 +92,12 @@
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
       "state": "ok",
-      "schedule_label": "Daily 09:02 (weekly guard)",
+      "schedule_label": "Daily 05:25 (weekly guard)",
       "last_run": {
         "at": "2026-08-03T21:59:07-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T09:02:00-04:00",
+      "next_run_at": "2026-08-10T05:25:00-04:00",
       "week_done": true,
       "metrics": [
         {
@@ -119,12 +119,12 @@
       "id": "blog",
       "name": "Weekly AI Blog",
       "state": "ok",
-      "schedule_label": "Daily 11:00 (weekly guard)",
+      "schedule_label": "Daily 05:45 (weekly guard)",
       "last_run": {
         "at": "2026-08-03T16:19:53-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T11:00:00-04:00",
+      "next_run_at": "2026-08-10T05:45:00-04:00",
       "week_done": true,
       "metrics": [
         {
@@ -146,12 +146,12 @@
       "id": "heartbeat",
       "name": "Heartbeat Health Check",
       "state": "ok",
-      "schedule_label": "Mon 10:30 & 18:00",
+      "schedule_label": "Mon 06:30 & 18:00",
       "last_run": {
         "at": "2026-08-04T02:32:18-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T10:30:00-04:00",
+      "next_run_at": "2026-08-10T06:30:00-04:00",
       "week_done": null,
       "metrics": [
         {
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 124,
+    "disk_free_gb": 122,
     "claude_auth_ok": true,
     "network_ok": true
   }
