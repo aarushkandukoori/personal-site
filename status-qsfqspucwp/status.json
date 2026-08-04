@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03T23:06:27-04:00",
+  "generated_at": "2026-08-03T23:36:29-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -102,11 +102,11 @@
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "3"
+          "value": "8"
         },
         {
           "label": "Sent total",
-          "value": "23"
+          "value": "28"
         },
         {
           "label": "Bounces",
@@ -173,8 +173,8 @@
     "discovered_new_today": 5,
     "prof_emails_week": 30,
     "prof_emails_total": 111,
-    "ai_emails_week": 3,
-    "ai_emails_total": 23,
+    "ai_emails_week": 8,
+    "ai_emails_total": 28,
     "bounces": 4,
     "parent_last_sent": "2026-08-03T12:02:00-04:00",
     "blog_latest": {
