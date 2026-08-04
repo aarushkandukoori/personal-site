@@ -141,6 +141,10 @@ defaults:
       path: status-qsfqspucwp
     values:
       sitemap: false
+  - scope:
+      path: status-dgsmpffyvg
+    values:
+      sitemap: false
 
 sass:
   style: compressed
