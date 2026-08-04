@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-03T21:46:22-04:00",
+  "generated_at": "2026-08-03T21:56:23-04:00",
   "hostname": "home mac",
-  "overall": "degraded",
+  "overall": "ok",
   "automations": [
     {
       "id": "scholarship-daily",
@@ -64,22 +64,22 @@
     {
       "id": "prof-outreach",
       "name": "Professor Outreach",
-      "state": "in_progress",
+      "state": "ok",
       "schedule_label": "Daily 08:03 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T21:36:15-04:00",
-        "exit": 1
+        "at": "2026-08-03T21:51:22-04:00",
+        "exit": 0
       },
-      "next_run_at": "2026-08-04T08:03:00-04:00",
-      "week_done": false,
+      "next_run_at": "2026-08-10T08:03:00-04:00",
+      "week_done": true,
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "18"
+          "value": "30"
         },
         {
           "label": "Sent total",
-          "value": "99"
+          "value": "111"
         },
         {
           "label": "Bounces",
@@ -91,10 +91,10 @@
     {
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
-      "state": "issue",
+      "state": "in_progress",
       "schedule_label": "Daily 09:02 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T15:34:49-04:00",
+        "at": "2026-08-03T21:52:18-04:00",
         "exit": 1
       },
       "next_run_at": "2026-08-04T09:02:00-04:00",
@@ -171,8 +171,8 @@
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 1,
     "discovered_new_today": 5,
-    "prof_emails_week": 18,
-    "prof_emails_total": 99,
+    "prof_emails_week": 30,
+    "prof_emails_total": 111,
     "ai_emails_week": 0,
     "ai_emails_total": 20,
     "bounces": 4,
