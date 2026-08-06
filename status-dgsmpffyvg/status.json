@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T14:48:53-04:00",
+  "generated_at": "2026-08-06T17:22:54-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -184,7 +184,7 @@
     }
   },
   "doctor": {
-    "last_run_at": "2026-08-05T15:14:47-04:00",
+    "last_run_at": "2026-08-06T15:06:27-04:00",
     "actions": [],
     "needs_human": []
   },
