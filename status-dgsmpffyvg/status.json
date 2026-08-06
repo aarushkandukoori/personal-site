@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-08-06T04:35:49-04:00",
+  "generated_at": "2026-08-06T11:04:28-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
     {
       "id": "scholarship-daily",
       "name": "Scholarship Daily Apply",
-      "state": "pending_today",
+      "state": "ok",
       "schedule_label": "Daily 10:00",
       "last_run": {
         "at": "2026-08-05T14:08:59-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-06T10:00:00-04:00",
+      "next_run_at": "2026-08-07T10:00:00-04:00",
       "week_done": null,
       "metrics": [
         {
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 116,
+    "disk_free_gb": 121,
     "claude_auth_ok": true,
     "network_ok": true
   }
