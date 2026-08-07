@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T13:57:42-04:00",
+  "generated_at": "2026-08-07T18:19:15-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -9,7 +9,7 @@
       "state": "ok",
       "schedule_label": "Daily 10:00",
       "last_run": {
-        "at": "2026-08-06T13:15:53-04:00",
+        "at": "2026-08-07T18:18:41-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-08T10:00:00-04:00",
@@ -25,11 +25,11 @@
         },
         {
           "label": "Auto-apply pool",
-          "value": "3"
+          "value": "5"
         },
         {
           "label": "Discovered today",
-          "value": "0"
+          "value": "4"
         }
       ],
       "issues": []
@@ -169,8 +169,8 @@
   "totals": {
     "scholarships_submitted_cycle": 20,
     "awards_submitted_cycle": 3,
-    "auto_apply_pool": 3,
-    "discovered_new_today": 0,
+    "auto_apply_pool": 5,
+    "discovered_new_today": 4,
     "prof_emails_week": 30,
     "prof_emails_total": 111,
     "ai_emails_week": 10,
@@ -184,7 +184,7 @@
     }
   },
   "doctor": {
-    "last_run_at": "2026-08-06T15:06:27-04:00",
+    "last_run_at": "2026-08-07T15:03:23-04:00",
     "actions": [],
     "needs_human": []
   },
