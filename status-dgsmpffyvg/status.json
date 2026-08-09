@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-09T05:39:27-04:00",
+  "generated_at": "2026-08-09T09:42:05-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 124,
+    "disk_free_gb": 125,
     "claude_auth_ok": true,
     "network_ok": true
   }
