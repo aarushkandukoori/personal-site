@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-08T20:40:49-04:00",
+  "generated_at": "2026-08-09T00:22:34-04:00",
   "hostname": "home mac",
-  "overall": "degraded",
+  "overall": "ok",
   "automations": [
     {
       "id": "scholarship-daily",
       "name": "Scholarship Daily Apply",
-      "state": "issue",
+      "state": "pending_today",
       "schedule_label": "Daily 10:00",
       "last_run": {
         "at": "2026-08-08T14:23:24-04:00",
