@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-08-10T09:37:50-04:00",
+  "generated_at": "2026-08-10T10:07:52-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
     {
       "id": "scholarship-daily",
       "name": "Scholarship Daily Apply",
-      "state": "pending_today",
+      "state": "ok",
       "schedule_label": "Daily 10:00",
       "last_run": {
         "at": "2026-08-09T20:38:24-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T10:00:00-04:00",
+      "next_run_at": "2026-08-11T10:00:00-04:00",
       "week_done": null,
       "metrics": [
         {
