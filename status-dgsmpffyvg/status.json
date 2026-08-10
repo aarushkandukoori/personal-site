@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T08:17:43-04:00",
+  "generated_at": "2026-08-10T08:27:45-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -40,15 +40,15 @@
       "state": "ok",
       "schedule_label": "Daily 05:20 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T12:02:00-04:00",
+        "at": "2026-08-10T08:21:45-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-11T05:20:00-04:00",
-      "week_done": false,
+      "next_run_at": "2026-08-17T05:20:00-04:00",
+      "week_done": true,
       "metrics": [
         {
           "label": "Last sent",
-          "value": "2026-08-03T12:02:00-04:00"
+          "value": "2026-08-10T08:21:45-04:00"
         },
         {
           "label": "Opportunities last email",
@@ -91,10 +91,10 @@
     {
       "id": "ai-outreach",
       "name": "AI Researcher Outreach",
-      "state": "ok",
+      "state": "in_progress",
       "schedule_label": "Daily 05:25 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T21:59:07-04:00",
+        "at": "2026-08-10T08:25:03-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-11T05:25:00-04:00",
@@ -176,7 +176,7 @@
     "ai_emails_week": 0,
     "ai_emails_total": 30,
     "bounces": 4,
-    "parent_last_sent": "2026-08-03T12:02:00-04:00",
+    "parent_last_sent": "2026-08-10T08:21:45-04:00",
     "blog_latest": {
       "title": "The Week Everything Got Cheap, and the Objective Became the Whole Story",
       "url": "https://aarushkandukoori.com/posts/when-the-cost-collapses/",
