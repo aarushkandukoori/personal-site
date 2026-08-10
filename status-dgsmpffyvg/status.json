@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T08:27:45-04:00",
+  "generated_at": "2026-08-10T08:47:46-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -121,23 +121,23 @@
       "state": "ok",
       "schedule_label": "Daily 05:45 (weekly guard)",
       "last_run": {
-        "at": "2026-08-03T16:19:53-04:00",
+        "at": "2026-08-10T08:47:09-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-11T05:45:00-04:00",
-      "week_done": false,
+      "next_run_at": "2026-08-17T05:45:00-04:00",
+      "week_done": true,
       "metrics": [
         {
           "label": "Latest post",
-          "value": "The Week Everything Got Cheap, and the Objective Became the Whole Story"
+          "value": "Memory You Can Actually Address"
         },
         {
           "label": "Published",
-          "value": "2026-08-03"
+          "value": "2026-08-10"
         },
         {
           "label": "URL",
-          "value": "https://aarushkandukoori.com/posts/when-the-cost-collapses/"
+          "value": "https://aarushkandukoori.com/posts/memory-you-can-address/"
         }
       ],
       "issues": []
@@ -178,9 +178,9 @@
     "bounces": 4,
     "parent_last_sent": "2026-08-10T08:21:45-04:00",
     "blog_latest": {
-      "title": "The Week Everything Got Cheap, and the Objective Became the Whole Story",
-      "url": "https://aarushkandukoori.com/posts/when-the-cost-collapses/",
-      "date": "2026-08-03"
+      "title": "Memory You Can Actually Address",
+      "url": "https://aarushkandukoori.com/posts/memory-you-can-address/",
+      "date": "2026-08-10"
     }
   },
   "doctor": {
