@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T04:17:28-04:00",
+  "generated_at": "2026-08-10T05:07:30-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -64,13 +64,13 @@
     {
       "id": "prof-outreach",
       "name": "Professor Outreach",
-      "state": "pending_today",
+      "state": "ok",
       "schedule_label": "Daily 05:00 (weekly guard)",
       "last_run": {
         "at": "2026-08-03T21:51:22-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T05:00:00-04:00",
+      "next_run_at": "2026-08-11T05:00:00-04:00",
       "week_done": false,
       "metrics": [
         {
@@ -189,7 +189,7 @@
     "needs_human": []
   },
   "system": {
-    "disk_free_gb": 131,
+    "disk_free_gb": 128,
     "claude_auth_ok": true,
     "network_ok": true
   }
