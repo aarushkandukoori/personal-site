@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How much does the student disagree with the teacher?</title>
+  <link rel="stylesheet" href="../../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">How much does the student disagree with the teacher?</h2>
+          <p class="card-subtitle">Slide the student&#x27;s distribution and watch the KL term react.</p>
+        </div>
+      </div>
+      
+      <div class="controls" style="padding-top:1rem">
+        <div class="control">
+          <div class="control-top"><span class="control-label">q(class A)</span><span class="control-value" id="qa">0.50</span></div>
+          <input id="q" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
+        </div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">p</span><span class="metric-value">[0.7, 0.3]</span></div>
+          <div class="metric"><span class="metric-label">q</span><span class="metric-value" id="qv">-</span></div>
+          <div class="metric"><span class="metric-label">KL(p||q)</span><span class="metric-value" id="kl">-</span></div>
+        </div>
+        <div class="canvas-wrap"><canvas id="canvas" width="760" height="240"></canvas></div>
+        <p class="hint">KL is asymmetric. When q puts too little mass where p is large, the penalty spikes.</p>
+      </div>
+    
+    </section>
+  </div>
+  <script>
+
+    const p = [0.7, 0.3];
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const input = document.getElementById("q");
+    function kl(p,q){ return p[0]*Math.log(p[0]/q[0]) + p[1]*Math.log(p[1]/q[1]); }
+    function draw(qa) {
+      const q = [qa, 1-qa];
+      document.getElementById("qa").textContent = qa.toFixed(2);
+      document.getElementById("qv").textContent = "["+q[0].toFixed(2)+", "+q[1].toFixed(2)+"]";
+      document.getElementById("kl").textContent = kl(p,q).toFixed(4);
+      const W=canvas.width,H=canvas.height,pad=36;
+      ctx.clearRect(0,0,W,H);
+      // draw KL curve over qa
+      ctx.beginPath();
+      for (let x=pad;x<=W-pad;x++){
+        const a = 0.05 + ((x-pad)/(W-pad*2))*0.9;
+        const qq=[a,1-a];
+        const y = H-pad - Math.min(kl(p,qq), 2.5)/2.5*(H-pad*2);
+        if (x===pad) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = "#111";
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) ctx.strokeStyle = "#f2f2f2";
+      ctx.lineWidth=2.5; ctx.stroke();
+      const x0 = pad + ((qa-0.05)/0.9)*(W-pad*2);
+      const y0 = H-pad - Math.min(kl(p,q),2.5)/2.5*(H-pad*2);
+      ctx.beginPath(); ctx.arc(x0,y0,5,0,Math.PI*2); ctx.fillStyle=ctx.strokeStyle; ctx.fill();
+    }
+    input.addEventListener("input", () => draw(parseFloat(input.value)));
+    draw(parseFloat(input.value));
+    
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+  </script>
+</body>
+</html>
