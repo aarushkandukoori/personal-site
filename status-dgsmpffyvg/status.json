@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-10T14:08:06-04:00",
+  "generated_at": "2026-08-10T15:08:09-04:00",
   "hostname": "home mac",
-  "overall": "ok",
+  "overall": "degraded",
   "automations": [
     {
       "id": "scholarship-daily",
@@ -184,12 +184,14 @@
     }
   },
   "doctor": {
-    "last_run_at": "2026-08-09T15:16:50-04:00",
+    "last_run_at": "2026-08-10T15:00:05-04:00",
     "actions": [],
-    "needs_human": []
+    "needs_human": [
+      "1 item(s) need attention"
+    ]
   },
   "system": {
-    "disk_free_gb": 128,
+    "disk_free_gb": 127,
     "claude_auth_ok": true,
     "network_ok": true
   }
