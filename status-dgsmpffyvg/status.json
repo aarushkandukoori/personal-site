@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T08:57:48-04:00",
+  "generated_at": "2026-08-10T09:37:50-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -148,7 +148,7 @@
       "state": "ok",
       "schedule_label": "Mon 06:30 & 18:00",
       "last_run": {
-        "at": "2026-08-04T02:32:18-04:00",
+        "at": "2026-08-10T09:30:18-04:00",
         "exit": 0
       },
       "next_run_at": "2026-08-10T18:00:00-04:00",
@@ -160,7 +160,7 @@
         },
         {
           "label": "Last heartbeat",
-          "value": "2026-08-04T02:32:18-04:00"
+          "value": "2026-08-10T09:30:18-04:00"
         }
       ],
       "issues": []
