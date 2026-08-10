@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T05:47:34-04:00",
+  "generated_at": "2026-08-10T06:47:37-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -151,7 +151,7 @@
         "at": "2026-08-04T02:32:18-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-10T06:30:00-04:00",
+      "next_run_at": "2026-08-10T18:00:00-04:00",
       "week_done": null,
       "metrics": [
         {
