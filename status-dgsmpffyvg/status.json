@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T08:07:41-04:00",
+  "generated_at": "2026-08-10T08:17:43-04:00",
   "hostname": "home mac",
   "overall": "ok",
   "automations": [
@@ -64,22 +64,22 @@
     {
       "id": "prof-outreach",
       "name": "Professor Outreach",
-      "state": "in_progress",
+      "state": "ok",
       "schedule_label": "Daily 05:00 (weekly guard)",
       "last_run": {
-        "at": "2026-08-10T08:00:02-04:00",
+        "at": "2026-08-10T08:12:43-04:00",
         "exit": 0
       },
-      "next_run_at": "2026-08-11T05:00:00-04:00",
-      "week_done": false,
+      "next_run_at": "2026-08-17T05:00:00-04:00",
+      "week_done": true,
       "metrics": [
         {
           "label": "Sent this week",
-          "value": "12"
+          "value": "25"
         },
         {
           "label": "Sent total",
-          "value": "123"
+          "value": "136"
         },
         {
           "label": "Bounces",
@@ -171,8 +171,8 @@
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 5,
     "discovered_new_today": 0,
-    "prof_emails_week": 12,
-    "prof_emails_total": 123,
+    "prof_emails_week": 25,
+    "prof_emails_total": 136,
     "ai_emails_week": 0,
     "ai_emails_total": 30,
     "bounces": 4,
