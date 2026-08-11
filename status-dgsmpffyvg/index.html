@@ -501,9 +501,10 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the eleven cards, fixed order */
+/* ------------------------------------------------ the twelve cards, fixed order */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat",
-             "reply-tracker","opportunity-radar","cot-distribution","github-presence","fleet-doctor"];
+             "reply-tracker","opportunity-radar","cot-distribution","github-presence",
+             "startup-outreach","fleet-doctor"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -515,6 +516,7 @@ var NICE = {
   "opportunity-radar":"Opportunity Radar",
   "cot-distribution":"Paper Outreach",
   "github-presence":"GitHub Presence",
+  "startup-outreach":"Startup Outreach",
   "fleet-doctor":"Fleet Doctor"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
@@ -530,6 +532,7 @@ var ICONS = {
   "opportunity-radar": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="24" cy="26" r="17"/><path d="M24 26V9"/><path d="M24 26l11-8"/><circle cx="31" cy="32" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>',
   "cot-distribution": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M43 8 5 22l14 5 5 13z"/><path d="M43 8 19 27"/></svg>',
   "github-presence": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="13" cy="11" r="5"/><circle cx="13" cy="37" r="5"/><circle cx="35" cy="15" r="5"/><path d="M13 16v16"/><path d="M35 20c0 8-9 8-17 12"/></svg>',
+  "startup-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M40 8c-9 0-17 4-22 11l-5 7 9 9 7-5c7-5 11-13 11-22z"/><circle cx="30" cy="18" r="3"/><path d="M13 26l-6 2 4 4M22 35l2 6 4-4"/><path d="M9 39c1.5-1.5 4-2 5.5-.5S16 43 14.5 44.5 7 46 7 46s.5-5.5 2-7z"/></svg>',
   "fleet-doctor": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="8"/><path d="M14 24h6l3-7 4 14 3-7h4"/></svg>'
 };
 var CHIP = {
@@ -660,6 +663,14 @@ function sentenceFor(a, totals, doctor){
       if(!d) return "Hasn’t run yet";
       var day = friendlyDay(d);
       return "Checked " + day + " — all good";
+    case "startup-outreach":
+      /* say line straight from the snapshot metrics: ranked + drafts */
+      var m = {};
+      (a.metrics || []).forEach(function(x){ m[x.label] = x.value; });
+      if(m["Companies ranked"])
+        return m["Companies ranked"] + " startups ranked · " +
+               (m["Drafts prepared"] || 0) + " drafts ready";
+      return doneFallback(a);
     default:
       return doneFallback(a);
   }
