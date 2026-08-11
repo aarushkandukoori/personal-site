@@ -350,6 +350,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   padding:.32em .8em;font-size:clamp(12px,1.9vmin,15px);font-weight:700;margin:0 6px 6px 0;
 }
 .mtag.bad{background:var(--bad);color:#fff}
+.mtag.muted{color:var(--ink2);font-style:italic}
 .mconf{
   background:var(--iconbg);border-radius:14px;padding:12px 14px;
   font-size:clamp(13px,2.05vmin,16px);font-weight:600;line-height:1.45;margin-top:8px;
@@ -443,7 +444,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   <footer id="strip">
     <span id="doctor">🤖 Robot doctor hasn’t checked yet today</span>
     <span id="blogline" hidden></span>
-    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-11.2</span></span>
+    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-11.3</span></span>
   </footer>
 </main>
 <div id="veil" aria-hidden="true">
@@ -502,24 +503,23 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 <script>
 "use strict";
 /* ------------------------------------------------ the thirteen cards, fixed order */
-var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat",
+var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
-             "startup-outreach","yc-demo-outreach","inbox-apply","fleet-doctor"];
+             "startup-outreach","yc-demo-outreach","inbox-apply"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
   "prof-outreach":"Professor Emails",
   "ai-outreach":"AI Researcher Emails",
   "blog":"Blog",
-  "heartbeat":"Health Check",
+  "doctor":"Doctor",
   "reply-tracker":"Reply Tracker",
   "opportunity-radar":"Opportunity Radar",
   "cot-distribution":"Paper Outreach",
   "github-presence":"GitHub Presence",
   "startup-outreach":"Startup Outreach",
   "yc-demo-outreach":"YC Demo Outreach",
-  "inbox-apply":"Inbox Apply",
-  "fleet-doctor":"Fleet Doctor"
+  "inbox-apply":"Inbox Apply"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -529,15 +529,14 @@ var ICONS = {
   "prof-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M4 18 24 7l20 11z"/><path d="M10 22.5V36M18 22.5V36M30 22.5V36M38 22.5V36"/><path d="M6 40h36"/></svg>',
   "ai-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="10" y="16" width="28" height="23" rx="7"/><path d="M24 16v-5.5"/><circle cx="24" cy="8" r="2.4"/><circle cx="18.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><circle cx="29.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><path d="M18 32.5c1.8 1.6 10.2 1.6 12 0"/></svg>',
   "blog": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M31 9.5 38.5 17 17 38.5 7 41l2.5-10z"/><path d="M27 13.5 34.5 21"/></svg>',
-  "heartbeat": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 7v11a9.5 9.5 0 0 0 19 0V7"/><path d="M22.5 27.2V31a8 8 0 0 0 16 0v-4.5"/><circle cx="38.5" cy="22.5" r="4"/></svg>',
+  "doctor": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 7v11a9.5 9.5 0 0 0 19 0V7"/><path d="M22.5 27.2V31a8 8 0 0 0 16 0v-4.5"/><circle cx="38.5" cy="22.5" r="4"/><path d="M5.5 38.5h10M10.5 33.5v10"/></svg>',
   "reply-tracker": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="13" width="38" height="26" rx="5"/><path d="M6.5 15.5 24 27.5 41.5 15.5"/><path d="M30 7h8m0 0-3.5-3.5M38 7l-3.5 3.5"/></svg>',
   "opportunity-radar": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="24" cy="26" r="17"/><path d="M24 26V9"/><path d="M24 26l11-8"/><circle cx="31" cy="32" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>',
   "cot-distribution": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M43 8 5 22l14 5 5 13z"/><path d="M43 8 19 27"/></svg>',
   "github-presence": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="13" cy="11" r="5"/><circle cx="13" cy="37" r="5"/><circle cx="35" cy="15" r="5"/><path d="M13 16v16"/><path d="M35 20c0 8-9 8-17 12"/></svg>',
   "startup-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M40 8c-9 0-17 4-22 11l-5 7 9 9 7-5c7-5 11-13 11-22z"/><circle cx="30" cy="18" r="3"/><path d="M13 26l-6 2 4 4M22 35l2 6 4-4"/><path d="M9 39c1.5-1.5 4-2 5.5-.5S16 43 14.5 44.5 7 46 7 46s.5-5.5 2-7z"/></svg>',
   "yc-demo-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="6" y="9" width="36" height="30" rx="5"/><path d="M6 17h36"/><circle cx="11.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><path d="M21 23.5v9l8-4.5z"/></svg>',
-  "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>',
-  "fleet-doctor": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="8"/><path d="M14 24h6l3-7 4 14 3-7h4"/></svg>'
+  "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>'
 };
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
@@ -637,6 +636,8 @@ function sentenceFor(a, totals, doctor){
   if(st === "in_progress") return "Working on it right now…";
   if(st === "pending_today") return pendingSentence(a);
   if(st === "issue"){
+    /* the doctor tile explains itself: lead with its first issue string */
+    if(a.id === "doctor" && a.issues && a.issues.length) return String(a.issues[0]);
     var needs = doctor && doctor.needs_human && doctor.needs_human.length;
     return needs ? "Something went wrong — it needs you"
                  : "Something went wrong — it will try again tomorrow";
@@ -662,11 +663,18 @@ function sentenceFor(a, totals, doctor){
       return doneFallback(a);
     case "blog":
       return t.blog_latest ? "New post is up!" : doneFallback(a);
-    case "heartbeat":
-      var d = parseISO(a.last_run && a.last_run.at);
-      if(!d) return "Hasn’t run yet";
-      var day = friendlyDay(d);
-      return "Checked " + day + " — all good";
+    case "doctor":
+      /* healthy: read the pinned metrics — Jobs healthy "N/M" + Fixes (7d) */
+      var dm = {};
+      (a.metrics || []).forEach(function(x){ dm[x.label] = x.value; });
+      var jobsVal = dm["Jobs healthy"];
+      if(jobsVal){
+        var healthyN = String(jobsVal).split("/")[0];
+        var fixesN = parseInt(dm["Fixes (7d)"], 10); if(isNaN(fixesN)) fixesN = 0;
+        return "All " + healthyN + " jobs healthy — " + fixesN + " " +
+               plural(fixesN,"fix","fixes") + " this week";
+      }
+      return doneFallback(a);
     case "startup-outreach":
       /* say line straight from the snapshot metrics: ranked + drafts */
       var m = {};
@@ -1154,7 +1162,14 @@ var SUBTITLE = {
   "parent-weekly": "One batch of emails every Monday",
   "prof-outreach": "Every email sent — newest first",
   "ai-outreach": "Every email sent — newest first",
-  "blog": "Published posts — newest first"
+  "blog": "Published posts — newest first",
+  "doctor": "Recent fixes the doctor applied",
+  "reply-tracker": "Replies received — newest first",
+  "opportunity-radar": "Tracked opportunities — newest first",
+  "cot-distribution": "Paper outreach emails sent",
+  "github-presence": "Open-source contributions",
+  "inbox-apply": "Applications from inbox scanning",
+  "startup-outreach": "Personalized startup outreach"
 };
 
 function el(tag, cls, text){
@@ -1187,7 +1202,8 @@ function headRow(grid, label, value){
 function emailSlide(it){
   var f = document.createDocumentFragment();
   var grid = el("div", "mailhead");
-  headRow(grid, "Sent", whenStr(it.sent_at));
+  if(it.sent_at) headRow(grid, "Sent", whenStr(it.sent_at));
+  else headRow(grid, "Status", "Draft — not yet sent");
   var toBits = (it.researcher || "") + (it.school ? " · " + it.school : "");
   headRow(grid, "To", toBits + (it.to ? (toBits ? " — " : "") + it.to : ""));
   if(it.from) headRow(grid, "From", it.from);
@@ -1236,12 +1252,14 @@ function appSlide(it){
   var tags = el("div");
   tags.appendChild(el("span", "mtag", it.kind === "award" ? "🏆 Award" : "🎓 Scholarship"));
   if(it.amount) tags.appendChild(el("span", "mtag", it.amount));
-  tags.appendChild(el("span", "mtag", "Applied " + whenStr(it.applied_at)));
+  if(it.applied_at) tags.appendChild(el("span", "mtag", "Applied " + whenStr(it.applied_at)));
+  else tags.appendChild(el("span", "mtag", "Queued"));
   if(it.deadline) tags.appendChild(el("span", "mtag", "Deadline " + it.deadline));
   f.appendChild(tags);
   var conf = el("div", "mconf");
   conf.appendChild(el("b", null, "Confirmation: "));
-  conf.appendChild(document.createTextNode(it.confirmation || "recorded as submitted in the ledger"));
+  conf.appendChild(document.createTextNode(it.confirmation ||
+    (it.applied_at ? "recorded as submitted in the ledger" : "not yet submitted")));
   f.appendChild(conf);
   if(it.notes) f.appendChild(el("div", "mnote", it.notes));
   if(it.url){
@@ -1255,7 +1273,9 @@ function appSlide(it){
     img.src = "./shots/" + encodeURIComponent(s);
     f.appendChild(img);
   });
-  if(!(it.shots || []).length){
+  /* the screenshot note only makes sense for things actually submitted —
+     queued items (no applied_at, shots always []) skip it */
+  if(!(it.shots || []).length && it.applied_at){
     f.appendChild(el("div", "mnote", DETAILS && DETAILS.sanitized
       ? "Screenshots stay on the home Mac — the confirmation above is what the applier recorded at submit time."
       : "No screenshot was captured for this one — the confirmation above is what the applier recorded at submit time."));
@@ -1279,11 +1299,71 @@ function blogSlide(it){
   return f;
 }
 
+/* one slide per doctor fix (scholarship doctor + fleet doctor share the ledger) */
+function fixSlide(it){
+  var f = document.createDocumentFragment();
+  var grid = el("div", "mailhead");
+  headRow(grid, "When", whenStr(it.at));
+  headRow(grid, "Target", it.target || "—");
+  f.appendChild(grid);
+  var tags = el("div");
+  if(it.source) tags.appendChild(el("span", "mtag", it.source));
+  if(it.kind) tags.appendChild(el("span", "mtag", it.kind));
+  if(it.dry_run) tags.appendChild(el("span", "mtag muted", "dry run"));
+  f.appendChild(tags);
+  if(it.detail) f.appendChild(el("div", "mailbody", it.detail));
+  else f.appendChild(el("div", "mnote", "No extra detail was recorded for this fix."));
+  return f;
+}
+
+/* one slide per tracked opportunity */
+function opportunitySlide(it){
+  var f = document.createDocumentFragment();
+  f.appendChild(el("div", "mailsubj",
+    (it.org ? it.org + " — " : "") + (it.title || "?")));
+  var tags = el("div");
+  if(it.type) tags.appendChild(el("span", "mtag", it.type));
+  if(it.deadline){
+    var dd = parseISO(it.deadline), soon = false;
+    if(dd) soon = (dd.getTime() - Date.now()) <= 7*86400000; /* within 7 days (or past) */
+    tags.appendChild(el("span", soon ? "mtag bad" : "mtag", "Deadline " + it.deadline));
+  }
+  f.appendChild(tags);
+  var grid = el("div", "mailhead");
+  headRow(grid, "First seen", whenStr(it.first_seen));
+  f.appendChild(grid);
+  if(it.notes) f.appendChild(el("div", "mailbody", it.notes));
+  if(it.url && /^https:\/\//.test(it.url))
+    f.appendChild(link(it.url, "Open opportunity ↗", "mbtn"));
+  return f;
+}
+
+/* one slide per open-source contribution */
+function contribSlide(it){
+  var f = document.createDocumentFragment();
+  f.appendChild(el("div", "mailsubj",
+    (it.repo ? it.repo + " — " : "") + (it.action || "?")));
+  var tags = el("div");
+  if(it.dry_run) tags.appendChild(el("span", "mtag muted", "dry run — not published"));
+  f.appendChild(tags);
+  var grid = el("div", "mailhead");
+  headRow(grid, "When", whenStr(it.at));
+  if(it.stats) headRow(grid, "Stats", it.stats);
+  f.appendChild(grid);
+  if(it.detail) f.appendChild(el("div", "mailbody", it.detail));
+  if(it.pr_url && /^https?:\/\//.test(it.pr_url))
+    f.appendChild(link(it.pr_url, "View PR ↗", "mbtn"));
+  return f;
+}
+
 var SLIDE = {
   emails: emailSlide,
   parent_emails: parentSlide,
   applications: appSlide,
-  posts: blogSlide
+  posts: blogSlide,
+  fixes: fixSlide,
+  opportunities: opportunitySlide,
+  contribs: contribSlide
 };
 
 function renderSlide(){
