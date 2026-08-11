@@ -315,6 +315,63 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   box-shadow:var(--shadow);margin-top:12px;background:#fff;
 }
 
+/* ---------------- gate lock screen (public encrypted mirror only) --------- */
+#lock{
+  position:absolute;inset:0;z-index:70;
+  background:var(--veilbg);
+  display:none;place-items:center;text-align:center;
+  padding:6vmin;
+}
+#lock.show{display:grid}
+#lockcard{
+  width:min(92vw,420px);
+  background:var(--card);border-radius:24px;box-shadow:var(--shadow);
+  padding:26px 22px;display:flex;flex-direction:column;gap:14px;
+}
+#lockcard.shake{animation:lockshake .45s ease}
+@keyframes lockshake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-9px)}40%{transform:translateX(9px)}
+  60%{transform:translateX(-6px)}80%{transform:translateX(6px)}
+}
+#lockheart{font-size:52px;line-height:1;animation:breathe 2s ease-in-out infinite}
+#locktitle{font-size:21px;font-weight:800;letter-spacing:-.01em}
+#locksub{font-size:14px;font-weight:600;color:var(--ink2);line-height:1.4;margin-top:-6px}
+#lockpw{
+  width:100%;border:2px solid var(--iconbg);border-radius:14px;
+  background:var(--tint-none);color:var(--ink);
+  padding:12px 14px;font-size:16px;font-weight:600;font-family:inherit;
+  outline:none;-webkit-user-select:text;user-select:text;
+}
+#lockpw:focus{border-color:var(--work)}
+#lockpad{
+  border:none;border-radius:18px;background:var(--iconbg);color:var(--ink);
+  padding:18px 14px;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+#lockpad:active{transform:scale(.97)}
+#lockpad .padheart{font-size:34px;line-height:1;transition:transform .12s ease}
+#lockpad.thump .padheart{transform:scale(1.35)}
+#lockpad .padlabel{font-size:13px;font-weight:700;color:var(--ink2)}
+#lockdots{
+  min-height:22px;font-size:17px;font-weight:900;letter-spacing:.18em;
+  color:var(--work);
+}
+#lockdots .faint{opacity:.4}
+#lockrow{display:flex;gap:10px;align-items:center}
+#lockgo{
+  flex:1;border:none;border-radius:999px;background:var(--ok);color:#fff;
+  padding:13px 0;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;
+}
+#lockgo:disabled{opacity:.55;cursor:default}
+#lockclear{
+  flex:none;border:none;background:none;color:var(--ink2);
+  font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
+  text-decoration:underline;
+}
+#lockerr{min-height:18px;font-size:13px;font-weight:700;color:var(--bad)}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
 }
@@ -332,7 +389,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   <footer id="strip">
     <span id="doctor">🤖 Robot doctor hasn’t checked yet today</span>
     <span id="blogline" hidden></span>
-    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-11.1</span></span>
+    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-11.2</span></span>
   </footer>
 </main>
 <div id="veil" aria-hidden="true">
@@ -340,6 +397,25 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
     <div class="zzz">😴</div>
     <h2>Can’t reach the Mac right now</h2>
     <p id="veilsub">Waiting for the first update…</p>
+  </div>
+</div>
+<div id="lock" aria-hidden="true">
+  <div id="lockcard">
+    <div id="lockheart" aria-hidden="true">🫀</div>
+    <div id="locktitle">This board is private</div>
+    <div id="locksub">Enter the password, then tap the secret heartbeat.</div>
+    <input id="lockpw" type="password" placeholder="Password"
+           autocomplete="current-password" autocapitalize="none" autocorrect="off">
+    <button id="lockpad" type="button">
+      <span class="padheart" aria-hidden="true">🫀</span>
+      <span class="padlabel">tap your heartbeat here</span>
+    </button>
+    <div id="lockdots" aria-hidden="true"><span class="faint">···</span></div>
+    <div id="lockrow">
+      <button id="lockgo" type="button">Unlock</button>
+      <button id="lockclear" type="button">clear taps</button>
+    </div>
+    <div id="lockerr"></div>
   </div>
 </div>
 <div id="modal" role="dialog" aria-modal="true" aria-hidden="true">
@@ -626,6 +702,7 @@ function poll(){
   /* ?t= defeats CDN edge caching (GitHub Pages ignores request no-store) */
   fetch("./status.json?t=" + Date.now(), {cache:"no-store"})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(unwrapGate) /* public mirror: AES envelope -> lock screen/decrypt */
     .then(function(json){
       fails = 0;
       data = json || {};
@@ -660,7 +737,8 @@ function poll(){
         ping.classList.add("go");
       }
     })
-    .catch(function(){
+    .catch(function(err){
+      if(err && err.gateLocked) return; /* lock screen is up, not an outage */
       fails++;
       if(fails >= 2) showVeil();
     });
@@ -701,10 +779,182 @@ darkMQ.addEventListener("change", function(){
   if(motionMQ.matches) drawEkg(0);
 });
 
+/* ------------------------------------------------ passphrase gate
+   On the public mirror, status.json and details.json are AES envelopes
+   (see gatecrypt.py): PBKDF2 of "password|knock" -> AES-256-CTR + HMAC.
+   The knock is the quirky part — a secret heartbeat tapped on the pad;
+   tap-group sizes (e.g. lub-dub … lub-dub = "2-2") are mixed into the key
+   derivation, so the wrong rhythm mathematically cannot decrypt. The local
+   server sends plaintext, so at home the gate never appears. */
+var lockEl = document.getElementById("lock");
+var lockCard = document.getElementById("lockcard");
+var lockPw = document.getElementById("lockpw");
+var lockPad = document.getElementById("lockpad");
+var lockDots = document.getElementById("lockdots");
+var lockGo = document.getElementById("lockgo");
+var lockClear = document.getElementById("lockclear");
+var lockErr = document.getElementById("lockerr");
+var gateKeys = null;      /* {aes, mac} CryptoKeys once unlocked */
+var gateEnv = null;       /* latest envelope seen (unlock attempts run on it) */
+var gateBusy = false;
+var taps = [];
+var KNOCK_GAP_MS = 650;   /* a pause longer than this starts a new tap group */
+
+function isEnvelope(o){ return !!(o && o.v === 1 && o.ct && o.kdf); }
+function b64bytes(s){
+  var bin = atob(s), a = new Uint8Array(bin.length);
+  for(var i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+  return a;
+}
+function bytesB64(buf){
+  var a = new Uint8Array(buf), s = "";
+  for(var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]);
+  return btoa(s);
+}
+function subtleOK(){ return !!(window.crypto && crypto.subtle); }
+function importGateKeys(bits){ /* 64 raw bytes -> AES-CTR + HMAC verify keys */
+  return Promise.all([
+    crypto.subtle.importKey("raw", bits.slice(0, 32), {name:"AES-CTR"}, false, ["decrypt"]),
+    crypto.subtle.importKey("raw", bits.slice(32), {name:"HMAC", hash:"SHA-256"}, false, ["verify"])
+  ]).then(function(ks){ return {aes:ks[0], mac:ks[1]}; });
+}
+function deriveGateBits(passInput, env){
+  return crypto.subtle.importKey("raw", new TextEncoder().encode(passInput),
+                                 "PBKDF2", false, ["deriveBits"])
+    .then(function(km){
+      return crypto.subtle.deriveBits(
+        {name:"PBKDF2", hash:"SHA-256", salt:b64bytes(env.kdf.salt),
+         iterations:env.kdf.iter}, km, 512);
+    });
+}
+function decryptEnvelope(env, keys){ /* verify HMAC(iv||ct), then AES-CTR */
+  var iv = b64bytes(env.iv), ct = b64bytes(env.ct), mac = b64bytes(env.mac);
+  var signed = new Uint8Array(iv.length + ct.length);
+  signed.set(iv); signed.set(ct, iv.length);
+  return crypto.subtle.verify("HMAC", keys.mac, mac, signed)
+    .then(function(ok){
+      if(!ok) throw new Error("bad key");
+      return crypto.subtle.decrypt({name:"AES-CTR", counter:iv, length:128},
+                                   keys.aes, ct);
+    })
+    .then(function(buf){ return JSON.parse(new TextDecoder().decode(buf)); });
+}
+function forgetGate(){
+  gateKeys = null;
+  try { localStorage.removeItem("gateBits"); localStorage.removeItem("gateSalt"); } catch(e){}
+}
+function unwrapGate(json){
+  if(!isEnvelope(json)) return Promise.resolve(json);  /* local plaintext */
+  gateEnv = json;
+  var locked = {gateLocked: true};
+  if(!subtleOK()){
+    showLock("Unlocking needs a modern browser over https.");
+    return Promise.reject(locked);
+  }
+  if(gateKeys){
+    return decryptEnvelope(json, gateKeys).catch(function(){
+      forgetGate(); showLock(); throw locked;   /* password changed upstream */
+    });
+  }
+  var bits = null, salt = null;   /* remembered from a prior unlock here */
+  try { bits = localStorage.getItem("gateBits"); salt = localStorage.getItem("gateSalt"); } catch(e){}
+  if(bits && salt === json.kdf.salt){
+    return importGateKeys(b64bytes(bits).buffer)
+      .then(function(keys){
+        return decryptEnvelope(json, keys).then(function(obj){
+          gateKeys = keys; hideLock(); return obj;
+        });
+      })
+      .catch(function(){ forgetGate(); showLock(); throw locked; });
+  }
+  showLock();
+  return Promise.reject(locked);
+}
+function knockCode(){ /* taps -> group sizes, e.g. lub-dub…lub-dub -> "2-2" */
+  if(!taps.length) return "";
+  var groups = [1];
+  for(var i = 1; i < taps.length; i++){
+    if(taps[i] - taps[i-1] > KNOCK_GAP_MS) groups.push(1);
+    else groups[groups.length - 1]++;
+  }
+  return groups.join("-");
+}
+function drawTaps(){
+  if(!taps.length){
+    lockDots.innerHTML = '<span class="faint">···</span>';
+    return;
+  }
+  var out = "";
+  for(var i = 0; i < taps.length; i++){
+    if(i && taps[i] - taps[i-1] > KNOCK_GAP_MS) out += "  ";
+    out += "●";
+  }
+  lockDots.textContent = out;
+}
+function showLock(msg){
+  lockEl.classList.add("show");
+  lockEl.setAttribute("aria-hidden", "false");
+  if(msg) lockErr.textContent = msg;
+}
+function hideLock(){
+  lockEl.classList.remove("show");
+  lockEl.setAttribute("aria-hidden", "true");
+  lockErr.textContent = "";
+}
+function tryUnlock(pw, knock){
+  if(!gateEnv || gateBusy || !subtleOK()) return Promise.reject(new Error("not ready"));
+  gateBusy = true;
+  lockGo.disabled = true; lockGo.textContent = "Checking…";
+  function done(){ gateBusy = false; lockGo.disabled = false; lockGo.textContent = "Unlock"; }
+  return deriveGateBits(pw + "|" + knock, gateEnv)
+    .then(function(bits){
+      return importGateKeys(bits).then(function(keys){
+        return decryptEnvelope(gateEnv, keys).then(function(){
+          gateKeys = keys;
+          try {
+            localStorage.setItem("gateBits", bytesB64(bits));
+            localStorage.setItem("gateSalt", gateEnv.kdf.salt);
+          } catch(e){}
+        });
+      });
+    })
+    .then(function(){
+      done(); hideLock();
+      taps = []; drawTaps(); lockPw.value = "";
+      poll(); fetchDetails();
+    })
+    .catch(function(err){
+      done();
+      lockErr.textContent = "That’s not the right beat. Try again.";
+      taps = []; drawTaps();
+      lockCard.classList.remove("shake"); void lockCard.offsetWidth;
+      lockCard.classList.add("shake");
+      throw err;
+    });
+}
+lockPad.addEventListener("click", function(){
+  if(taps.length >= 12) return;
+  taps.push(performance.now());
+  drawTaps();
+  lockErr.textContent = "";
+  lockPad.classList.remove("thump"); void lockPad.offsetWidth;
+  lockPad.classList.add("thump");
+});
+lockClear.addEventListener("click", function(){ taps = []; drawTaps(); });
+lockGo.addEventListener("click", function(){
+  tryUnlock(lockPw.value, knockCode()).catch(function(){});
+});
+lockPw.addEventListener("keydown", function(e){
+  if(e.key === "Enter") tryUnlock(lockPw.value, knockCode()).catch(function(){});
+});
+/* test hook — identical to typing the password and tapping the beat */
+window.__gateTry = function(pw, knock){ return tryUnlock(pw, knock); };
+
 /* ------------------------------------------------ tile drill-down gallery
-   Fed by /details.json, which only the LOCAL server provides. On the public
-   GitHub Pages mirror that fetch 404s, DETAILS stays null and the tiles are
-   simply not clickable — nothing personal ever ships there. */
+   Fed by /details.json: the LOCAL server sends it plaintext; the public
+   mirror ships it as an AES envelope that unwrapGate() opens after unlock.
+   Sanitized public data (DETAILS.sanitized) has no addresses, bodies,
+   notes or screenshots — the slides adapt their wording. */
 var DETAILS = null;
 var modalEl = document.getElementById("modal");
 var mslide = document.getElementById("mslide");
@@ -756,7 +1006,7 @@ function emailSlide(it){
   var grid = el("div", "mailhead");
   headRow(grid, "Sent", whenStr(it.sent_at));
   var toBits = (it.researcher || "") + (it.school ? " · " + it.school : "");
-  headRow(grid, "To", (toBits ? toBits + " — " : "") + (it.to || "?"));
+  headRow(grid, "To", toBits + (it.to ? (toBits ? " — " : "") + it.to : ""));
   if(it.from) headRow(grid, "From", it.from);
   if(it.post_title) headRow(grid, "About", it.post_link
     ? link(it.post_link, it.post_title) : it.post_title);
@@ -766,8 +1016,9 @@ function emailSlide(it){
   if(it.body){
     f.appendChild(el("div", "mailbody", it.body));
   } else {
-    f.appendChild(el("div", "mnote",
-      "Full text isn’t archived for this one — only the newest week’s drafts are kept on disk. The send record above is from the sent log."));
+    f.appendChild(el("div", "mnote", DETAILS && DETAILS.sanitized
+      ? "Addresses and full text stay on the home Mac — this view shows the send record."
+      : "Full text isn’t archived for this one — only the newest week’s drafts are kept on disk. The send record above is from the sent log."));
   }
   return f;
 }
@@ -778,7 +1029,8 @@ function parentSlide(it){
   var n = (it.opportunities || []).length;
   var grid = el("div", "mailhead");
   headRow(grid, "Sent", whenStr(it.sent_at));
-  headRow(grid, "To", (it.to || []).join(", "));
+  if(it.to && it.to.length) headRow(grid, "To", it.to.join(", "));
+  else headRow(grid, "To", "Mom and Dad");
   headRow(grid, "Emails", n + " — one per scholarship");
   f.appendChild(grid);
   f.appendChild(el("div", "mailsubj", it.subject || "Weekly Scholarship Update"));
@@ -821,8 +1073,9 @@ function appSlide(it){
     f.appendChild(img);
   });
   if(!(it.shots || []).length){
-    f.appendChild(el("div", "mnote",
-      "No screenshot was captured for this one — the confirmation above is what the applier recorded at submit time."));
+    f.appendChild(el("div", "mnote", DETAILS && DETAILS.sanitized
+      ? "Screenshots stay on the home Mac — the confirmation above is what the applier recorded at submit time."
+      : "No screenshot was captured for this one — the confirmation above is what the applier recorded at submit time."));
   }
   return f;
 }
@@ -925,6 +1178,7 @@ function markClickable(){
 function fetchDetails(){
   fetch("./details.json?t=" + Date.now(), {cache:"no-store"})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(unwrapGate) /* public mirror: AES envelope -> lock screen/decrypt */
     .then(function(j){
       if(j && j.sections){
         DETAILS = j;
