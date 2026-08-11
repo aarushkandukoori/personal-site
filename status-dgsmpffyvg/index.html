@@ -111,6 +111,60 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   100%{opacity:0;transform:scale(2.05)}
 }
 
+/* ---------------- "why this status" popup ---------------- */
+#verdict.click{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#verdict.click:active #vcircle{transform:scale(.95)}
+#why{
+  position:absolute;inset:0;z-index:70;display:none;place-items:center;
+  background:rgba(8,12,8,.45);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  padding:calc(clamp(10px,2vmin,26px) + env(safe-area-inset-top))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-right))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-bottom))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-left));
+}
+#why.show{display:grid}
+#whybox{
+  width:min(100%,640px);max-height:100%;
+  background:var(--card);border-radius:24px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:mpop .28s ease;
+}
+#whyhead{display:flex;align-items:center;gap:12px;padding:16px 18px 10px;flex:none}
+#whytitle{
+  flex:1;min-width:0;
+  font-size:clamp(18px,2.9vmin,26px);font-weight:800;letter-spacing:-.01em;line-height:1.1;
+}
+#whyclose{
+  flex:none;width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--iconbg);color:var(--ink);font-size:18px;font-weight:900;cursor:pointer;
+}
+#whylist{
+  min-height:0;overflow-y:auto;padding:2px 18px 16px;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  -webkit-user-select:text;user-select:text;
+}
+.whyitem{
+  background:var(--iconbg);border-radius:16px;padding:12px 14px;margin-top:10px;
+}
+.whyitem .whotop{display:flex;align-items:center;gap:10px;font-weight:800;font-size:clamp(14px,2.3vmin,18px)}
+.whyitem .whotop svg{width:clamp(20px,3vmin,26px);height:clamp(20px,3vmin,26px);flex:none}
+.whyitem .whotop .wbadge{
+  margin-left:auto;flex:none;background:var(--bad);color:#fff;border-radius:999px;
+  padding:.25em .75em;font-size:clamp(11px,1.8vmin,14px);font-weight:800;
+}
+.whyitem ul{list-style:none;margin:8px 0 0}
+.whyitem li{
+  position:relative;padding:4px 0 4px 18px;
+  font-weight:600;font-size:clamp(13px,2.05vmin,16px);line-height:1.45;overflow-wrap:anywhere;
+}
+.whyitem li::before{content:"•";position:absolute;left:4px;color:var(--ink2)}
+.whyok{
+  text-align:center;padding:22px 8px 12px;font-weight:700;
+  font-size:clamp(14px,2.3vmin,18px);color:var(--ink2);line-height:1.5;
+}
+.whyok .bigok{font-size:clamp(34px,6vmin,54px);display:block;margin-bottom:8px}
+
 /* ---------------- live heartbeat line (EKG) ---------------- */
 #ekgwrap{height:clamp(30px,4.6vmin,56px);min-width:0;position:relative}
 #ekg{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -418,6 +472,15 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
     <div id="lockerr"></div>
   </div>
 </div>
+<div id="why" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="whybox">
+    <div id="whyhead">
+      <div id="whytitle">What needs attention</div>
+      <button id="whyclose" aria-label="Close">✕</button>
+    </div>
+    <div id="whylist"></div>
+  </div>
+</div>
 <div id="modal" role="dialog" aria-modal="true" aria-hidden="true">
   <div id="mbox">
     <div id="mhead">
@@ -612,6 +675,16 @@ function render(){
   document.getElementById("vwords").textContent = v.words;
   document.getElementById("vcircle").style.background = VCOLOR[overall] || VCOLOR.none;
 
+  var vd = document.getElementById("verdict");
+  if(!vd.classList.contains("click")){
+    vd.classList.add("click");
+    vd.setAttribute("role","button");
+    vd.setAttribute("tabindex","0");
+  }
+  vd.setAttribute("aria-label", v.words + " — tap for details");
+  vd.title = "Tap to see why";
+  if(document.getElementById("why").classList.contains("show")) renderWhy();
+
   var byId = {};
   (data.automations || []).forEach(function(a){ if(a && a.id) byId[a.id] = a; });
 
@@ -663,6 +736,90 @@ function render(){
   refreshEkgColor();
   if(motionMQ.matches) drawEkg(0); /* reduced motion: one static trace frame */
 }
+
+/* ------------------------------------------------ "why this status" popup */
+var whyEl = document.getElementById("why");
+var whyList = document.getElementById("whylist");
+var whyTitle = document.getElementById("whytitle");
+var verdictEl = document.getElementById("verdict");
+
+/* Everything that explains the current verdict, worst first. */
+function attentionItems(){
+  var items = [];
+  if(!data) return items;
+  (data.automations || []).forEach(function(a){
+    if(!a || a.state !== "issue") return;
+    var lines = (a.issues || []).map(String);
+    if(!lines.length) lines = ["Something went wrong on the last run"];
+    items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
+  });
+  var doc = data.doctor;
+  if(doc && doc.needs_human && doc.needs_human.length){
+    items.push({icon:"", emoji:"🤖", name:"Robot doctor says you're needed",
+                lines:doc.needs_human.map(String)});
+  }
+  return items;
+}
+function renderWhy(){
+  var items = attentionItems();
+  whyList.textContent = "";
+  if(!items.length){
+    var overall = data && (data.overall === "ok" || data.overall === "down"
+                  ? data.overall : (data.overall ? "degraded" : "none"));
+    whyTitle.textContent = "Status check";
+    var okd = document.createElement("div");
+    okd.className = "whyok";
+    okd.innerHTML = overall === "ok"
+      ? '<span class="bigok">✓</span>Everything ran the way it should.<br>Nothing needs you right now.'
+      : '<span class="bigok">…</span>Still gathering details — check back in a minute.';
+    whyList.appendChild(okd);
+    return;
+  }
+  whyTitle.textContent = items.length === 1 ? "1 thing needs attention"
+                       : items.length + " things need attention";
+  items.forEach(function(it){
+    var box = document.createElement("div"); box.className = "whyitem";
+    var top = document.createElement("div"); top.className = "whotop";
+    if(it.emoji){
+      var em = document.createElement("span"); em.textContent = it.emoji;
+      top.appendChild(em);
+    } else if(it.icon){
+      var ic = document.createElement("span"); ic.innerHTML = it.icon;
+      ic.style.display = "inline-flex"; top.appendChild(ic);
+    }
+    var nm = document.createElement("span"); nm.textContent = it.name;
+    top.appendChild(nm);
+    var badge = document.createElement("span"); badge.className = "wbadge";
+    badge.textContent = "Needs Help";
+    top.appendChild(badge);
+    var ul = document.createElement("ul");
+    it.lines.forEach(function(line){
+      var li = document.createElement("li"); li.textContent = line;
+      ul.appendChild(li);
+    });
+    box.appendChild(top); box.appendChild(ul);
+    whyList.appendChild(box);
+  });
+}
+function openWhy(){
+  if(!data) return;
+  renderWhy();
+  whyEl.classList.add("show");
+  whyEl.setAttribute("aria-hidden","false");
+}
+function closeWhy(){
+  whyEl.classList.remove("show");
+  whyEl.setAttribute("aria-hidden","true");
+}
+verdictEl.addEventListener("click", openWhy);
+verdictEl.addEventListener("keydown", function(e){
+  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openWhy(); }
+});
+document.getElementById("whyclose").addEventListener("click", closeWhy);
+whyEl.addEventListener("click", function(e){ if(e.target === whyEl) closeWhy(); });
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && whyEl.classList.contains("show")) closeWhy();
+});
 
 /* ------------------------------------------------ polling + offline veil */
 var fails = 0;
