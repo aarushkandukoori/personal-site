@@ -225,6 +225,96 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 #veil h2{font-size:clamp(22px,4.4vmin,46px);font-weight:800;margin-top:2vmin;letter-spacing:-.01em}
 #veil p{font-size:clamp(14px,2.4vmin,22px);font-weight:600;color:var(--ink2);margin-top:1.2vmin}
 
+/* ---------------- tile drill-down: gallery modal (local server only) ------ */
+.card{transition:transform .18s ease}
+.card.click{cursor:pointer}
+.card.click:active{transform:scale(.975)}
+.peek{
+  position:absolute;right:clamp(12px,2.2vmin,24px);bottom:clamp(8px,1.6vmin,18px);
+  color:var(--ink2);opacity:0;font-size:clamp(15px,2.4vmin,24px);font-weight:900;
+  line-height:1;transition:opacity .4s ease;pointer-events:none;
+}
+.card.click .peek{opacity:.45}
+#modal{
+  position:absolute;inset:0;z-index:60;display:none;place-items:center;
+  background:rgba(8,12,8,.45);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  padding:calc(clamp(10px,2vmin,26px) + env(safe-area-inset-top))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-right))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-bottom))
+          calc(clamp(10px,2vmin,26px) + env(safe-area-inset-left));
+}
+#modal.show{display:grid}
+#mbox{
+  width:min(100%,780px);height:100%;max-height:840px;
+  background:var(--card);border-radius:24px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:mpop .28s ease;
+}
+@keyframes mpop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+#mhead{display:flex;align-items:center;gap:12px;padding:16px 18px 10px;flex:none}
+#mhead .iconbox{width:44px;height:44px;border-radius:12px}
+#mtitles{min-width:0;flex:1}
+#mtitle{
+  font-size:clamp(18px,2.9vmin,26px);font-weight:800;letter-spacing:-.01em;line-height:1.1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#msub{font-size:clamp(12px,1.9vmin,15px);font-weight:600;color:var(--ink2);margin-top:2px}
+#mclose{
+  flex:none;width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--iconbg);color:var(--ink);font-size:18px;font-weight:900;cursor:pointer;
+}
+#mslide{
+  flex:1;min-height:0;overflow-y:auto;padding:6px 18px 14px;
+  -webkit-user-select:text;user-select:text;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+#mfoot{
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 18px 14px;border-top:1px solid var(--iconbg);
+}
+.mnav{
+  width:46px;height:46px;border-radius:50%;border:none;
+  background:var(--iconbg);color:var(--ink);font-size:22px;font-weight:900;cursor:pointer;
+}
+.mnav:disabled{opacity:.22;cursor:default}
+#mcount{font-weight:700;color:var(--ink2);font-size:clamp(13px,2vmin,16px)}
+.mailhead{
+  display:grid;grid-template-columns:auto 1fr;gap:4px 12px;
+  font-size:clamp(13px,2vmin,16px);font-weight:600;padding:8px 0 12px;
+}
+.mailhead b{color:var(--ink2);font-weight:700}
+.mailhead span{overflow-wrap:anywhere}
+.mailsubj{font-size:clamp(15px,2.5vmin,20px);font-weight:800;margin:0 0 10px}
+.mailbody{
+  white-space:pre-wrap;font-size:clamp(13px,2.05vmin,16px);line-height:1.5;font-weight:500;
+  border-top:1px solid var(--iconbg);padding-top:12px;font-family:inherit;
+}
+.mnote{color:var(--ink2);font-style:italic;font-weight:600;font-size:clamp(12px,1.9vmin,15px);margin-top:10px}
+.mtag{
+  display:inline-flex;align-items:center;background:var(--iconbg);border-radius:999px;
+  padding:.32em .8em;font-size:clamp(12px,1.9vmin,15px);font-weight:700;margin:0 6px 6px 0;
+}
+.mtag.bad{background:var(--bad);color:#fff}
+.mconf{
+  background:var(--iconbg);border-radius:14px;padding:12px 14px;
+  font-size:clamp(13px,2.05vmin,16px);font-weight:600;line-height:1.45;margin-top:8px;
+}
+.mshot{width:100%;border-radius:14px;box-shadow:var(--shadow);margin-top:12px;display:block}
+.mlist{list-style:none;margin-top:6px}
+.mlist li{padding:9px 0;border-bottom:1px solid var(--iconbg);font-weight:600;font-size:clamp(13px,2.1vmin,17px)}
+.mlist li:last-child{border-bottom:none}
+#mslide a{color:var(--work)}
+.mbtn{
+  display:inline-block;background:var(--work);color:#fff !important;border-radius:999px;
+  padding:.5em 1.05em;font-weight:800;text-decoration:none;
+  font-size:clamp(13px,2vmin,16px);margin:10px 8px 0 0;
+}
+.mframe{
+  width:100%;height:min(56vh,520px);border:none;border-radius:14px;
+  box-shadow:var(--shadow);margin-top:12px;background:#fff;
+}
+
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
 }
@@ -242,7 +332,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   <footer id="strip">
     <span id="doctor">🤖 Robot doctor hasn’t checked yet today</span>
     <span id="blogline" hidden></span>
-    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-04.2</span></span>
+    <span id="updated"><span id="upddot" aria-hidden="true"><span id="updping"></span></span><span id="updtext">Waiting for the first update…</span> <span style="opacity:.45;font-size:.85em">v2026-08-11.1</span></span>
   </footer>
 </main>
 <div id="veil" aria-hidden="true">
@@ -250,6 +340,24 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
     <div class="zzz">😴</div>
     <h2>Can’t reach the Mac right now</h2>
     <p id="veilsub">Waiting for the first update…</p>
+  </div>
+</div>
+<div id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="mbox">
+    <div id="mhead">
+      <div class="iconbox" id="micon" aria-hidden="true"></div>
+      <div id="mtitles">
+        <div id="mtitle"></div>
+        <div id="msub"></div>
+      </div>
+      <button id="mclose" aria-label="Close">✕</button>
+    </div>
+    <div id="mslide"></div>
+    <div id="mfoot">
+      <button class="mnav" id="mprev" aria-label="Previous">‹</button>
+      <span id="mcount"></span>
+      <button class="mnav" id="mnext" aria-label="Next">›</button>
+    </div>
   </div>
 </div>
 <script>
@@ -309,7 +417,10 @@ var DOTC = {ok:"var(--ok)", in_progress:"var(--work)", pending_today:"var(--wait
     var say = document.createElement("div"); say.className = "say"; say.textContent = "No news yet";
     var dot = document.createElement("span"); dot.className = "livedot";
     dot.style.animationDelay = (-(i * 0.45)).toFixed(2) + "s"; /* phase-offset shimmer */
-    card.appendChild(top); card.appendChild(chip); card.appendChild(say); card.appendChild(dot);
+    var peek = document.createElement("span"); peek.className = "peek";
+    peek.textContent = "›"; peek.setAttribute("aria-hidden","true");
+    card.appendChild(top); card.appendChild(chip); card.appendChild(say);
+    card.appendChild(dot); card.appendChild(peek);
     wrap.appendChild(card);
     cardEls[id] = {card:card, chip:chip, say:say, dot:dot};
   });
@@ -589,6 +700,242 @@ darkMQ.addEventListener("change", function(){
   refreshEkgColor();
   if(motionMQ.matches) drawEkg(0);
 });
+
+/* ------------------------------------------------ tile drill-down gallery
+   Fed by /details.json, which only the LOCAL server provides. On the public
+   GitHub Pages mirror that fetch 404s, DETAILS stays null and the tiles are
+   simply not clickable — nothing personal ever ships there. */
+var DETAILS = null;
+var modalEl = document.getElementById("modal");
+var mslide = document.getElementById("mslide");
+var mtitle = document.getElementById("mtitle");
+var msub = document.getElementById("msub");
+var micon = document.getElementById("micon");
+var mcount = document.getElementById("mcount");
+var mprev = document.getElementById("mprev");
+var mnext = document.getElementById("mnext");
+var mState = {id:null, idx:0};
+
+var SUBTITLE = {
+  "scholarship-daily": "Submitted applications — newest first",
+  "parent-weekly": "One batch of emails every Monday",
+  "prof-outreach": "Every email sent — newest first",
+  "ai-outreach": "Every email sent — newest first",
+  "blog": "Published posts — newest first"
+};
+
+function el(tag, cls, text){
+  var n = document.createElement(tag);
+  if(cls) n.className = cls;
+  if(text != null) n.textContent = text;
+  return n;
+}
+function link(href, text, cls){
+  var a = el("a", cls || null, text);
+  if(href && /^https?:\/\//.test(href)){
+    a.href = href; a.target = "_blank"; a.rel = "noopener";
+  }
+  return a;
+}
+function whenStr(iso){
+  var d = parseISO(iso);
+  if(!d) return "unknown date";
+  return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"})
+       + " · " + d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+}
+function headRow(grid, label, value){
+  grid.appendChild(el("b", null, label));
+  var v = el("span");
+  if(value && value.nodeType) v.appendChild(value); else v.textContent = value || "—";
+  grid.appendChild(v);
+}
+
+/* one slide per email (professor / AI researcher outreach) */
+function emailSlide(it){
+  var f = document.createDocumentFragment();
+  var grid = el("div", "mailhead");
+  headRow(grid, "Sent", whenStr(it.sent_at));
+  var toBits = (it.researcher || "") + (it.school ? " · " + it.school : "");
+  headRow(grid, "To", (toBits ? toBits + " — " : "") + (it.to || "?"));
+  if(it.from) headRow(grid, "From", it.from);
+  if(it.post_title) headRow(grid, "About", it.post_link
+    ? link(it.post_link, it.post_title) : it.post_title);
+  f.appendChild(grid);
+  f.appendChild(el("div", "mailsubj", it.subject || "(no subject)"));
+  if(it.bounced) f.appendChild(el("span", "mtag bad", "✕ Bounced"));
+  if(it.body){
+    f.appendChild(el("div", "mailbody", it.body));
+  } else {
+    f.appendChild(el("div", "mnote",
+      "Full text isn’t archived for this one — only the newest week’s drafts are kept on disk. The send record above is from the sent log."));
+  }
+  return f;
+}
+
+/* one slide per weekly parent batch */
+function parentSlide(it){
+  var f = document.createDocumentFragment();
+  var n = (it.opportunities || []).length;
+  var grid = el("div", "mailhead");
+  headRow(grid, "Sent", whenStr(it.sent_at));
+  headRow(grid, "To", (it.to || []).join(", "));
+  headRow(grid, "Emails", n + " — one per scholarship");
+  f.appendChild(grid);
+  f.appendChild(el("div", "mailsubj", it.subject || "Weekly Scholarship Update"));
+  f.appendChild(el("div", "mnote",
+    "Each email walks Mom and Dad through one application, with Aarush’s context file, resume and transcript attached."));
+  var ul = el("ul", "mlist");
+  (it.opportunities || []).forEach(function(o){
+    var li = el("li");
+    li.appendChild(o.url ? link(o.url, o.name || o.id) : el("span", null, o.name || o.id));
+    ul.appendChild(li);
+  });
+  f.appendChild(ul);
+  return f;
+}
+
+/* one slide per submitted scholarship application */
+function appSlide(it){
+  var f = document.createDocumentFragment();
+  f.appendChild(el("div", "mailsubj", it.name || "?"));
+  var tags = el("div");
+  tags.appendChild(el("span", "mtag", it.kind === "award" ? "🏆 Award" : "🎓 Scholarship"));
+  if(it.amount) tags.appendChild(el("span", "mtag", it.amount));
+  tags.appendChild(el("span", "mtag", "Applied " + whenStr(it.applied_at)));
+  if(it.deadline) tags.appendChild(el("span", "mtag", "Deadline " + it.deadline));
+  f.appendChild(tags);
+  var conf = el("div", "mconf");
+  conf.appendChild(el("b", null, "Confirmation: "));
+  conf.appendChild(document.createTextNode(it.confirmation || "recorded as submitted in the ledger"));
+  f.appendChild(conf);
+  if(it.notes) f.appendChild(el("div", "mnote", it.notes));
+  if(it.url){
+    var btn = link(it.url, "Open scholarship page ↗", "mbtn");
+    f.appendChild(btn);
+  }
+  (it.shots || []).forEach(function(s){
+    var img = el("img", "mshot");
+    img.loading = "lazy";
+    img.alt = "Screenshot: " + s;
+    img.src = "./shots/" + encodeURIComponent(s);
+    f.appendChild(img);
+  });
+  if(!(it.shots || []).length){
+    f.appendChild(el("div", "mnote",
+      "No screenshot was captured for this one — the confirmation above is what the applier recorded at submit time."));
+  }
+  return f;
+}
+
+/* one slide per published blog post, embedding the live page */
+function blogSlide(it){
+  var f = document.createDocumentFragment();
+  f.appendChild(el("div", "mailsubj", it.title || it.date));
+  var tags = el("div");
+  tags.appendChild(el("span", "mtag", "Published " + (it.date || "?")));
+  f.appendChild(tags);
+  if(it.url) f.appendChild(link(it.url, "Open post ↗", "mbtn"));
+  if(it.url && /^https:\/\//.test(it.url)){
+    var fr = el("iframe", "mframe");
+    fr.src = it.url; fr.loading = "lazy"; fr.title = it.title || "Blog post";
+    f.appendChild(fr);
+  }
+  return f;
+}
+
+var SLIDE = {
+  emails: emailSlide,
+  parent_emails: parentSlide,
+  applications: appSlide,
+  posts: blogSlide
+};
+
+function renderSlide(){
+  var sec = DETAILS && DETAILS.sections && DETAILS.sections[mState.id];
+  if(!sec || !sec.items || !sec.items.length){ closeModal(); return; }
+  if(mState.idx >= sec.items.length) mState.idx = sec.items.length - 1;
+  if(mState.idx < 0) mState.idx = 0;
+  mtitle.textContent = NICE[mState.id] || mState.id;
+  msub.textContent = SUBTITLE[mState.id] || "";
+  micon.innerHTML = ICONS[mState.id] || "";
+  mslide.textContent = "";
+  mslide.appendChild((SLIDE[sec.kind] || emailSlide)(sec.items[mState.idx]));
+  mslide.scrollTop = 0;
+  mcount.textContent = (mState.idx + 1) + " of " + sec.items.length;
+  mprev.disabled = mState.idx <= 0;
+  mnext.disabled = mState.idx >= sec.items.length - 1;
+}
+function openModal(id){
+  var sec = DETAILS && DETAILS.sections && DETAILS.sections[id];
+  if(!sec || !sec.items || !sec.items.length) return;
+  mState.id = id; mState.idx = 0;
+  modalEl.classList.add("show");
+  modalEl.setAttribute("aria-hidden","false");
+  renderSlide();
+}
+function closeModal(){
+  modalEl.classList.remove("show");
+  modalEl.setAttribute("aria-hidden","true");
+  mslide.textContent = ""; /* drop any live iframe */
+  mState.id = null;
+}
+function stepSlide(d){
+  if(mState.id == null) return;
+  mState.idx += d;
+  renderSlide();
+}
+document.getElementById("mclose").addEventListener("click", closeModal);
+mprev.addEventListener("click", function(){ stepSlide(-1); });
+mnext.addEventListener("click", function(){ stepSlide(1); });
+modalEl.addEventListener("click", function(e){ if(e.target === modalEl) closeModal(); });
+document.addEventListener("keydown", function(e){
+  if(mState.id == null) return;
+  if(e.key === "Escape") closeModal();
+  else if(e.key === "ArrowLeft") stepSlide(-1);
+  else if(e.key === "ArrowRight") stepSlide(1);
+});
+/* swipe left/right on the slide flips through the gallery */
+var touchX = null, touchY = null;
+mslide.addEventListener("touchstart", function(e){
+  if(e.touches.length === 1){ touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; }
+}, {passive:true});
+mslide.addEventListener("touchend", function(e){
+  if(touchX == null || !e.changedTouches.length) return;
+  var dx = e.changedTouches[0].clientX - touchX;
+  var dy = e.changedTouches[0].clientY - touchY;
+  touchX = touchY = null;
+  if(Math.abs(dx) > 55 && Math.abs(dy) < 45) stepSlide(dx < 0 ? 1 : -1);
+}, {passive:true});
+
+function markClickable(){
+  ORDER.forEach(function(id){
+    var sec = DETAILS && DETAILS.sections && DETAILS.sections[id];
+    var elc = cardEls[id];
+    if(!sec || !sec.items || !sec.items.length || elc.card.classList.contains("click")) return;
+    elc.card.classList.add("click");
+    elc.card.setAttribute("role","button");
+    elc.card.setAttribute("tabindex","0");
+    elc.card.setAttribute("aria-label", "Show details for " + NICE[id]);
+    elc.card.addEventListener("click", function(){ openModal(id); });
+    elc.card.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openModal(id); }
+    });
+  });
+}
+function fetchDetails(){
+  fetch("./details.json?t=" + Date.now(), {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){
+      if(j && j.sections){
+        DETAILS = j;
+        markClickable();
+        if(mState.id != null) renderSlide();
+      }
+    })
+    .catch(function(){});
+}
+fetchDetails();
+setInterval(fetchDetails, 300000);
 
 /* ------------------------------------------------ live heartbeat line (EKG)
    The primary “it’s alive” signal: a thin scrolling trace in the overall
