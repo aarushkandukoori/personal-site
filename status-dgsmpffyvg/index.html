@@ -175,15 +175,15 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
 
-/* ---------------- eleven big cards ---------------- */
+/* ---------------- thirteen big cards ---------------- */
 #cards{
   display:grid;min-height:0;min-width:0;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
   grid-template-rows:repeat(3,minmax(0,1fr));
   gap:clamp(10px,1.8vmin,22px);
 }
 @media (orientation: portrait){
-  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}
+  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr))}
 }
 .card{
   position:relative;
@@ -501,10 +501,10 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the twelve cards, fixed order */
+/* ------------------------------------------------ the thirteen cards, fixed order */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
-             "startup-outreach","fleet-doctor"];
+             "startup-outreach","inbox-apply","fleet-doctor"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -517,6 +517,7 @@ var NICE = {
   "cot-distribution":"Paper Outreach",
   "github-presence":"GitHub Presence",
   "startup-outreach":"Startup Outreach",
+  "inbox-apply":"Inbox Apply",
   "fleet-doctor":"Fleet Doctor"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
@@ -533,6 +534,7 @@ var ICONS = {
   "cot-distribution": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M43 8 5 22l14 5 5 13z"/><path d="M43 8 19 27"/></svg>',
   "github-presence": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="13" cy="11" r="5"/><circle cx="13" cy="37" r="5"/><circle cx="35" cy="15" r="5"/><path d="M13 16v16"/><path d="M35 20c0 8-9 8-17 12"/></svg>',
   "startup-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M40 8c-9 0-17 4-22 11l-5 7 9 9 7-5c7-5 11-13 11-22z"/><circle cx="30" cy="18" r="3"/><path d="M13 26l-6 2 4 4M22 35l2 6 4-4"/><path d="M9 39c1.5-1.5 4-2 5.5-.5S16 43 14.5 44.5 7 46 7 46s.5-5.5 2-7z"/></svg>',
+  "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>',
   "fleet-doctor": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="8"/><path d="M14 24h6l3-7 4 14 3-7h4"/></svg>'
 };
 var CHIP = {
