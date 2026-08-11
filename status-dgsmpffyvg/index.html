@@ -175,15 +175,15 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
 
-/* ---------------- six big cards ---------------- */
+/* ---------------- eleven big cards ---------------- */
 #cards{
   display:grid;min-height:0;min-width:0;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  grid-template-rows:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-rows:repeat(3,minmax(0,1fr));
   gap:clamp(10px,1.8vmin,22px);
 }
 @media (orientation: portrait){
-  #cards{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}
 }
 .card{
   position:relative;
@@ -501,15 +501,21 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the six cards, fixed order */
-var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat"];
+/* ------------------------------------------------ the eleven cards, fixed order */
+var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","heartbeat",
+             "reply-tracker","opportunity-radar","cot-distribution","github-presence","fleet-doctor"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
   "prof-outreach":"Professor Emails",
   "ai-outreach":"AI Researcher Emails",
   "blog":"Blog",
-  "heartbeat":"Health Check"
+  "heartbeat":"Health Check",
+  "reply-tracker":"Reply Tracker",
+  "opportunity-radar":"Opportunity Radar",
+  "cot-distribution":"Paper Outreach",
+  "github-presence":"GitHub Presence",
+  "fleet-doctor":"Fleet Doctor"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -519,7 +525,12 @@ var ICONS = {
   "prof-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M4 18 24 7l20 11z"/><path d="M10 22.5V36M18 22.5V36M30 22.5V36M38 22.5V36"/><path d="M6 40h36"/></svg>',
   "ai-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="10" y="16" width="28" height="23" rx="7"/><path d="M24 16v-5.5"/><circle cx="24" cy="8" r="2.4"/><circle cx="18.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><circle cx="29.5" cy="26" r="1.4" fill="currentColor" stroke="none"/><path d="M18 32.5c1.8 1.6 10.2 1.6 12 0"/></svg>',
   "blog": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M31 9.5 38.5 17 17 38.5 7 41l2.5-10z"/><path d="M27 13.5 34.5 21"/></svg>',
-  "heartbeat": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 7v11a9.5 9.5 0 0 0 19 0V7"/><path d="M22.5 27.2V31a8 8 0 0 0 16 0v-4.5"/><circle cx="38.5" cy="22.5" r="4"/></svg>'
+  "heartbeat": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 7v11a9.5 9.5 0 0 0 19 0V7"/><path d="M22.5 27.2V31a8 8 0 0 0 16 0v-4.5"/><circle cx="38.5" cy="22.5" r="4"/></svg>',
+  "reply-tracker": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="13" width="38" height="26" rx="5"/><path d="M6.5 15.5 24 27.5 41.5 15.5"/><path d="M30 7h8m0 0-3.5-3.5M38 7l-3.5 3.5"/></svg>',
+  "opportunity-radar": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="24" cy="26" r="17"/><path d="M24 26V9"/><path d="M24 26l11-8"/><circle cx="31" cy="32" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="20" r="1.6" fill="currentColor" stroke="none"/></svg>',
+  "cot-distribution": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M43 8 5 22l14 5 5 13z"/><path d="M43 8 19 27"/></svg>',
+  "github-presence": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="13" cy="11" r="5"/><circle cx="13" cy="37" r="5"/><circle cx="35" cy="15" r="5"/><path d="M13 16v16"/><path d="M35 20c0 8-9 8-17 12"/></svg>',
+  "fleet-doctor": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="8"/><path d="M14 24h6l3-7 4 14 3-7h4"/></svg>'
 };
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
