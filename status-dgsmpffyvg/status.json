@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-10T23:19:13-04:00",
+  "generated_at": "2026-08-11T00:09:16-04:00",
   "hostname": "home mac",
   "overall": "degraded",
   "automations": [
     {
       "id": "scholarship-daily",
       "name": "Scholarship Daily Apply",
-      "state": "ok",
+      "state": "pending_today",
       "schedule_label": "Daily 10:00",
       "last_run": {
         "at": "2026-08-10T13:02:46-04:00",
@@ -29,7 +29,7 @@
         },
         {
           "label": "Discovered today",
-          "value": "3"
+          "value": "0"
         }
       ],
       "issues": []
@@ -170,7 +170,7 @@
     "scholarships_submitted_cycle": 20,
     "awards_submitted_cycle": 3,
     "auto_apply_pool": 5,
-    "discovered_new_today": 3,
+    "discovered_new_today": 0,
     "prof_emails_week": 25,
     "prof_emails_total": 136,
     "ai_emails_week": 10,
