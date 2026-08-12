@@ -634,6 +634,15 @@ function plural(n, one, many){ return n === 1 ? one : many; }
 
 /* ------------------------------------------------ plain-English sentences */
 function pendingSentence(a){
+  /* Some tiles are "pending" because they are waiting on the human, not on
+     the clock. Saying "Runs tomorrow" there hides the fact that emails are
+     sitting unsent until someone approves them. */
+  var waiting = null;
+  (a && a.metrics || []).forEach(function(x){
+    if(x.label === "Waiting on you") waiting = parseInt(x.value, 10);
+  });
+  if(waiting > 0)
+    return waiting + " " + plural(waiting,"email","emails") + " waiting for you to approve";
   var d = parseISO(a && a.next_run_at);
   if(!d) return "Runs later today";
   var now = new Date(), c = clockStr(d);
@@ -702,6 +711,17 @@ function sentenceFor(a, totals, doctor){
       if(m["Companies ranked"])
         return m["Companies ranked"] + " startups ranked · " +
                (m["Drafts prepared"] || 0) + " drafts ready";
+      return doneFallback(a);
+    case "yc-demo-outreach":
+      var y = {};
+      (a.metrics || []).forEach(function(x){ y[x.label] = x.value; });
+      var waitN = parseInt(y["Waiting on you"], 10) || 0;
+      if(waitN > 0)
+        return waitN + " " + plural(waitN,"email","emails") + " waiting for you to approve";
+      var sentN = parseInt(y["Sent total"], 10) || 0;
+      if(sentN > 0)
+        return sentN + " " + plural(sentN,"email","emails") + " sent · " +
+               (y["This week"] || "0") + " this week";
       return doneFallback(a);
     default:
       return doneFallback(a);
@@ -1175,7 +1195,7 @@ var micon = document.getElementById("micon");
 var mcount = document.getElementById("mcount");
 var mprev = document.getElementById("mprev");
 var mnext = document.getElementById("mnext");
-var mState = {id:null, idx:0};
+var mState = {id:null, idx:0, slug:null};
 
 var SUBTITLE = {
   "scholarship-daily": "Submitted applications — newest first",
@@ -1439,14 +1459,19 @@ function ycSlide(it){
     var msg     = el("span", "msg", "");
     approve.addEventListener("click", function(){
       bar.textContent = "";
-      var yes = el("button", "danger", "Yes, send it now");
+      /* Cancel takes the position Approve just occupied, and the send button
+         stays disabled for a beat: a second tap landing where the first one
+         did must never be the thing that sends the email. */
       var no  = el("button", "no", "Cancel");
+      var yes = el("button", "danger", "Yes, send it now");
       var m2  = el("span", "msg", "Sends to " + (it.to || "?"));
+      yes.disabled = true;
+      setTimeout(function(){ yes.disabled = false; }, 700);
       yes.addEventListener("click", function(){
         ycPost("/yc/approve", it.slug, bar, "Sent ✓");
       });
       no.addEventListener("click", function(){ renderSlide(); });
-      bar.appendChild(yes); bar.appendChild(no); bar.appendChild(m2);
+      bar.appendChild(no); bar.appendChild(yes); bar.appendChild(m2);
     });
     reject.addEventListener("click", function(){
       ycPost("/yc/reject", it.slug, bar, "Rejected");
@@ -1473,8 +1498,18 @@ var SLIDE = {
 function renderSlide(){
   var sec = DETAILS && DETAILS.sections && DETAILS.sections[mState.id];
   if(!sec || !sec.items || !sec.items.length){ closeModal(); return; }
+  /* Follow the entry, not its position. Approving re-sorts the yc queue
+     (pending entries lead), so holding the index would silently swap in a
+     different company's email under the buttons the user is looking at. */
+  if(mState.slug){
+    var moved = -1;
+    for(var si = 0; si < sec.items.length; si++)
+      if(sec.items[si] && sec.items[si].slug === mState.slug){ moved = si; break; }
+    if(moved >= 0) mState.idx = moved;
+  }
   if(mState.idx >= sec.items.length) mState.idx = sec.items.length - 1;
   if(mState.idx < 0) mState.idx = 0;
+  mState.slug = (sec.items[mState.idx] || {}).slug || null;
   mtitle.textContent = NICE[mState.id] || mState.id;
   msub.textContent = SUBTITLE[mState.id] || "";
   micon.innerHTML = ICONS[mState.id] || "";
@@ -1488,7 +1523,7 @@ function renderSlide(){
 function openModal(id){
   var sec = DETAILS && DETAILS.sections && DETAILS.sections[id];
   if(!sec || !sec.items || !sec.items.length) return;
-  mState.id = id; mState.idx = 0;
+  mState.id = id; mState.idx = 0; mState.slug = null;
   modalEl.classList.add("show");
   modalEl.setAttribute("aria-hidden","false");
   renderSlide();
@@ -1497,7 +1532,7 @@ function closeModal(){
   modalEl.classList.remove("show");
   modalEl.setAttribute("aria-hidden","true");
   mslide.textContent = ""; /* drop any live iframe */
-  mState.id = null;
+  mState.id = null; mState.slug = null;
 }
 function stepSlide(d){
   if(mState.id == null) return;
