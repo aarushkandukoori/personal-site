@@ -175,7 +175,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
 
-/* ---------------- thirteen big cards ---------------- */
+/* ---------------- fourteen big cards ---------------- */
 #cards{
   display:grid;min-height:0;min-width:0;
   grid-template-columns:repeat(5,minmax(0,1fr));
@@ -505,7 +505,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 /* ------------------------------------------------ the thirteen cards, fixed order */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
-             "startup-outreach","yc-demo-outreach","inbox-apply"];
+             "startup-outreach","yc-demo-outreach","inbox-apply","paper-scout"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -519,7 +519,8 @@ var NICE = {
   "github-presence":"GitHub Presence",
   "startup-outreach":"Startup Outreach",
   "yc-demo-outreach":"YC Demo Outreach",
-  "inbox-apply":"Inbox Apply"
+  "inbox-apply":"Inbox Apply",
+  "paper-scout":"Paper Scout"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -536,7 +537,8 @@ var ICONS = {
   "github-presence": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="13" cy="11" r="5"/><circle cx="13" cy="37" r="5"/><circle cx="35" cy="15" r="5"/><path d="M13 16v16"/><path d="M35 20c0 8-9 8-17 12"/></svg>',
   "startup-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M40 8c-9 0-17 4-22 11l-5 7 9 9 7-5c7-5 11-13 11-22z"/><circle cx="30" cy="18" r="3"/><path d="M13 26l-6 2 4 4M22 35l2 6 4-4"/><path d="M9 39c1.5-1.5 4-2 5.5-.5S16 43 14.5 44.5 7 46 7 46s.5-5.5 2-7z"/></svg>',
   "yc-demo-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="6" y="9" width="36" height="30" rx="5"/><path d="M6 17h36"/><circle cx="11.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.5" cy="13" r="1.4" fill="currentColor" stroke="none"/><path d="M21 23.5v9l8-4.5z"/></svg>',
-  "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>'
+  "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>',
+  "paper-scout": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M11 6h17l9 9v18a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z"/><path d="M28 6v10h9"/><circle cx="21" cy="27" r="6"/><path d="M25.5 31.5 31 37"/></svg>'
 };
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
@@ -1169,7 +1171,9 @@ var SUBTITLE = {
   "cot-distribution": "Paper outreach emails sent",
   "github-presence": "Open-source contributions",
   "inbox-apply": "Applications from inbox scanning",
-  "startup-outreach": "Personalized startup outreach"
+  "startup-outreach": "Personalized startup outreach",
+  "yc-demo-outreach": "YC demo-day outreach emails",
+  "paper-scout": "Papers surfaced for your reading list"
 };
 
 function el(tag, cls, text){
