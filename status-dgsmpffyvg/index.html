@@ -370,6 +370,24 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   box-shadow:var(--shadow);margin-top:12px;background:#fff;
 }
 
+/* ---- yc-demo-outreach approve/reject bar (local dashboard only) --------- */
+.mact{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.mact button{
+  border:none;border-radius:999px;padding:.6em 1.2em;font:inherit;font-weight:800;
+  font-size:clamp(13px,2vmin,16px);cursor:pointer;color:#fff;
+}
+.mact .go{background:var(--ok)}
+.mact .no{background:var(--iconbg);color:var(--ink)}
+.mact .danger{background:var(--bad)}
+.mact button:disabled{opacity:.5;cursor:default}
+.mact .msg{font-weight:700;font-size:clamp(12px,1.95vmin,15px);color:var(--ink2)}
+.mtag.ok{background:var(--ok);color:#fff}
+.mtag.wait{background:var(--warn);color:#fff}
+.mask{
+  background:var(--iconbg);border-radius:14px;padding:12px 14px;margin-top:12px;
+  font-weight:700;font-size:clamp(13px,2.05vmin,16px);line-height:1.45;
+}
+
 /* ---------------- gate lock screen (public encrypted mirror only) --------- */
 #lock{
   position:absolute;inset:0;z-index:70;
@@ -1172,7 +1190,7 @@ var SUBTITLE = {
   "github-presence": "Open-source contributions",
   "inbox-apply": "Applications from inbox scanning",
   "startup-outreach": "Personalized startup outreach",
-  "yc-demo-outreach": "YC demo-day outreach emails",
+  "yc-demo-outreach": "Built demos — approve to send, waiting ones first",
   "paper-scout": "Papers surfaced for your reading list"
 };
 
@@ -1360,8 +1378,90 @@ function contribSlide(it){
   return f;
 }
 
+/* one slide per yc-demo-outreach queue entry.
+
+   Pending entries get an Approve button, and Approve SENDS the email — so it
+   always takes two deliberate taps (Approve -> "Yes, send it"), and the POST
+   only works from this Mac (the server refuses /yc/approve from anywhere but
+   loopback). On the public mirror this section is stripped server-side, so
+   the buttons never exist there at all. */
+var YCSTATUS = {
+  pending:  {cls:"mtag wait", text:"🕐 Waiting for your approval"},
+  approved: {cls:"mtag",      text:"Approved — sending"},
+  sending:  {cls:"mtag",      text:"Sending…"},
+  sent:     {cls:"mtag ok",   text:"✓ Sent"},
+  rejected: {cls:"mtag muted",text:"Rejected — never sent"},
+  failed:   {cls:"mtag bad",  text:"! Send failed"}
+};
+
+function ycPost(route, slug, btnbar, okText){
+  var msg = btnbar.querySelector(".msg");
+  Array.prototype.forEach.call(btnbar.querySelectorAll("button"),
+    function(b){ b.disabled = true; });
+  msg.textContent = "Working…";
+  fetch(route, {
+    method:"POST",
+    headers:{"Content-Type":"application/json","X-YC-Approve":"1"},
+    body:JSON.stringify({slug:slug})
+  }).then(function(r){ return r.json().catch(function(){ return {}; })
+      .then(function(j){ return {ok:r.ok && j.ok !== false, j:j}; }); })
+    .then(function(res){
+      msg.textContent = res.ok ? okText : ("Failed: " + (res.j.error || res.j.message || "unknown"));
+      if(res.ok) setTimeout(fetchDetails, 400);
+    })
+    .catch(function(e){ msg.textContent = "Failed: " + e.message; });
+}
+
+function ycSlide(it){
+  var f = document.createDocumentFragment();
+  var grid = el("div", "mailhead");
+  headRow(grid, it.status === "sent" ? "Sent" : "Built", whenStr(it.sent_at));
+  var toBits = (it.researcher || "") + (it.school ? " · " + it.school : "");
+  headRow(grid, "To", toBits + (it.to ? (toBits ? " — " : "") + it.to : ""));
+  if(it.post_link) headRow(grid, "Site", link(it.post_link, it.post_link));
+  f.appendChild(grid);
+
+  var st = YCSTATUS[it.status] || {cls:"mtag", text:it.status || "?"};
+  var tags = el("div");
+  tags.appendChild(el("span", st.cls, st.text));
+  if(it.email_source && it.email_source !== "listed")
+    tags.appendChild(el("span", "mtag muted", "address not publicly listed"));
+  f.appendChild(tags);
+
+  f.appendChild(el("div", "mailsubj", it.subject || "(no subject)"));
+  if(it.post_title) f.appendChild(el("div", "mnote", it.post_title));
+  if(it.body) f.appendChild(el("div", "mailbody", it.body));
+
+  if(it.pending && !(DETAILS && DETAILS.sanitized)){
+    var bar = el("div", "mact");
+    var approve = el("button", "go", "Approve & send");
+    var reject  = el("button", "no", "Reject");
+    var msg     = el("span", "msg", "");
+    approve.addEventListener("click", function(){
+      bar.textContent = "";
+      var yes = el("button", "danger", "Yes, send it now");
+      var no  = el("button", "no", "Cancel");
+      var m2  = el("span", "msg", "Sends to " + (it.to || "?"));
+      yes.addEventListener("click", function(){
+        ycPost("/yc/approve", it.slug, bar, "Sent ✓");
+      });
+      no.addEventListener("click", function(){ renderSlide(); });
+      bar.appendChild(yes); bar.appendChild(no); bar.appendChild(m2);
+    });
+    reject.addEventListener("click", function(){
+      ycPost("/yc/reject", it.slug, bar, "Rejected");
+    });
+    bar.appendChild(approve); bar.appendChild(reject); bar.appendChild(msg);
+    f.appendChild(bar);
+    f.appendChild(el("div", "mask",
+      "Approving sends this email from your Mail account, with the demo attached."));
+  }
+  return f;
+}
+
 var SLIDE = {
   emails: emailSlide,
+  yc_emails: ycSlide,
   parent_emails: parentSlide,
   applications: appSlide,
   posts: blogSlide,
