@@ -349,10 +349,23 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+/* THREE lines, not two. The chip leaves .say about half the card width, and
+   at 1280x800 that is ~105px — narrow enough that the doctor's "All 23 jobs
+   healthy — 0 fixes this week" and startup-outreach's "100 startups ranked ·
+   100 drafts ready" both need a third line and were being ellipsized. (This
+   was reported as dark-mode-only; measured, it is identical in both modes —
+   there is no light/dark line-height difference, the sentences were simply
+   too long for two lines.)
+   Height budget on the desktop grid: a card has ~160px inside its padding,
+   the tallest current stack is a 2-line name (35) + 3-line purpose (46) +
+   2-line when (32) + 2-line say (31) + gaps (14) = 158. The third .say line
+   costs 15.5px and is only ever taken by cards whose name and when-line are
+   one line each, so the tallest card is unchanged — keep it that way if you
+   lengthen a status sentence. */
 .say{
   flex:1;font-size:clamp(11px,1.55vmin,16px);font-weight:600;color:var(--ink2);
   line-height:1.25;min-width:0;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 /* PORTRAIT: the grid is 3x5, so a card is a FIFTH of the column height while
    vmin follows the (wide) short edge — the landscape scale would overflow and
@@ -375,6 +388,51 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   .when{font-size:clamp(11px,1.1vh,17px)}
   .chip{font-size:clamp(12px,1.15vh,19px)}
   .say{font-size:clamp(11px,1.02vh,16px)}
+}
+
+/* PHONE (≤700px wide) ------------------------------------------------------
+   The 3x5 portrait grid above is tuned for a TABLET (820x1180). On a phone it
+   hands each card a THIRD of the screen — 130px at 430w, 110px at 375w —
+   which is narrower than the words that have to fit in it. Measured at 430
+   the purpose lost three of its five lines and every when-line lost its
+   countdown; at 375 titles broke mid-word ("Schol ars…") and the status
+   sentence rendered into a 5px box, and the footer ran off the right edge.
+   No type size rescues a 110px card, so at phone widths the board stops
+   pretending fourteen tiles fit on one screen: cards get a real minimum
+   width (one column at 375 and 430), each card is sized by its own content
+   instead of by a fifth of the viewport, nothing is clamped, and the section
+   scrolls. Landscape/tablet/desktop never see any of this. */
+@media (max-width: 700px){
+  #cards{
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    grid-template-rows:none;grid-auto-rows:auto;align-content:start;
+    overflow-y:auto;overflow-x:hidden;padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  }
+  .card{
+    padding:clamp(11px,3.2vw,16px) clamp(13px,3.6vw,18px);
+    gap:clamp(4px,1.1vw,8px);
+  }
+  .livedot{top:clamp(11px,3.2vw,16px);right:clamp(13px,3.6vw,18px)}
+  .iconbox{width:34px;height:34px;border-radius:10px}
+  /* cards are wide again, so words may wrap only BETWEEN words: overflow-wrap
+     anywhere is what let "Scholarships" render as "Schol ars…" */
+  .name{font-size:16px;line-height:1.15;overflow-wrap:break-word}
+  /* the card grows to its content here, so nothing needs truncating */
+  .purpose{font-size:13px;line-height:1.34;display:block;overflow:visible;-webkit-line-clamp:none}
+  .when{font-size:13.5px;line-height:1.32}
+  .when .wtxt{display:block;overflow:visible;-webkit-line-clamp:none}
+  .chip{font-size:14px}
+  .say{font-size:13px;line-height:1.34;display:block;overflow:visible;-webkit-line-clamp:none;flex:1 1 60%}
+  /* on a two-column phone the chip can still crowd the sentence — let it drop
+     to its own full-width line instead of squeezing into a few pixels */
+  .statusline{flex-wrap:wrap;row-gap:4px;margin-top:6px}
+  /* the strip is one nowrap flex row on desktop; on a phone that is 3x the
+     viewport width, so let it wrap and drop the margin-left:auto push */
+  #strip{flex-wrap:wrap;white-space:normal;row-gap:3px;column-gap:14px;font-size:12.5px}
+  #doctor{flex:1 1 auto;min-width:0}
+  #blogline{flex:1 1 100%;text-align:left}
+  #updated{margin-left:0}
 }
 
 /* ---------------- quiet bottom strip ---------------- */
@@ -810,11 +868,28 @@ function clockOf(d){ return clock12(d.getHours(), d.getMinutes()); }
 function humanCadence(label, compact){
   if(!label || typeof label !== "string") return null;
   var s = label.trim(), m;
+  /* Weekly-guarded jobs fire DAILY and go quiet once the ISO week has
+     succeeded. The old compact voice ("Weekly at 5:00 AM") next to "next Mon,
+     Aug 17" read as "nothing happens until Monday" — untrue on six days out
+     of seven, and it hid the daily retry that is the whole point of the
+     design. Both voices now name the daily attempt; the parenthetical keeps
+     the headline fact ("Weekly") first for the glance. */
   m = /^Daily\s+(\d{1,2}):(\d{2})\s*\(weekly guard\)$/i.exec(s);
-  if(m) return compact ? "Weekly at " + clock12(+m[1], +m[2])
+  if(m) return compact ? "Weekly (tries daily at " + clock12(+m[1], +m[2]) + ")"
                        : "Once a week, tries " + clock12(+m[1], +m[2]) + " daily";
-  m = /^Daily\s+(\d{1,2}):(\d{2})$/i.exec(s);
-  if(m) return "Every day at " + clock12(+m[1], +m[2]);
+  /* one OR MORE fixed times a day — the scholarship agent fires four times */
+  m = /^Daily\s+(\d{1,2}:\d{2}(?:\s*,\s*\d{1,2}:\d{2})*)$/i.exec(s);
+  if(m){
+    var times = m[1].split(",").map(function(p){
+      var b = p.trim().split(":");
+      return clock12(+b[0], +b[1]);
+    });
+    if(times.length === 1) return "Every day at " + times[0];
+    /* compact stays short — the live countdown beside it names the next one,
+       and the "What runs next" panel spells all of them out */
+    return compact ? times.length + " times a day"
+                   : times.length + " times a day — " + times.join(", ");
+  }
   m = /^Weekdays\s+(\d{1,2}):(\d{2})$/i.exec(s);
   if(m) return "Weekdays at " + clock12(+m[1], +m[2]);
   m = /^(?:Mondays?|Weekly)\s+(\d{1,2}):(\d{2})$/i.exec(s);
@@ -1562,7 +1637,8 @@ var SUBTITLE = {
   "github-presence": "Open-source contributions",
   "inbox-apply": "Applications from inbox scanning",
   "startup-outreach": "Personalized startup outreach",
-  "yc-demo-outreach": "Built demos — approve to send, waiting ones first"
+  "yc-demo-outreach": "Built demos — approve to send, waiting ones first",
+  "usage-watch": "The queue right now, then every prompt it has run"
 };
 
 function el(tag, cls, text){
@@ -1835,8 +1911,67 @@ function ycSlide(it){
   return f;
 }
 
+/* usage-watch: card 1 is "right now" (what the job is waiting on), the rest
+   are one card per prompt it has run. Deliberately a log, not a reader —
+   details.py sends one line of each run's output, never the transcript. */
+var UWSTATUS = {
+  ok:      {cls:"mtag ok",   text:"✓ Ran fine"},
+  limited: {cls:"mtag wait", text:"🕐 Usage limit is on — waiting"},
+  failed:  {cls:"mtag bad",  text:"! Prompt failed"}
+};
+function watchSlide(it){
+  var f = document.createDocumentFragment();
+
+  if(it.row === "state"){
+    f.appendChild(el("div", "mailsubj", "Right now"));
+    var st = UWSTATUS[it.last_status] ||
+             {cls:"mtag", text:it.last_status || "not checked yet"};
+    var tags = el("div");
+    tags.appendChild(el("span", st.cls, st.text));
+    var q = it.queued || [];
+    tags.appendChild(el("span", "mtag",
+      q.length ? q.length + " " + plural(q.length,"prompt","prompts") + " queued"
+               : "Queue is empty"));
+    f.appendChild(tags);
+    var grid = el("div", "mailhead");
+    headRow(grid, "Last check", whenStr(it.at));
+    if(it.next_check_at) headRow(grid, "Next check", whenStr(it.next_check_at));
+    headRow(grid, "Runs kept", String(it.runs_total));
+    f.appendChild(grid);
+    f.appendChild(el("div", "mconf",
+      "Hit a Claude usage limit mid-task? Drop the follow-up prompt in the " +
+      "queue and walk away. This checks every 20 minutes, and the moment the " +
+      "limit lifts it runs everything waiting and emails you the results."));
+    if(q.length){
+      f.appendChild(el("div", "mnote", "Waiting to run:"));
+      var ul = el("ul", "mlist");
+      q.forEach(function(n){ ul.appendChild(el("li", null, n)); });
+      f.appendChild(ul);
+    }
+    return f;
+  }
+
+  f.appendChild(el("div", "mailsubj", it.prompt || "(prompt)"));
+  var t2 = el("div");
+  t2.appendChild(el("span", it.status === "ok" ? "mtag ok" : "mtag bad",
+                    it.status === "ok" ? "✓ Ran fine" : "! Failed"));
+  f.appendChild(t2);
+  var g2 = el("div", "mailhead");
+  headRow(g2, "Ran", whenStr(it.at));
+  f.appendChild(g2);
+  if(it.first_line) f.appendChild(el("div", "mailbody", it.first_line));
+  else f.appendChild(el("div", "mnote", "This run produced no output."));
+  if(it.more_lines > 0)
+    f.appendChild(el("div", "mnote", "First line only — the other " +
+      it.more_lines + " " + plural(it.more_lines,"line","lines") +
+      " stay in the transcript on the Mac."));
+  if(it.error) f.appendChild(el("div", "mconf", "Error: " + it.error));
+  return f;
+}
+
 var SLIDE = {
   emails: emailSlide,
+  watch_runs: watchSlide,
   yc_emails: ycSlide,
   parent_emails: parentSlide,
   applications: appSlide,
