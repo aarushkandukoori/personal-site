@@ -255,24 +255,44 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 #cards{
   display:grid;min-height:0;min-width:0;
   grid-template-columns:repeat(5,minmax(0,1fr));
-  grid-template-rows:repeat(3,minmax(0,1fr));
+  /* minmax(MIN-CONTENT,1fr), not minmax(0,1fr). A row is never shorter than
+     the tallest card's real content, so the grid can no longer be the thing
+     that truncates a sentence. Where everything fits — the two tuned cases,
+     1280x800 landscape and 820x1180 portrait — the 1fr maximum still shares
+     the height out evenly and nothing scrolls, so those look exactly as
+     before. Where it does not fit (a 1024x768 iPad, whose 5 columns leave a
+     card only 188px wide), the section scrolls a little instead of hiding
+     text. Scrolling is the same trade the phone rule below already makes. */
+  grid-template-rows:repeat(3,minmax(min-content,1fr));
   gap:clamp(9px,1.5vmin,20px);
+  overflow-y:auto;overflow-x:hidden;padding-bottom:2px;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
 }
 @media (orientation: portrait){
-  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr))}
+  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(min-content,1fr))}
 }
+/* LANDSCAPE TYPE SCALE — min(vmin, vw).
+   The old scale was pure vmin, i.e. it followed the SHORT edge. In landscape
+   the short edge is the height, but what actually rations a card is its
+   WIDTH: five columns of viewport width. Between 1280x800 and 1024x768 vmin
+   drops 4% while a card loses 21% of its width, so type stayed big while the
+   box shrank and every sentence needed an extra line. Taking min() of the
+   old vmin term and an equivalent vw term fixes that continuously — no new
+   breakpoint, and at 1280x800 the vmin term still wins, so the tuned desktop
+   rendering is byte-for-byte what it was. Each vw coefficient is just the
+   vmin value at 1280x800 re-expressed against that width. */
 .card{
   position:relative;
   min-height:0;min-width:0;overflow:hidden;
   background:var(--card);border-radius:24px;box-shadow:var(--shadow);
-  padding:clamp(9px,1.5vmin,19px) clamp(11px,1.9vmin,23px);
+  padding:clamp(9px,min(1.5vmin,.94vw),19px) clamp(11px,min(1.9vmin,1.19vw),23px);
   display:flex;flex-direction:column;justify-content:flex-start;
-  gap:clamp(3px,.58vmin,9px);
+  gap:clamp(3px,min(.58vmin,.363vw),9px);
 }
 /* small glowing status dot per card, phase-offset pulse so the grid shimmers */
 .livedot{
   position:absolute;
-  top:clamp(9px,1.5vmin,19px);right:clamp(11px,1.9vmin,23px);
+  top:clamp(9px,min(1.5vmin,.94vw),19px);right:clamp(11px,min(1.9vmin,1.19vw),23px);
   width:clamp(7px,1.15vmin,11px);height:clamp(7px,1.15vmin,11px);
   border-radius:50%;pointer-events:none;
   background:var(--dotc,var(--wait));
@@ -291,48 +311,60 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   padding-right:clamp(14px,1.7vmin,18px); /* keep the name clear of .livedot */
 }
 .iconbox{
-  flex:none;width:clamp(28px,4.05vmin,42px);height:clamp(28px,4.05vmin,42px);
+  flex:none;
+  width:clamp(26px,min(4.05vmin,2.53vw),42px);height:clamp(26px,min(4.05vmin,2.53vw),42px);
   border-radius:clamp(8px,1.3vmin,14px);
   background:var(--iconbg);display:grid;place-items:center;color:var(--ink);
 }
 .iconbox svg{width:72%;height:72%}
+/* NOTHING IN A CARD IS LINE-CLAMPED ANY MORE.
+   Every one of .name / .purpose / .when .wtxt / .say used to be a
+   -webkit-box with a fixed -webkit-line-clamp. A clamp is a promise that the
+   text will always fit in N lines, and that promise held only at the two
+   viewport sizes the numbers were tuned against: at 768x1024 the Reply
+   Tracker purpose lost its third line, at 1024x768 twenty-five elements
+   across the board lost theirs. Sentences are now laid out normally and the
+   grid row above grows to hold them, so a sentence can no longer be silently
+   truncated at any width. overflow-wrap:break-word (not `anywhere`, which
+   sliced "Scholarships" into "Schol ars") is the only escape hatch, and it
+   only ever fires for a single word wider than the whole card. */
 .name{
-  min-width:0;font-size:clamp(13px,2.05vmin,22px);font-weight:800;
+  min-width:0;font-size:clamp(13px,min(2.05vmin,1.28vw),22px);font-weight:800;
   letter-spacing:-.012em;line-height:1.06;
-  /* two lines, not an ellipsis: "Opportunity Radar" must never read
-     "Opportunity Ra…" just because the tile is narrow. overflow-wrap keeps a
-     single long word ("Presence") from being sliced mid-letter on a phone,
-     where three columns leave each tile barely 130px wide. */
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
-  overflow-wrap:anywhere;
+  overflow-wrap:break-word;
 }
 /* WHAT it does — static, straight from collect.py */
 .purpose{
-  font-size:clamp(10px,1.55vmin,16px);font-weight:600;color:var(--ink2);
-  line-height:1.24;min-width:0;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  font-size:clamp(10px,min(1.55vmin,.97vw),16px);font-weight:600;color:var(--ink2);
+  line-height:1.24;min-width:0;overflow-wrap:break-word;
 }
 /* WHEN it runs — cadence + live relative countdown */
 .when{
   display:flex;align-items:flex-start;gap:.4em;min-width:0;
-  font-size:clamp(11px,1.64vmin,17px);font-weight:700;line-height:1.21;
+  font-size:clamp(10.5px,min(1.64vmin,1.025vw),17px);font-weight:700;line-height:1.21;
 }
 .when .wico{flex:none;opacity:.65;font-weight:400}
 .when .wtxt{
-  min-width:0;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  min-width:0;overflow-wrap:break-word;
 }
 .when .wnext{color:var(--ink2)}
-/* HOW IT'S GOING — chip and its sentence share the bottom row */
+/* HOW IT'S GOING — chip and its sentence share the bottom row, and drop the
+   sentence onto its own full-width line when the chip has eaten the row.
+   .say asks for a 7.5em basis: at 1280x800 chip + 7.5em still fits one row,
+   so the tuned desktop layout is unchanged; at 1024x768 a wide chip
+   ("⏳ Waiting") left the sentence 42px, narrower than the word "morning",
+   which overflowed sideways into overflow:hidden. Wrapping is what keeps
+   that word on screen. */
 .statusline{
   margin-top:auto;display:flex;align-items:center;min-width:0;
   gap:clamp(6px,1vmin,11px);
+  flex-wrap:wrap;row-gap:clamp(3px,.5vmin,6px);
 }
 .card.click .statusline{padding-right:clamp(12px,2vmin,22px)} /* clear .peek */
 .chip{
   flex:none;max-width:100%;
   display:inline-flex;align-items:center;gap:.4em;
-  font-size:clamp(12px,1.85vmin,19px);font-weight:800;color:#fff;
+  font-size:clamp(11px,min(1.85vmin,1.156vw),19px);font-weight:800;color:#fff;
   padding:.34em .72em;border-radius:999px;
   background:var(--wait);
   transition:background-color .6s ease;
@@ -349,29 +381,27 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
-/* TWO lines, and that is a hard budget, not a preference.
-   The chip sits beside it, so at 1280x800 .say gets ~105px of the card's
-   208px — about 17 characters a line, i.e. ~34 characters before it
-   ellipsizes. A card has ~160px inside its padding and the tallest stack
-   already spends 158 of it (2-line name 35 + 3-line purpose 46 + 2-line
-   when 32 + 2-line say 31 + gaps 14), so there is no room for a third line:
-   allowing one was measured to overflow the doctor card by 11px the moment
-   its countdown grew from "next in 2h" to "next in 1h 58m", and an
-   overflowing card clips the whole status row rather than one sentence.
-   So the sentences in sentenceFor() are written to fit ~34 characters —
-   see the two that were over budget there. (Reported as a dark-mode-only
-   ellipsis; measured, it is identical in both modes — there is no
-   light/dark line-height difference, the sentences were simply too long.) */
+/* The old two-line budget here was the same promise the other clamps made,
+   and it broke the same way: at 1024x768 "Sent 25 emails this week" wanted
+   three lines and lost one. There is no budget now — the sentence takes the
+   lines it needs and the grid row grows. The sentences in sentenceFor() are
+   still written short, because short is better, not because a third line
+   would be hidden. */
 .say{
-  flex:1;font-size:clamp(11px,1.55vmin,16px);font-weight:600;color:var(--ink2);
-  line-height:1.25;min-width:0;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  flex:1 1 7.5em;
+  font-size:clamp(10.5px,min(1.55vmin,.97vw),16px);font-weight:600;color:var(--ink2);
+  line-height:1.25;min-width:0;overflow-wrap:break-word;
 }
 /* PORTRAIT: the grid is 3x5, so a card is a FIFTH of the column height while
    vmin follows the (wide) short edge — the landscape scale would overflow and
-   clip the status row. Portrait cards are also much wider, so the purpose
-   sentence needs only two lines here. Sizes are pinned to vh (the dimension
-   that actually rations the space) instead of vmin. */
+   clip the status row. Sizes are pinned to vh (the dimension that actually
+   rations the space) instead of vmin.
+   This block used to also re-clamp .purpose to two lines. That clamp is what
+   truncated Reply Tracker at 768x1024: 768 is portrait, so the rule applied,
+   but it is wider than the 700px phone breakpoint below that unclamps
+   everything, so the tile fell in the gap between the two rules with a
+   two-line ceiling and a three-line sentence. Nothing here clamps any
+   more, so the gap has nothing left to trap. */
 @media (orientation: portrait){
   .card{padding:clamp(9px,1.15vh,18px) clamp(11px,1.35vh,22px);gap:clamp(3px,.42vh,8px)}
   .livedot{top:clamp(9px,1.15vh,18px);right:clamp(11px,1.35vh,22px)}
@@ -380,11 +410,9 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
     border-radius:clamp(8px,.85vh,14px);
   }
   .name{font-size:clamp(13px,1.5vh,22px)}
-  /* two lines here, not three: measured at 820x1180 a third line overflows
-     the card by a pixel, and an overflowing card clips the status row. The
-     slightly smaller size is what lets a ~78-character sentence land inside
-     those two lines on a narrow portrait screen. */
-  .purpose{font-size:clamp(10px,.96vh,16px);-webkit-line-clamp:2}
+  /* the smaller size is what lets a ~78-character sentence land in two lines
+     on a narrow portrait screen; if it ever needs a third, it gets one */
+  .purpose{font-size:clamp(10px,.96vh,16px)}
   .when{font-size:clamp(11px,1.1vh,17px)}
   .chip{font-size:clamp(12px,1.15vh,19px)}
   .say{font-size:clamp(11px,1.02vh,16px)}
@@ -441,18 +469,16 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   }
   .livedot{top:clamp(11px,3.2vw,16px);right:clamp(13px,3.6vw,18px)}
   .iconbox{width:34px;height:34px;border-radius:10px}
-  /* cards are wide again, so words may wrap only BETWEEN words: overflow-wrap
-     anywhere is what let "Scholarships" render as "Schol ars…" */
-  .name{font-size:16px;line-height:1.15;overflow-wrap:break-word}
-  /* the card grows to its content here, so nothing needs truncating */
-  .purpose{font-size:13px;line-height:1.34;display:block;overflow:visible;-webkit-line-clamp:none}
+  /* type only: the un-clamping that used to live here is now the rule for
+     every width, so this block no longer has to undo anything */
+  .name{font-size:16px;line-height:1.15}
+  .purpose{font-size:13px;line-height:1.34}
   .when{font-size:13.5px;line-height:1.32}
-  .when .wtxt{display:block;overflow:visible;-webkit-line-clamp:none}
   .chip{font-size:14px}
-  .say{font-size:13px;line-height:1.34;display:block;overflow:visible;-webkit-line-clamp:none;flex:1 1 60%}
-  /* on a two-column phone the chip can still crowd the sentence — let it drop
-     to its own full-width line instead of squeezing into a few pixels */
-  .statusline{flex-wrap:wrap;row-gap:4px;margin-top:6px}
+  .say{font-size:13px;line-height:1.34;flex:1 1 60%}
+  /* on a two-column phone the chip can still crowd the sentence — a smaller
+     basis than the shared 7.5em drops it to its own full-width line sooner */
+  .statusline{row-gap:4px;margin-top:6px}
   /* the strip is one nowrap flex row on desktop; on a phone that is 3x the
      viewport width, so let it wrap and drop the margin-left:auto push */
   #strip{flex-wrap:wrap;white-space:normal;row-gap:3px;column-gap:14px;font-size:12.5px}
@@ -906,18 +932,25 @@ function humanCadence(label, compact){
   if(/^one[- ]shot/i.test(s)) return "Only when you start it";
   return s;
 }
-/* "next in 3h" / "next tomorrow, 5:20 AM" / "next Mon, Aug 17" / null */
+/* "next in 4h 53m" / "next tomorrow, 5:20 AM" / "next Mon, Aug 17" / null
+   Hours AND minutes at every length under a day, not just under two hours.
+   The old rule FLOORED to whole hours above 2h, so a Scholarships slot 4h53m
+   away read "next in 4h" at 04:07 — which a reader turns back into 08:07,
+   an hour early, and the error was always in the direction of "sooner than
+   it really is". Rounding to the nearest hour would have halved the error
+   without removing it; showing the minutes removes it. It also costs nothing
+   in readability, because the two-part form was already what every countdown
+   under two hours used — this just stops the format from changing halfway
+   down. Exact zero minutes still says "next in 4h" rather than "4h 0m". */
 function nextPhrase(d){
   if(!d) return null;
   var ms = d.getTime() - Date.now();
   if(ms <= 0) return "due now";
   var mins = Math.round(ms / 60000);
   if(mins < 60) return "next in " + mins + "m";
-  var hrs = ms / 3600000;
-  if(hrs < 24){
-    var h = Math.floor(hrs), mm = Math.round((hrs - h) * 60);
-    if(mm === 60){ h++; mm = 0; }
-    return "next in " + h + "h" + (h < 2 && mm ? " " + mm + "m" : "");
+  if(mins < 24 * 60){
+    var h = Math.floor(mins / 60), mm = mins % 60;
+    return "next in " + h + "h" + (mm ? " " + mm + "m" : "");
   }
   var now = new Date(), tom = new Date(now); tom.setDate(tom.getDate() + 1);
   if(sameDay(d, tom)) return "next tomorrow, " + clockOf(d);
