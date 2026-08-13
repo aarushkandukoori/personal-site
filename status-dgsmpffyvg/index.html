@@ -350,11 +350,13 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 .when .wnext{color:var(--ink2)}
 /* HOW IT'S GOING — chip and its sentence share the bottom row, and drop the
    sentence onto its own full-width line when the chip has eaten the row.
-   .say asks for a 7.5em basis: at 1280x800 chip + 7.5em still fits one row,
-   so the tuned desktop layout is unchanged; at 1024x768 a wide chip
-   ("⏳ Waiting") left the sentence 42px, narrower than the word "morning",
-   which overflowed sideways into overflow:hidden. Wrapping is what keeps
-   that word on screen. */
+   .say asks for a 6em basis, which is the width that splits the two cases:
+   at 1280x800 the widest chip ("⏳ Waiting", 98px) plus 6em still fits the
+   208px row, so the tuned desktop layout keeps its single status line; at
+   1024x768 the same chip left the sentence 42px — narrower than the word
+   "morning", which overflowed sideways into overflow:hidden — and there the
+   basis no longer fits, so the sentence takes the full width of its own
+   row instead. */
 .statusline{
   margin-top:auto;display:flex;align-items:center;min-width:0;
   gap:clamp(6px,1vmin,11px);
@@ -388,7 +390,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    still written short, because short is better, not because a third line
    would be hidden. */
 .say{
-  flex:1 1 7.5em;
+  flex:1 1 6em;
   font-size:clamp(10.5px,min(1.55vmin,.97vw),16px);font-weight:600;color:var(--ink2);
   line-height:1.25;min-width:0;overflow-wrap:break-word;
 }
@@ -476,8 +478,8 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   .when{font-size:13.5px;line-height:1.32}
   .chip{font-size:14px}
   .say{font-size:13px;line-height:1.34;flex:1 1 60%}
-  /* on a two-column phone the chip can still crowd the sentence — a smaller
-     basis than the shared 7.5em drops it to its own full-width line sooner */
+  /* on a two-column phone the chip can still crowd the sentence — a 60%
+     basis drops it to its own full-width line sooner than the shared 6em */
   .statusline{row-gap:4px;margin-top:6px}
   /* the strip is one nowrap flex row on desktop; on a phone that is 3x the
      viewport width, so let it wrap and drop the margin-left:auto push */
@@ -755,10 +757,10 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the fourteen cards, fixed order */
+/* ------------------------------------------------ the fifteen cards, fixed order */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
-             "startup-outreach","yc-demo-outreach","inbox-apply","usage-watch"];
+             "startup-outreach","yc-demo-outreach","inbox-apply","usage-watch","daily-digest"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -773,7 +775,8 @@ var NICE = {
   "startup-outreach":"Startup Outreach",
   "yc-demo-outreach":"YC Demo Outreach",
   "inbox-apply":"Inbox Apply",
-  "usage-watch":"Usage Watch"
+  "usage-watch":"Usage Watch",
+  "daily-digest":"Daily Digest"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -793,6 +796,8 @@ var ICONS = {
   "inbox-apply": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="5" y="11" width="38" height="27" rx="5"/><path d="M6.5 13.5 24 26 41.5 13.5"/><path d="M17.5 30.5l4.5 4.5 8.5-8.5"/></svg>',
   /* hourglass with a queue of prompts waiting at the bottom */
   "usage-watch": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M13 6h22M13 42h22"/><path d="M17 6v6c0 5 7 8 7 12s-7 7-7 12v6"/><path d="M31 6v6c0 5-7 8-7 12s7 7 7 12v6"/><path d="M19 37.5c1.2-2.6 3-3.9 5-3.9s3.8 1.3 5 3.9"/><circle cx="24" cy="17" r="1.5" fill="currentColor" stroke="none"/></svg>',
+  /* many streams funnelling into ONE envelope — the whole point of the job */
+  "daily-digest": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="20" y="13" width="24" height="20" rx="5"/><path d="M21.5 15.5 32 23.5 42.5 15.5"/><path d="M4 12l10 7M4 23h10M4 34l10-7"/></svg>',
 };
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
