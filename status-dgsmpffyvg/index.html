@@ -1876,18 +1876,21 @@ function contribSlide(it){
 
 /* one slide per yc-demo-outreach queue entry.
 
-   Pending entries get an Approve button, and Approve SENDS the email — so it
-   always takes two deliberate taps (Approve -> "Yes, send it"), and the POST
-   only works from this Mac (the server refuses /yc/approve from anywhere but
-   loopback). On the public mirror this section is stripped server-side, so
-   the buttons never exist there at all. */
+   Nothing on this board can send an email. The pipeline writes each one into
+   Mail as a DRAFT; the Approve button only drafts an entry that somehow has
+   not been drafted yet, and the email leaves only when the human presses Send
+   in Mail. It still takes two deliberate taps and still only works from this
+   Mac (the server refuses /yc/approve from anywhere but loopback). On the
+   public mirror this section is stripped server-side. */
 var YCSTATUS = {
-  pending:  {cls:"mtag wait", text:"🕐 Waiting for your approval"},
-  approved: {cls:"mtag",      text:"Approved — sending"},
-  sending:  {cls:"mtag",      text:"Sending…"},
+  pending:  {cls:"mtag wait", text:"🕐 Not drafted yet"},
+  approved: {cls:"mtag",      text:"Approved — drafting"},
+  sending:  {cls:"mtag",      text:"Drafting…"},
+  drafting: {cls:"mtag",      text:"Drafting…"},
+  drafted:  {cls:"mtag ok",   text:"✉ Draft ready in Mail"},
   sent:     {cls:"mtag ok",   text:"✓ Sent"},
   rejected: {cls:"mtag muted",text:"Rejected — never sent"},
-  failed:   {cls:"mtag bad",  text:"! Send failed"}
+  failed:   {cls:"mtag bad",  text:"! Draft failed"}
 };
 
 function ycPost(route, slug, btnbar, okText){
@@ -1930,21 +1933,21 @@ function ycSlide(it){
 
   if(it.pending && !(DETAILS && DETAILS.sanitized)){
     var bar = el("div", "mact");
-    var approve = el("button", "go", "Approve & send");
+    var approve = el("button", "go", "Draft it in Mail");
     var reject  = el("button", "no", "Reject");
     var msg     = el("span", "msg", "");
     approve.addEventListener("click", function(){
       bar.textContent = "";
-      /* Cancel takes the position Approve just occupied, and the send button
-         stays disabled for a beat: a second tap landing where the first one
-         did must never be the thing that sends the email. */
+      /* Cancel takes the position the first button occupied, and the confirm
+         button stays disabled for a beat, so a double-tap can never be the
+         thing that acts. This writes a draft — it does not send. */
       var no  = el("button", "no", "Cancel");
-      var yes = el("button", "danger", "Yes, send it now");
-      var m2  = el("span", "msg", "Sends to " + (it.to || "?"));
+      var yes = el("button", "danger", "Yes, draft it");
+      var m2  = el("span", "msg", "Drafts to " + (it.to || "?") + " — you still press Send in Mail");
       yes.disabled = true;
       setTimeout(function(){ yes.disabled = false; }, 700);
       yes.addEventListener("click", function(){
-        ycPost("/yc/approve", it.slug, bar, "Sent ✓");
+        ycPost("/yc/approve", it.slug, bar, "Drafted ✉");
       });
       no.addEventListener("click", function(){ renderSlide(); });
       bar.appendChild(no); bar.appendChild(yes); bar.appendChild(m2);
