@@ -265,14 +265,14 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   position:relative;
   min-height:0;min-width:0;overflow:hidden;
   background:var(--card);border-radius:24px;box-shadow:var(--shadow);
-  padding:clamp(10px,1.75vmin,21px) clamp(11px,1.9vmin,23px);
+  padding:clamp(9px,1.5vmin,19px) clamp(11px,1.9vmin,23px);
   display:flex;flex-direction:column;justify-content:flex-start;
-  gap:clamp(4px,.75vmin,10px);
+  gap:clamp(3px,.58vmin,9px);
 }
 /* small glowing status dot per card, phase-offset pulse so the grid shimmers */
 .livedot{
   position:absolute;
-  top:clamp(10px,1.75vmin,21px);right:clamp(11px,1.9vmin,23px);
+  top:clamp(9px,1.5vmin,19px);right:clamp(11px,1.9vmin,23px);
   width:clamp(7px,1.15vmin,11px);height:clamp(7px,1.15vmin,11px);
   border-radius:50%;pointer-events:none;
   background:var(--dotc,var(--wait));
@@ -288,11 +288,11 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 .card > *{flex:none}
 .top{
   display:flex;align-items:center;gap:clamp(7px,1.25vmin,14px);min-width:0;
-  padding-right:clamp(10px,1.6vmin,17px); /* keep the name clear of .livedot */
+  padding-right:clamp(14px,1.7vmin,18px); /* keep the name clear of .livedot */
 }
 .iconbox{
-  flex:none;width:clamp(29px,4.35vmin,44px);height:clamp(29px,4.35vmin,44px);
-  border-radius:clamp(8px,1.35vmin,14px);
+  flex:none;width:clamp(28px,4.05vmin,42px);height:clamp(28px,4.05vmin,42px);
+  border-radius:clamp(8px,1.3vmin,14px);
   background:var(--iconbg);display:grid;place-items:center;color:var(--ink);
 }
 .iconbox svg{width:72%;height:72%}
@@ -300,19 +300,22 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   min-width:0;font-size:clamp(13px,2.05vmin,22px);font-weight:800;
   letter-spacing:-.012em;line-height:1.06;
   /* two lines, not an ellipsis: "Opportunity Radar" must never read
-     "Opportunity Ra…" just because the tile is narrow */
+     "Opportunity Ra…" just because the tile is narrow. overflow-wrap keeps a
+     single long word ("Presence") from being sliced mid-letter on a phone,
+     where three columns leave each tile barely 130px wide. */
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  overflow-wrap:anywhere;
 }
 /* WHAT it does — static, straight from collect.py */
 .purpose{
   font-size:clamp(10px,1.55vmin,16px);font-weight:600;color:var(--ink2);
-  line-height:1.28;min-width:0;
+  line-height:1.24;min-width:0;
   display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
 }
 /* WHEN it runs — cadence + live relative countdown */
 .when{
   display:flex;align-items:flex-start;gap:.4em;min-width:0;
-  font-size:clamp(11px,1.68vmin,17px);font-weight:700;line-height:1.25;
+  font-size:clamp(11px,1.64vmin,17px);font-weight:700;line-height:1.21;
 }
 .when .wico{flex:none;opacity:.65;font-weight:400}
 .when .wtxt{
@@ -347,9 +350,31 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 .say{
-  flex:1;font-size:clamp(11px,1.6vmin,16px);font-weight:600;color:var(--ink2);
+  flex:1;font-size:clamp(11px,1.55vmin,16px);font-weight:600;color:var(--ink2);
   line-height:1.25;min-width:0;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+/* PORTRAIT: the grid is 3x5, so a card is a FIFTH of the column height while
+   vmin follows the (wide) short edge — the landscape scale would overflow and
+   clip the status row. Portrait cards are also much wider, so the purpose
+   sentence needs only two lines here. Sizes are pinned to vh (the dimension
+   that actually rations the space) instead of vmin. */
+@media (orientation: portrait){
+  .card{padding:clamp(9px,1.15vh,18px) clamp(11px,1.35vh,22px);gap:clamp(3px,.42vh,8px)}
+  .livedot{top:clamp(9px,1.15vh,18px);right:clamp(11px,1.35vh,22px)}
+  .iconbox{
+    width:clamp(26px,2.6vh,42px);height:clamp(26px,2.6vh,42px);
+    border-radius:clamp(8px,.85vh,14px);
+  }
+  .name{font-size:clamp(13px,1.5vh,22px)}
+  /* two lines here, not three: measured at 820x1180 a third line overflows
+     the card by a pixel, and an overflowing card clips the status row. The
+     slightly smaller size is what lets a ~78-character sentence land inside
+     those two lines on a narrow portrait screen. */
+  .purpose{font-size:clamp(10px,.96vh,16px);-webkit-line-clamp:2}
+  .when{font-size:clamp(11px,1.1vh,17px)}
+  .chip{font-size:clamp(12px,1.15vh,19px)}
+  .say{font-size:clamp(11px,1.02vh,16px)}
 }
 
 /* ---------------- quiet bottom strip ---------------- */
