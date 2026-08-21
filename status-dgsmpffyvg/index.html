@@ -1054,15 +1054,16 @@ function sentenceFor(a, totals, doctor){
       }
       return doneFallback(a);
     case "startup-outreach":
-      /* say line straight from the snapshot metrics: ranked + drafts */
+      /* say line straight from the snapshot metrics. Daily sender since
+         2026-08-21: what matters is how many went out and how many are
+         still queued, not the one-shot "drafts ready" count. */
       var m = {};
       (a.metrics || []).forEach(function(x){ m[x.label] = x.value; });
-      /* "100 startups ranked · 100 drafts ready" was 37 characters and
-         ellipsized; the tile is already called Startup Outreach, so the
-         word "startups" is the one to drop (29). */
+      if(m["Sent total"] !== undefined && m["Queue remaining"] !== undefined)
+        return m["Sent total"] + " sent · " +
+               m["Queue remaining"] + " queued";
       if(m["Companies ranked"])
-        return m["Companies ranked"] + " ranked · " +
-               (m["Drafts prepared"] || 0) + " drafts ready";
+        return m["Companies ranked"] + " ranked";
       return doneFallback(a);
     case "yc-demo-outreach":
       var y = {};
