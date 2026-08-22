@@ -244,17 +244,23 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
 
-/* ---------------- fourteen big cards ----------------
+/* ---------------- the big cards ----------------
    Each card answers four questions top to bottom:
      WHO   .top      icon + name
      WHAT  .purpose  one plain sentence from collect.py's PURPOSE registry
      WHEN  .when     human cadence + live "next in …" computed client-side
      HOW'S IT GOING  .statusline  status chip + what it accomplished
    Type sizes are deliberately tighter than the old three-row card so the
-   two extra lines fit the 5x3 desktop grid AND the 3x5 portrait grid. */
+   two extra lines fit the desktop grid AND the 3-column portrait grid.
+   GRID GEOMETRY comes from build(): the hardcoded 5x3 stopped fitting the
+   day the fleet reached 16 tiles (Research Forge spilled into an implicit,
+   half-hidden 4th row). build() now sets --lcols/--lrows (landscape: at most
+   5 columns, then columns shrunk to rebalance — 16 tiles land 4x4, not
+   5+5+5+1) and --prows (portrait: 3 columns fixed). At 15 tiles the numbers
+   below are exactly the old 5x3 / 3x5, so the tuned layouts are unchanged. */
 #cards{
   display:grid;min-height:0;min-width:0;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  grid-template-columns:repeat(var(--lcols,5),minmax(0,1fr));
   /* minmax(MIN-CONTENT,1fr), not minmax(0,1fr). A row is never shorter than
      the tallest card's real content, so the grid can no longer be the thing
      that truncates a sentence. Where everything fits — the two tuned cases,
@@ -263,13 +269,13 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
      before. Where it does not fit (a 1024x768 iPad, whose 5 columns leave a
      card only 188px wide), the section scrolls a little instead of hiding
      text. Scrolling is the same trade the phone rule below already makes. */
-  grid-template-rows:repeat(3,minmax(min-content,1fr));
+  grid-template-rows:repeat(var(--lrows,3),minmax(min-content,1fr));
   gap:clamp(9px,1.5vmin,20px);
   overflow-y:auto;overflow-x:hidden;padding-bottom:2px;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
 }
 @media (orientation: portrait){
-  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(5,minmax(min-content,1fr))}
+  #cards{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(var(--prows,5),minmax(min-content,1fr))}
 }
 /* LANDSCAPE TYPE SCALE — min(vmin, vw).
    The old scale was pure vmin, i.e. it followed the SHORT edge. In landscape
@@ -758,7 +764,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 <script>
 "use strict";
 /* ------------------------------------------------ the sixteen cards, fixed order
-   (16th spills into an implicit 4th row; #cards scrolls on the tuned layouts) */
+   (build() sizes the grid from ORDER.length, so every tile gets a real slot) */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
              "startup-outreach","yc-demo-outreach","inbox-apply","usage-watch","daily-digest",
@@ -827,6 +833,15 @@ var cardEls = {};
 var DOTC = {ok:"var(--ok)", in_progress:"var(--work)", pending_today:"var(--wait)", issue:"var(--bad)"};
 (function build(){
   var wrap = document.getElementById("cards");
+  /* Size the grid to the fleet: minimum rows at ≤5 columns, then the column
+     count shrunk to the fewest that still fit those rows, so the last row is
+     never a lone orphan tile. 15 tiles → 5x3 (the tuned layouts, unchanged);
+     16 → 4x4; 17-20 → 5x4. Portrait keeps 3 columns and just adds rows. */
+  var n = ORDER.length;
+  var lrows = Math.ceil(n / 5);
+  wrap.style.setProperty("--lrows", lrows);
+  wrap.style.setProperty("--lcols", Math.ceil(n / lrows));
+  wrap.style.setProperty("--prows", Math.ceil(n / 3));
   ORDER.forEach(function(id, i){
     var card = document.createElement("article");
     card.className = "card";
