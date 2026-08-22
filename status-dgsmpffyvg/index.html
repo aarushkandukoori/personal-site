@@ -270,7 +270,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
      card only 188px wide), the section scrolls a little instead of hiding
      text. Scrolling is the same trade the phone rule below already makes. */
   grid-template-rows:repeat(var(--lrows,3),minmax(min-content,1fr));
-  gap:clamp(9px,1.5vmin,20px);
+  gap:clamp(9px,calc(1.5*var(--hu,1vmin)),20px);
   overflow-y:auto;overflow-x:hidden;padding-bottom:2px;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
 }
@@ -291,18 +291,18 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   position:relative;
   min-height:0;min-width:0;overflow:hidden;
   background:var(--card);border-radius:24px;box-shadow:var(--shadow);
-  padding:clamp(9px,min(1.5vmin,.94vw),19px) clamp(11px,min(1.9vmin,1.19vw),23px);
+  padding:clamp(9px,min(calc(1.5*var(--hu,1vmin)),calc(.94*var(--wu,1vw))),19px) clamp(11px,min(calc(1.9*var(--hu,1vmin)),calc(1.19*var(--wu,1vw))),23px);
   display:flex;flex-direction:column;justify-content:flex-start;
-  gap:clamp(3px,min(.58vmin,.363vw),9px);
+  gap:clamp(3px,min(calc(.58*var(--hu,1vmin)),calc(.363*var(--wu,1vw))),9px);
 }
 /* small glowing status dot per card, phase-offset pulse so the grid shimmers */
 .livedot{
   position:absolute;
-  top:clamp(9px,min(1.5vmin,.94vw),19px);right:clamp(11px,min(1.9vmin,1.19vw),23px);
-  width:clamp(7px,1.15vmin,11px);height:clamp(7px,1.15vmin,11px);
+  top:clamp(9px,min(calc(1.5*var(--hu,1vmin)),calc(.94*var(--wu,1vw))),19px);right:clamp(11px,min(calc(1.9*var(--hu,1vmin)),calc(1.19*var(--wu,1vw))),23px);
+  width:clamp(7px,calc(1.15*var(--hu,1vmin)),11px);height:clamp(7px,calc(1.15*var(--hu,1vmin)),11px);
   border-radius:50%;pointer-events:none;
   background:var(--dotc,var(--wait));
-  box-shadow:0 0 clamp(6px,1vmin,10px) clamp(1px,.2vmin,2px) var(--dotc,var(--wait));
+  box-shadow:0 0 clamp(6px,calc(1*var(--hu,1vmin)),10px) clamp(1px,calc(.2*var(--hu,1vmin)),2px) var(--dotc,var(--wait));
   animation:dotpulse 2.8s ease-in-out infinite;
 }
 @keyframes dotpulse{0%,100%{opacity:.35}50%{opacity:.95}}
@@ -313,13 +313,13 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    bug. Sizes above are tuned so the four rows always fit the tile. */
 .card > *{flex:none}
 .top{
-  display:flex;align-items:center;gap:clamp(7px,1.25vmin,14px);min-width:0;
-  padding-right:clamp(14px,1.7vmin,18px); /* keep the name clear of .livedot */
+  display:flex;align-items:center;gap:clamp(7px,calc(1.25*var(--hu,1vmin)),14px);min-width:0;
+  padding-right:clamp(14px,calc(1.7*var(--hu,1vmin)),18px); /* keep the name clear of .livedot */
 }
 .iconbox{
   flex:none;
-  width:clamp(26px,min(4.05vmin,2.53vw),42px);height:clamp(26px,min(4.05vmin,2.53vw),42px);
-  border-radius:clamp(8px,1.3vmin,14px);
+  width:clamp(26px,min(calc(4.05*var(--hu,1vmin)),calc(2.53*var(--wu,1vw))),42px);height:clamp(26px,min(calc(4.05*var(--hu,1vmin)),calc(2.53*var(--wu,1vw))),42px);
+  border-radius:clamp(8px,calc(1.3*var(--hu,1vmin)),14px);
   background:var(--iconbg);display:grid;place-items:center;color:var(--ink);
 }
 .iconbox svg{width:72%;height:72%}
@@ -335,19 +335,19 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    sliced "Scholarships" into "Schol ars") is the only escape hatch, and it
    only ever fires for a single word wider than the whole card. */
 .name{
-  min-width:0;font-size:clamp(13px,min(2.05vmin,1.28vw),22px);font-weight:800;
+  min-width:0;font-size:clamp(13px,min(calc(2.05*var(--hu,1vmin)),calc(1.28*var(--wu,1vw))),22px);font-weight:800;
   letter-spacing:-.012em;line-height:1.06;
   overflow-wrap:break-word;
 }
 /* WHAT it does — static, straight from collect.py */
 .purpose{
-  font-size:clamp(10px,min(1.55vmin,.97vw),16px);font-weight:600;color:var(--ink2);
+  font-size:clamp(10px,min(calc(1.55*var(--hu,1vmin)),calc(.97*var(--wu,1vw))),16px);font-weight:600;color:var(--ink2);
   line-height:1.24;min-width:0;overflow-wrap:break-word;
 }
 /* WHEN it runs — cadence + live relative countdown */
 .when{
   display:flex;align-items:flex-start;gap:.4em;min-width:0;
-  font-size:clamp(10.5px,min(1.64vmin,1.025vw),17px);font-weight:700;line-height:1.21;
+  font-size:clamp(10.5px,min(calc(1.64*var(--hu,1vmin)),calc(1.025*var(--wu,1vw))),17px);font-weight:700;line-height:1.21;
 }
 .when .wico{flex:none;opacity:.65;font-weight:400}
 .when .wtxt{
@@ -365,14 +365,14 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    row instead. */
 .statusline{
   margin-top:auto;display:flex;align-items:center;min-width:0;
-  gap:clamp(6px,1vmin,11px);
-  flex-wrap:wrap;row-gap:clamp(3px,.5vmin,6px);
+  gap:clamp(6px,calc(1*var(--hu,1vmin)),11px);
+  flex-wrap:wrap;row-gap:clamp(3px,calc(.5*var(--hu,1vmin)),6px);
 }
-.card.click .statusline{padding-right:clamp(12px,2vmin,22px)} /* clear .peek */
+.card.click .statusline{padding-right:clamp(12px,calc(2*var(--hu,1vmin)),22px)} /* clear .peek */
 .chip{
   flex:none;max-width:100%;
   display:inline-flex;align-items:center;gap:.4em;
-  font-size:clamp(11px,min(1.85vmin,1.156vw),19px);font-weight:800;color:#fff;
+  font-size:clamp(11px,min(calc(1.85*var(--hu,1vmin)),calc(1.156*var(--wu,1vw))),19px);font-weight:800;color:#fff;
   padding:.34em .72em;border-radius:999px;
   background:var(--wait);
   transition:background-color .6s ease;
@@ -397,7 +397,7 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    would be hidden. */
 .say{
   flex:1 1 6em;
-  font-size:clamp(10.5px,min(1.55vmin,.97vw),16px);font-weight:600;color:var(--ink2);
+  font-size:clamp(10.5px,min(calc(1.55*var(--hu,1vmin)),calc(.97*var(--wu,1vw))),16px);font-weight:600;color:var(--ink2);
   line-height:1.25;min-width:0;overflow-wrap:break-word;
 }
 /* PORTRAIT: the grid is 3x5, so a card is a FIFTH of the column height while
@@ -411,19 +411,19 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
    two-line ceiling and a three-line sentence. Nothing here clamps any
    more, so the gap has nothing left to trap. */
 @media (orientation: portrait){
-  .card{padding:clamp(9px,1.15vh,18px) clamp(11px,1.35vh,22px);gap:clamp(3px,.42vh,8px)}
-  .livedot{top:clamp(9px,1.15vh,18px);right:clamp(11px,1.35vh,22px)}
+  .card{padding:clamp(9px,calc(1.15*var(--phu,1vh)),18px) clamp(11px,calc(1.35*var(--phu,1vh)),22px);gap:clamp(3px,calc(.42*var(--phu,1vh)),8px)}
+  .livedot{top:clamp(9px,calc(1.15*var(--phu,1vh)),18px);right:clamp(11px,calc(1.35*var(--phu,1vh)),22px)}
   .iconbox{
-    width:clamp(26px,2.6vh,42px);height:clamp(26px,2.6vh,42px);
-    border-radius:clamp(8px,.85vh,14px);
+    width:clamp(26px,calc(2.6*var(--phu,1vh)),42px);height:clamp(26px,calc(2.6*var(--phu,1vh)),42px);
+    border-radius:clamp(8px,calc(.85*var(--phu,1vh)),14px);
   }
-  .name{font-size:clamp(13px,1.5vh,22px)}
+  .name{font-size:clamp(13px,calc(1.5*var(--phu,1vh)),22px)}
   /* the smaller size is what lets a ~78-character sentence land in two lines
      on a narrow portrait screen; if it ever needs a third, it gets one */
-  .purpose{font-size:clamp(10px,.96vh,16px)}
-  .when{font-size:clamp(11px,1.1vh,17px)}
-  .chip{font-size:clamp(12px,1.15vh,19px)}
-  .say{font-size:clamp(11px,1.02vh,16px)}
+  .purpose{font-size:clamp(10px,calc(.96*var(--phu,1vh)),16px)}
+  .when{font-size:clamp(11px,calc(1.1*var(--phu,1vh)),17px)}
+  .chip{font-size:clamp(12px,calc(1.15*var(--phu,1vh)),19px)}
+  .say{font-size:clamp(11px,calc(1.02*var(--phu,1vh)),16px)}
 }
 
 /* ---------------- quiet bottom strip ---------------- */
@@ -836,12 +836,23 @@ var DOTC = {ok:"var(--ok)", in_progress:"var(--work)", pending_today:"var(--wait
   /* Size the grid to the fleet: minimum rows at ≤5 columns, then the column
      count shrunk to the fewest that still fit those rows, so the last row is
      never a lone orphan tile. 15 tiles → 5x3 (the tuned layouts, unchanged);
-     16 → 4x4; 17-20 → 5x4. Portrait keeps 3 columns and just adds rows. */
+     16 → 4x4; 17-20 → 5x4. Portrait keeps 3 columns and just adds rows.
+     The card type scale rations space by viewport share, so it must follow
+     the geometry: --hu/--phu are "1vmin/1vh worth of card HEIGHT" rescaled
+     from the 3-row (landscape) / 5-row (portrait) layouts the clamp numbers
+     were tuned against, and --wu likewise for WIDTH from 5 columns. At the
+     tuned counts every unit equals its plain viewport unit and the rendering
+     is byte-for-byte what it was; at 4 rows type shrinks by the same 3/4 the
+     card did, so all four text rows keep fitting without scroll. */
   var n = ORDER.length;
-  var lrows = Math.ceil(n / 5);
+  var lrows = Math.ceil(n / 5), lcols = Math.ceil(n / lrows),
+      prows = Math.ceil(n / 3);
   wrap.style.setProperty("--lrows", lrows);
-  wrap.style.setProperty("--lcols", Math.ceil(n / lrows));
-  wrap.style.setProperty("--prows", Math.ceil(n / 3));
+  wrap.style.setProperty("--lcols", lcols);
+  wrap.style.setProperty("--prows", prows);
+  wrap.style.setProperty("--hu", (3 / lrows) + "vmin");
+  wrap.style.setProperty("--wu", (5 / lcols) + "vw");
+  wrap.style.setProperty("--phu", (5 / prows) + "vh");
   ORDER.forEach(function(id, i){
     var card = document.createElement("article");
     card.className = "card";
