@@ -817,7 +817,8 @@ var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
   in_progress:   {cls:"c-work", html:'<span class="spin" aria-hidden="true"></span><span>Working…</span>'},
   pending_today: {cls:"c-wait", html:'<span class="sym">🕐</span><span>Waiting</span>'},
-  issue:         {cls:"c-bad",  html:'<span class="sym">!</span><span>Needs Help</span>'}
+  issue:         {cls:"c-bad",  html:'<span class="sym">!</span><span>Needs Help</span>'},
+  held:          {cls:"c-wait", html:'<span class="sym">⏸</span><span>On Hold</span>'}
 };
 var VERDICT = {
   ok:       {glyph:"✓", words:"All Good"},
@@ -833,7 +834,7 @@ var TINT = {
 
 /* ------------------------------------------------ build the card skeletons once */
 var cardEls = {};
-var DOTC = {ok:"var(--ok)", in_progress:"var(--work)", pending_today:"var(--wait)", issue:"var(--bad)"};
+var DOTC = {ok:"var(--ok)", in_progress:"var(--work)", pending_today:"var(--wait)", issue:"var(--bad)", held:"var(--wait)"};
 (function build(){
   var wrap = document.getElementById("cards");
   /* Size the grid to the fleet: minimum rows at ≤5 columns, then the column
@@ -1039,6 +1040,11 @@ function sentenceFor(a, totals, doctor){
   var st = a.state;
   if(st === "in_progress") return "Working on it right now…";
   if(st === "pending_today") return pendingSentence(a);
+  if(st === "held"){
+    var h = a.hold || {};
+    return "Paused on purpose" + (h.reason ? " — " + String(h.reason) : "") +
+           (h.since ? " (since " + String(h.since) + ")" : "");
+  }
   if(st === "issue"){
     /* the doctor tile explains itself: lead with its first issue string */
     if(a.id === "doctor" && a.issues && a.issues.length) return String(a.issues[0]);
