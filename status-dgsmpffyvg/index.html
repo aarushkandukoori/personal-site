@@ -159,6 +159,14 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-weight:600;font-size:clamp(13px,2.05vmin,16px);line-height:1.45;overflow-wrap:anywhere;
 }
 .whyitem li::before{content:"•";position:absolute;left:4px;color:var(--ink2)}
+/* soft notes: informational lines from green tiles (deferred runs, worked-
+   around conditions). Muted on purpose — they are not calls to action. */
+.whyitem.soft{opacity:.78}
+.whyitem.soft .whotop .wbadge{background:var(--ink2)}
+.whysofthead{
+  margin:18px 4px 0;font-weight:800;color:var(--ink2);
+  font-size:clamp(12px,2vmin,15px);text-transform:uppercase;letter-spacing:.04em;
+}
 .whyok{
   text-align:center;padding:22px 8px 12px;font-weight:700;
   font-size:clamp(14px,2.3vmin,18px);color:var(--ink2);line-height:1.5;
@@ -1052,6 +1060,17 @@ function sentenceFor(a, totals, doctor){
     return needs ? "Something went wrong — it needs you"
                  : "Something went wrong — it will try again tomorrow";
   }
+  /* A deferred run (exit 75): the job rescheduled itself — say so instead
+     of advertising the last accomplishment as if the latest run happened. */
+  if(a.last_run && a.last_run.exit === 75){
+    var rd = parseISO(a.next_run_at), rn = new Date();
+    var rtom = new Date(rn); rtom.setDate(rtom.getDate()+1);
+    var when = !rd ? "at the next run"
+             : sameDay(rd, rn) ? "later today"
+             : sameDay(rd, rtom) ? "tomorrow"
+             : "on " + weekdayName(rd);
+    return "Didn't finish last time — will retry " + when;
+  }
   /* ok (and anything unexpected) → say what it accomplished */
   var t = totals || {};
   switch(a.id){
@@ -1235,8 +1254,52 @@ function attentionItems(){
   }
   return items;
 }
+/* Green tiles can still carry informational lines (a deferred run waiting
+   on its retry, a condition the pipeline worked around). They are not
+   attention items — the verdict and count ignore them — but they must not
+   be invisible either, so the why-popup lists them under a muted FYI
+   heading. */
+function softItems(){
+  var out = [];
+  if(!data) return out;
+  (data.automations || []).forEach(function(a){
+    if(!a || a.state === "issue") return;
+    var lines = (a.issues || []).map(String);
+    if(!lines.length) return;
+    out.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
+  });
+  return out;
+}
+function renderSoftNotes(soft){
+  if(!soft.length) return;
+  var head = document.createElement("div");
+  head.className = "whysofthead";
+  head.textContent = "FYI — no action needed";
+  whyList.appendChild(head);
+  soft.forEach(function(it){
+    var box = document.createElement("div"); box.className = "whyitem soft";
+    var top = document.createElement("div"); top.className = "whotop";
+    if(it.icon){
+      var ic = document.createElement("span"); ic.innerHTML = it.icon;
+      ic.style.display = "inline-flex"; top.appendChild(ic);
+    }
+    var nm = document.createElement("span"); nm.textContent = it.name;
+    top.appendChild(nm);
+    var badge = document.createElement("span"); badge.className = "wbadge";
+    badge.textContent = "FYI";
+    top.appendChild(badge);
+    var ul = document.createElement("ul");
+    it.lines.forEach(function(line){
+      var li = document.createElement("li"); li.textContent = line;
+      ul.appendChild(li);
+    });
+    box.appendChild(top); box.appendChild(ul);
+    whyList.appendChild(box);
+  });
+}
 function renderWhy(){
   var items = attentionItems();
+  var soft = softItems();
   whyList.textContent = "";
   if(!items.length){
     var overall = data && (data.overall === "ok" || data.overall === "down"
@@ -1248,6 +1311,7 @@ function renderWhy(){
       ? '<span class="bigok">✓</span>Everything ran the way it should.<br>Nothing needs you right now.'
       : '<span class="bigok">…</span>Still gathering details — check back in a minute.';
     whyList.appendChild(okd);
+    renderSoftNotes(soft);
     return;
   }
   whyTitle.textContent = items.length === 1 ? "1 thing needs attention"
@@ -1275,6 +1339,7 @@ function renderWhy(){
     box.appendChild(top); box.appendChild(ul);
     whyList.appendChild(box);
   });
+  renderSoftNotes(soft);
 }
 function openWhy(){
   if(!data) return;
