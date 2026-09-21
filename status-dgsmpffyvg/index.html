@@ -1058,9 +1058,12 @@ function sentenceFor(a, totals, doctor){
   if(st === "issue"){
     /* the doctor tile explains itself: lead with its first issue string */
     if(a.id === "doctor" && a.issues && a.issues.length) return String(a.issues[0]);
-    var needs = doctor && doctor.needs_human && doctor.needs_human.length;
-    return needs ? "Something went wrong — it needs you"
-                 : "Something went wrong — it will try again tomorrow";
+    /* 2026-09-20: per-tile flag from collect.py (the doctor pinned a finding
+       about THIS automation onto it), no longer the global needs_human list
+       — that made every red tile claim it needed you whenever the doctor
+       had anything open. Absent flag (public payload) reads as false. */
+    return a.needs_you ? "Something went wrong — it needs you"
+                       : "Something went wrong — it will try again tomorrow";
   }
   /* A deferred run (exit 75): the job rescheduled itself — say so instead
      of advertising the last accomplishment as if the latest run happened. */
@@ -1250,9 +1253,16 @@ function attentionItems(){
     items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
   });
   var doc = data.doctor;
-  if(doc && doc.needs_human && doc.needs_human.length){
+  /* 2026-09-20: only the doctor's OWN lines here — a line routed to another
+     tile already shows under that tile above (it is in issue state with the
+     text in issues), so listing the full needs_human would show it twice.
+     Older payloads (and the public mirror) have no needs_human_own: fall
+     back to the full list. */
+  var own = doc && (Array.isArray(doc.needs_human_own) ? doc.needs_human_own
+                                                        : doc.needs_human);
+  if(own && own.length){
     items.push({icon:"", emoji:"🤖", name:"Robot doctor says you're needed",
-                lines:doc.needs_human.map(String)});
+                lines:own.map(String)});
   }
   return items;
 }
