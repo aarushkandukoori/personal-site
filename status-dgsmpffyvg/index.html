@@ -1048,7 +1048,11 @@ function doneFallback(a){
 function sentenceFor(a, totals, doctor){
   if(!a) return "No news yet";
   var st = a.state;
-  if(st === "in_progress") return "Working on it right now…";
+  /* 2026-09-20: a running job can still carry a doctor finding pinned to
+     it (needs_you) — say so, or the tile contradicts the bottom strip. */
+  if(st === "in_progress") return a.needs_you
+    ? "Working on it right now… — and it needs you"
+    : "Working on it right now…";
   if(st === "pending_today") return pendingSentence(a);
   if(st === "held"){
     var h = a.hold || {};
@@ -1242,15 +1246,33 @@ var whyList = document.getElementById("whylist");
 var whyTitle = document.getElementById("whytitle");
 var verdictEl = document.getElementById("verdict");
 
+/* 2026-09-20: the doctor lines collect.py pinned onto a tile (from
+   data.doctor.needs_human_routed). When the payload has no such list (public
+   mirror / older status.json) every line of a needs_you tile counts. */
+function routedLinesFor(a){
+  var routed = data && data.doctor && data.doctor.needs_human_routed;
+  if(!Array.isArray(routed)) return (a.issues || []).map(String);
+  return routed.filter(function(r){ return r && r.tile === a.id; })
+               .map(function(r){ return String(r.text); });
+}
 /* Everything that explains the current verdict, worst first. */
 function attentionItems(){
   var items = [];
   if(!data) return items;
   (data.automations || []).forEach(function(a){
-    if(!a || a.state !== "issue") return;
-    var lines = (a.issues || []).map(String);
-    if(!lines.length) lines = ["Something went wrong on the last run"];
-    items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
+    if(!a) return;
+    if(a.state === "issue"){
+      var lines = (a.issues || []).map(String);
+      if(!lines.length) lines = ["Something went wrong on the last run"];
+      items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
+      return;
+    }
+    /* 2026-09-20: an in_progress tile keeps its state but may carry a
+       routed needs_you line — that line needs attention now, not FYI. */
+    if(a.needs_you === true){
+      var rl = routedLinesFor(a);
+      if(rl.length) items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:rl});
+    }
   });
   var doc = data.doctor;
   /* 2026-09-20: only the doctor's OWN lines here — a line routed to another
@@ -1277,6 +1299,12 @@ function softItems(){
   (data.automations || []).forEach(function(a){
     if(!a || a.state === "issue") return;
     var lines = (a.issues || []).map(String);
+    /* 2026-09-20: a needs_you tile's routed lines are attention items
+       (above), never FYI — only its other soft notes stay here. */
+    if(a.needs_you === true){
+      var rl = routedLinesFor(a);
+      lines = lines.filter(function(l){ return rl.indexOf(l) === -1; });
+    }
     if(!lines.length) return;
     out.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
   });
