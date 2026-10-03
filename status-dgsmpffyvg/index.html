@@ -1096,10 +1096,12 @@ function sentenceFor(a, totals, doctor){
        had anything open. Absent flag (public payload) reads as false. */
     /* 2026-10-03: the retry time comes from next_run_at, like the exit-75
        line below. It used to say "tomorrow" unconditionally, which was a lie
-       on the every-20-minute Usage Watch tile. */
-    return a.needs_you ? "Something went wrong — it needs you"
-                       : "Something went wrong — it will try again " +
-                         retryWhen(parseISO(a.next_run_at));
+       on the every-20-minute Usage Watch tile. A logged-out CLI does not
+       retry its way out, so that case says what it needs instead. */
+    if(a.needs_you) return "Something went wrong — it needs you";
+    if(needsRelogin(a)) return "Something went wrong — it needs a re-login";
+    return "Something went wrong — it will try again " +
+           retryWhen(parseISO(a.next_run_at));
   }
   /* A deferred run (exit 75): the job rescheduled itself — say so instead
      of advertising the last accomplishment as if the latest run happened. */
