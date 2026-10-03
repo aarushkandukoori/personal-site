@@ -1063,12 +1063,20 @@ function retryWhen(d){
 /* A red tile whose OWN issue text says the claude CLI is logged out — the
    snapshots' wording: "claude auth down — re-login needed" (usage-watch,
    scholarship apply), "Claude auth expired — re-login needed" (yc-demo,
-   inbox-apply). The next run fails the same way until someone logs in, so
-   "it will try again" would be a lie. The public mirror strips issues, so
-   usage-watch's "Last status" metric (auth_down) counts too. */
+   inbox-apply), or the CLI's own stdout line passed through verbatim,
+   "Failed to authenticate: OAuth session expired and could not be
+   refreshed" (opportunity-radar, cot-distribution — both red on
+   2026-09-28). The next run fails the same way until someone logs in, so
+   "it will try again" would be a lie. The public mirror strips issues:
+   publish_public.py runs the SAME pattern (RELOGIN_RE, test-pinned) over
+   them and publishes only the bare needs_relogin flag; usage-watch's "Last
+   status" metric (auth_down) counts too. Not system.claude_auth_ok: that is
+   the doctor's generic probe, false on a network outage, a timeout or a
+   usage limit as well, and says nothing about which tile it broke. */
 function needsRelogin(a){
-  var re = /\bre-?login\b|\bauth (?:down|expired)\b/i;
-  return (a.issues || []).some(function(s){ return re.test(String(s)); }) ||
+  var re = /\bre-?login\b|\bauth (?:down|expired)\b|\bfailed to authenticate\b|\boauth (?:session|token) (?:has )?(?:expired|revoked)\b|\bplease run \/login\b/i;
+  return a.needs_relogin === true ||
+         (a.issues || []).some(function(s){ return re.test(String(s)); }) ||
          (a.metrics || []).some(function(m){
            return !!m && m.label === "Last status" && m.value === "auth_down";
          });
