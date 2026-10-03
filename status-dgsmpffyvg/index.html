@@ -1045,6 +1045,21 @@ function doneFallback(a){
   var d = parseISO(a && a.last_run && a.last_run.at);
   return d ? "Finished " + relTime(d) + " ✓" : "Hasn’t run yet";
 }
+/* When a red or deferred tile's job tries again, from its next_run_at:
+   "in 15 min" / "later today" / "tomorrow" / "on Monday". A missing or
+   already-past next_run_at says "at the next run" instead of inventing a
+   time: a stale tile's advertised fire is exactly the one that never
+   happened, and the public mirror's copy can be minutes old. */
+function retryWhen(d){
+  var now = new Date();
+  if(!d || d.getTime() <= now.getTime()) return "at the next run";
+  var mins = Math.max(1, Math.round((d.getTime() - now.getTime()) / 60000));
+  if(mins < 60) return "in " + mins + " min";
+  if(sameDay(d, now)) return "later today";
+  var tom = new Date(now); tom.setDate(tom.getDate()+1);
+  if(sameDay(d, tom)) return "tomorrow";
+  return "on " + weekdayName(d);
+}
 function sentenceFor(a, totals, doctor){
   if(!a) return "No news yet";
   var st = a.state;
@@ -1066,20 +1081,18 @@ function sentenceFor(a, totals, doctor){
        about THIS automation onto it), no longer the global needs_human list
        — that made every red tile claim it needed you whenever the doctor
        had anything open. Absent flag (public payload) reads as false. */
+    /* 2026-10-03: the retry time comes from next_run_at, like the exit-75
+       line below. It used to say "tomorrow" unconditionally, which was a lie
+       on the every-20-minute Usage Watch tile. */
     return a.needs_you ? "Something went wrong — it needs you"
-                       : "Something went wrong — it will try again tomorrow";
+                       : "Something went wrong — it will try again " +
+                         retryWhen(parseISO(a.next_run_at));
   }
   /* A deferred run (exit 75): the job rescheduled itself — say so instead
      of advertising the last accomplishment as if the latest run happened. */
-  if(a.last_run && a.last_run.exit === 75){
-    var rd = parseISO(a.next_run_at), rn = new Date();
-    var rtom = new Date(rn); rtom.setDate(rtom.getDate()+1);
-    var when = !rd ? "at the next run"
-             : sameDay(rd, rn) ? "later today"
-             : sameDay(rd, rtom) ? "tomorrow"
-             : "on " + weekdayName(rd);
-    return "Didn't finish last time — will retry " + when;
-  }
+  if(a.last_run && a.last_run.exit === 75)
+    return "Didn't finish last time — will retry " +
+           retryWhen(parseISO(a.next_run_at));
   /* ok (and anything unexpected) → say what it accomplished */
   var t = totals || {};
   switch(a.id){
