@@ -1060,6 +1060,19 @@ function retryWhen(d){
   if(sameDay(d, tom)) return "tomorrow";
   return "on " + weekdayName(d);
 }
+/* A red tile whose OWN issue text says the claude CLI is logged out — the
+   snapshots' wording: "claude auth down — re-login needed" (usage-watch,
+   scholarship apply), "Claude auth expired — re-login needed" (yc-demo,
+   inbox-apply). The next run fails the same way until someone logs in, so
+   "it will try again" would be a lie. The public mirror strips issues, so
+   usage-watch's "Last status" metric (auth_down) counts too. */
+function needsRelogin(a){
+  var re = /\bre-?login\b|\bauth (?:down|expired)\b/i;
+  return (a.issues || []).some(function(s){ return re.test(String(s)); }) ||
+         (a.metrics || []).some(function(m){
+           return !!m && m.label === "Last status" && m.value === "auth_down";
+         });
+}
 function sentenceFor(a, totals, doctor){
   if(!a) return "No news yet";
   var st = a.state;
