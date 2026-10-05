@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Where the gaze spends its tokens</title>
+  <link rel="stylesheet" href="../../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Where the gaze spends its tokens</h2>
+          <p class="card-subtitle">Shift the attention mass toward the center and watch how little is left for the periphery.</p>
+        </div>
+      </div>
+      
+      <div class="canvas-wrap"><canvas id="canvas" width="760" height="320"></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <div class="control-top"><span class="control-label">Query position</span><span class="control-value" id="qi">3</span></div>
+          <input id="q" type="range" min="0" max="7" step="1" value="3">
+        </div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">focus key</span><span class="metric-value" id="fk">-</span></div>
+          <div class="metric"><span class="metric-label">max weight</span><span class="metric-value" id="mw">-</span></div>
+        </div>
+        <p class="hint">Causal mask: a query can only attend to keys at or before its position.</p>
+      </div>
+    
+    </section>
+  </div>
+  <script>
+
+    // Fixed toy scores
+    const scores = [
+      [2,0,0,0,0,0,0,0],
+      [1,2,0,0,0,0,0,0],
+      [0.5,1,2.2,0,0,0,0,0],
+      [0.2,0.6,1.1,2.4,0,0,0,0],
+      [0.1,0.3,0.7,1.2,2.1,0,0,0],
+      [0.1,0.2,0.4,0.8,1.3,2.0,0,0],
+      [0.05,0.1,0.3,0.5,0.9,1.4,2.3,0],
+      [0.05,0.1,0.2,0.4,0.7,1.1,1.6,2.5]
+    ];
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const input = document.getElementById("q");
+    function softmax(row, q) {
+      const vals = row.slice(0, q+1);
+      const m = Math.max(...vals);
+      const ex = vals.map(v => Math.exp(v-m));
+      const s = ex.reduce((a,b)=>a+b,0);
+      const out = Array(row.length).fill(0);
+      ex.forEach((v,i)=> out[i]=v/s);
+      return out;
+    }
+    function draw(q) {
+      document.getElementById("qi").textContent = String(q);
+      const w = softmax(scores[q], q);
+      let best=0; for (let i=1;i<w.length;i++) if (w[i]>w[best]) best=i;
+      document.getElementById("fk").textContent = String(best);
+      document.getElementById("mw").textContent = w[best].toFixed(3);
+      const W=canvas.width,H=canvas.height,pad=50;
+      ctx.clearRect(0,0,W,H);
+      const cell = Math.min((W-pad*2)/8, (H-pad*2)/8);
+      for (let i=0;i<8;i++){
+        const ww = softmax(scores[i], i);
+        for (let j=0;j<8;j++){
+          const v = ww[j];
+          const g = Math.floor(255*(1-v));
+          ctx.fillStyle = "rgb("+g+","+g+","+g+")";
+          ctx.fillRect(pad+j*cell, pad+i*cell, cell-2, cell-2);
+        }
+      }
+      ctx.strokeStyle = "#e11"; ctx.lineWidth=2;
+      ctx.strokeRect(pad, pad+q*cell, cell*8-2, cell-2);
+    }
+    input.addEventListener("input", () => draw(parseInt(input.value,10)));
+    draw(parseInt(input.value,10));
+    
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+  </script>
+</body>
+</html>
