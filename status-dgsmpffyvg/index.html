@@ -929,6 +929,16 @@ function relTime(d){
   var day = friendlyDay(d);
   return day === "yesterday" ? "yesterday" : "on " + day;
 }
+/* The footer's clock time ("at 1:20 PM", "yesterday at 11:40 PM",
+   "Oct 8 at 9:05 AM"): Aarush wants the exact time, not "20 minutes ago". */
+function exactTime(d){
+  if(!d) return "";
+  var now = new Date(), t = clockOf(d);
+  if(sameDay(d, now)) return "at " + t;
+  var y = new Date(now); y.setDate(y.getDate()-1);
+  if(sameDay(d, y)) return "yesterday at " + t;
+  return monthDay(d) + " at " + t;
+}
 function plural(n, one, many){ return n === 1 ? one : many; }
 
 /* ------------------------------------------------ WHEN: cadence + next fire
@@ -1268,7 +1278,8 @@ function render(){
     blogEl.textContent = "";
   }
 
-  document.getElementById("updtext").textContent = "Updated " + relTime(lastGen);
+  document.getElementById("updtext").textContent =
+    lastGen ? "Updated " + exactTime(lastGen) : "Updated a little while ago";
   firstRender = false;
 
   /* keep the heartbeat line in the current status color */
