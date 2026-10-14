@@ -251,6 +251,12 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
   font-size:clamp(26px,5.3vmin,58px);
   font-weight:800;letter-spacing:-.01em;line-height:1.02;
 }
+/* out-of-date data: what the last update said, under "Out of date". Shorter
+   than the circle beside it, so the header row does not grow. */
+#vtext{min-width:0}
+#vlast{
+  margin-top:.3em;font-size:clamp(12px,1.9vmin,17px);font-weight:700;color:var(--ink2);
+}
 
 /* ---------------- the big cards ----------------
    Each card answers four questions top to bottom:
@@ -696,7 +702,10 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 <main id="app">
   <header id="verdict">
     <div id="vcircle" class="v-none"><span id="vglyph">…</span></div>
-    <div id="vwords">Checking…</div>
+    <div id="vtext">
+      <div id="vwords">Checking…</div>
+      <div id="vlast" hidden></div>
+    </div>
   </header>
   <div id="ekgwrap" aria-hidden="true"><canvas id="ekg"></canvas></div>
   <section id="cards"></section>
@@ -834,9 +843,11 @@ var VERDICT = {
   ok:       {glyph:"✓", words:"All Good"},
   degraded: {glyph:"!", words:"Something Needs Attention"},
   down:     {glyph:"✕", words:"Things Are Broken"},
-  none:     {glyph:"…", words:"Checking…"}
+  none:     {glyph:"…", words:"Checking…"},
+  stale:    {glyph:"?", words:"Out of date"}   /* see isStale() */
 };
-var VCOLOR = {ok:"var(--ok)", degraded:"var(--warn)", down:"var(--bad)", none:"var(--wait)"};
+var VCOLOR = {ok:"var(--ok)", degraded:"var(--warn)", down:"var(--bad)", none:"var(--wait)",
+              stale:"var(--wait)"};
 var TINT = {
   light:{ok:"#eaf4ea", degraded:"#f7f0df", down:"#f9ecec", none:"#eff1ef"},
   dark: {ok:"#121a12", degraded:"#1c1710", down:"#1f1214", none:"#161816"}
@@ -941,6 +952,20 @@ function exactTime(d){
 }
 function plural(n, one, many){ return n === 1 ? one : many; }
 
+/* ------------------------------------------------ OUT OF DATE
+   2026-10-14: a rejected git push froze the public board on Oct 9 for five
+   days, and it kept saying "All Good" with every tile "due now". Data older
+   than STALE_MIN is never shown as current: the verdict turns into "Out of
+   date" (plus what the last update said), the banner names the time, and
+   countdowns that already passed are dropped. 90 min because a healthy
+   board is never that old: the local server re-collects every 30 s, and the
+   public mirror re-publishes at least hourly (publish_public.py heartbeat)
+   on a 10-min cycle, so ~70 min worst case plus the GitHub Pages deploy. */
+var STALE_MIN = 90;
+function isStale(){
+  return !!lastGen && (Date.now() - lastGen.getTime()) / 60000 > STALE_MIN;
+}
+
 /* ------------------------------------------------ WHEN: cadence + next fire
    The schedule_label collect.py emits is engineer shorthand ("Daily 05:20
    (weekly guard)"). Translate it to something a human reads once, then pair
@@ -1001,11 +1026,13 @@ function humanCadence(label, compact){
    without removing it; showing the minutes removes it. It also costs nothing
    in readability, because the two-part form was already what every countdown
    under two hours used — this just stops the format from changing halfway
-   down. Exact zero minutes still says "next in 4h" rather than "4h 0m". */
+   down. Exact zero minutes still says "next in 4h" rather than "4h 0m".
+   Out-of-date data: a fire time that already passed says nothing about the
+   real next run (the Mac may be asleep), so it returns null, not "due now". */
 function nextPhrase(d){
   if(!d) return null;
   var ms = d.getTime() - Date.now();
-  if(ms <= 0) return "due now";
+  if(ms <= 0) return isStale() ? null : "due now";
   var mins = Math.round(ms / 60000);
   if(mins < 60) return "next in " + mins + "m";
   if(mins < 24 * 60){
@@ -1023,8 +1050,11 @@ function whenParts(a, compact){
   /* the public mirror substitutes the tile id when a label fails its
      allowlist — never show that raw id as if it were a schedule */
   if(cad && a.id && cad === a.id) cad = null;
-  var nxt = nextPhrase(parseISO(a.next_run_at));
-  if(!cad && !nxt) cad = "Runs when you start it";
+  var at = parseISO(a.next_run_at);
+  var nxt = nextPhrase(at);
+  /* only a job with no next fire at all is manual (an out-of-date tile's
+     passed fire time also gives nxt === null, and it is not manual) */
+  if(!cad && !at) cad = "Runs when you start it";
   return {cad:cad, nxt:nxt};
 }
 
@@ -1199,17 +1229,42 @@ function setTheme(state){
   var mode = darkMQ.matches ? "dark" : "light";
   themeMeta.setAttribute("content", TINT[mode][state] || TINT[mode].none);
 }
+/* -> {key, last}: the verdict to show. Out-of-date data shows "Out of date"
+   and moves the real verdict into the small `last` line, e.g. "Last update
+   Oct 9 at 3:40 PM said All Good". Fresh data: the real verdict, no line. */
+function shownVerdict(overall){
+  if(!isStale()) return {key:overall, last:""};
+  var said = overall !== "none" && VERDICT[overall]
+           ? " said " + VERDICT[overall].words : "";
+  return {key:"stale", last:"Last update " + exactTime(lastGen) + said};
+}
+/* Out of date: a waiting tile's "Runs Friday at 4:40" names a time that
+   already passed, and it reads as NEXT Friday. Say when it was due. */
+function staleSay(a, say){
+  var d = parseISO(a && a.next_run_at);
+  if(a && a.state === "pending_today" && /^Runs /.test(say) &&
+     d && d.getTime() <= Date.now())
+    return "Was due " + exactTime(d);
+  return say;
+}
 function render(){
   if(!data) return;
   var overall = data.overall === "ok" || data.overall === "down" ? data.overall
               : (data.overall ? "degraded" : "none");
-  document.body.setAttribute("data-overall", overall);
-  setTheme(overall);
+  var stale = isStale();
+  var sv = shownVerdict(overall);
+  /* "stale" has no CSS tint or rhythm of its own: gray like "none", and
+     RHYTHM.stale keeps the heartbeat flat (no live signal to show) */
+  document.body.setAttribute("data-overall", sv.key);
+  setTheme(sv.key);
 
-  var v = VERDICT[overall] || VERDICT.none;
+  var v = VERDICT[sv.key] || VERDICT.none;
   document.getElementById("vglyph").textContent = v.glyph;
   document.getElementById("vwords").textContent = v.words;
-  document.getElementById("vcircle").style.background = VCOLOR[overall] || VCOLOR.none;
+  document.getElementById("vcircle").style.background = VCOLOR[sv.key] || VCOLOR.none;
+  var vlast = document.getElementById("vlast");
+  vlast.textContent = sv.last;
+  vlast.hidden = !sv.last;
 
   var vd = document.getElementById("verdict");
   if(!vd.classList.contains("click")){
@@ -1233,7 +1288,8 @@ function render(){
     el.chip.className = "chip " + chip.cls;
     el.chip.innerHTML = chip.html;
     el.dot.style.setProperty("--dotc", DOTC[st] || DOTC.pending_today);
-    el.say.textContent = sentenceFor(a, data.totals, data.doctor);
+    var say = sentenceFor(a, data.totals, data.doctor);
+    el.say.textContent = stale ? staleSay(a, say) : say;
     /* WHAT: purpose comes from collect.py; blank until the first poll lands */
     el.purpose.textContent = (a && typeof a.purpose === "string") ? a.purpose : "";
     /* WHEN: cadence, then the live countdown in the quieter ink */
@@ -1388,6 +1444,13 @@ function renderWhy(){
   var items = attentionItems();
   var soft = softItems();
   whyList.textContent = "";
+  if(isStale()){
+    /* everything below is the last update's picture, not right now */
+    var old = document.createElement("div");
+    old.className = "whysofthead";
+    old.textContent = "Out of date. Last update " + exactTime(lastGen);
+    whyList.appendChild(old);
+  }
   if(!items.length){
     var overall = data && (data.overall === "ok" || data.overall === "down"
                   ? data.overall : (data.overall ? "degraded" : "none"));
@@ -1491,7 +1554,8 @@ function schedRow(entry){
   var rel = document.createElement("div"); rel.className = "schedrel";
   if(entry.at){
     t.textContent = clockOf(entry.at);
-    rel.textContent = (nextPhrase(entry.at) || "").replace(/^next /, "");
+    /* null only for a passed time in out-of-date data (see nextPhrase) */
+    rel.textContent = (nextPhrase(entry.at) || "was due").replace(/^next /, "");
   } else {
     t.textContent = "—";
     rel.textContent = "manual";
@@ -1540,7 +1604,9 @@ function renderSched(){
     schedSub.textContent = "Nothing to show yet";
     return;
   }
-  if(g.timed.length){
+  if(isStale()){
+    schedSub.textContent = "Out of date. Last update " + exactTime(lastGen);
+  } else if(g.timed.length){
     var first = g.timed[0];
     schedSub.textContent = "Next up: " + (NICE[first.a.id] || first.a.id) + " "
       + (nextPhrase(first.at) || "").replace(/^next /, "");
@@ -1579,16 +1645,23 @@ function showStaleBanner(when){
     b.onclick = function(){ window.location.replace(window.location.pathname + "?r=" + Date.now()); };
     document.body.appendChild(b);
   }
-  b.textContent = "⚠️ Showing data from " + relTime(when) + " — the Mac may be asleep or offline. Tap to retry.";
+  /* exact time: relTime() says "on Friday", which read "data from on Friday" */
+  b.textContent = "⚠️ Last update " + exactTime(when) +
+    " - the Mac may be asleep, offline, or not publishing. Tap to retry.";
   b.style.display = "block";
+  /* push the board down so the banner never covers the "Out of date"
+     verdict (on a phone it wraps to three lines). Re-measured every poll. */
+  document.getElementById("app").style.top = b.offsetHeight + "px";
 }
 function hideStaleBanner(){
   var b = document.getElementById("stalebanner");
   if(b) b.style.display = "none";
+  document.getElementById("app").style.top = "";
 }
 
 function showVeil(){
-  var sub = lastGen ? "Showing the last update from " + relTime(lastGen)
+  /* exactTime, not relTime: "from " + "on Friday" read "from on Friday" */
+  var sub = lastGen ? "Last update " + exactTime(lastGen)
                     : "Waiting for the first update…";
   document.getElementById("veilsub").textContent = sub;
   veil.classList.add("show");
@@ -1607,12 +1680,11 @@ function poll(){
       fails = 0;
       data = json || {};
       lastGen = parseISO(data.generated_at) || new Date();
-      /* Stale-tab self-rescue: if our freshest fetch is >90 min old, some
+      /* Stale-tab self-rescue: if our freshest fetch is out of date, some
          cache layer is lying (or the Mac is off). Reload ONCE with a
          cache-busting URL; if still stale afterwards, show the honest
          banner instead of looping. */
-      var ageMin = (Date.now() - lastGen.getTime()) / 60000;
-      if(ageMin > 90){
+      if(isStale()){
         staleCount++;
         var rescued = false;
         try { rescued = sessionStorage.getItem("staleRescued") === "1"; } catch(e){}
@@ -2340,7 +2412,8 @@ var RHYTHM = {
   ok:       {gaps:[2.0],                    amp:1.0},
   degraded: {gaps:[1.35, 1.05, 1.75, 1.2],  amp:0.9},
   down:     {gaps:[3.6, 5.4],               amp:0.45},
-  none:     {gaps:[2.6],                    amp:0.55}
+  none:     {gaps:[2.6],                    amp:0.55},
+  stale:    {gaps:[2.6],                    amp:0}    /* out of date: flat line */
 };
 var PX_PER_SEC = 90;
 
