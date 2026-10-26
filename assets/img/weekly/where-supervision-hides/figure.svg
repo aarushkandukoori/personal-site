@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460">
+<style>
+.bg{fill:#f2f8fb}
+.box{fill:#ffffff;stroke:#5d7380;stroke-width:1.2}
+.boxA{fill:#ffffff;stroke:#0077b6;stroke-width:1.6}
+.boxG{fill:#ffffff;stroke:#00a896;stroke-width:1.6}
+.ink{fill:#0d1b24}
+.mut{fill:#5d7380}
+.acc{fill:#0077b6}
+.acc2{fill:#00a896}
+.acc3{fill:#ff6b6b}
+.t{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.h{font-size:18px;font-weight:700}
+.lab{font-size:12px;font-weight:700;letter-spacing:1.5px}
+.b{font-size:15px;font-weight:600}
+.s{font-size:12px}
+.m{font-size:13px}
+.arr{fill:none;stroke:#5d7380;stroke-width:2;stroke-dasharray:6 5}
+.arrG{fill:none;stroke:#00a896;stroke-width:2.2;stroke-dasharray:6 5}
+.head{fill:#5d7380}
+.headG{fill:#00a896}
+.bar{fill:#0077b6;opacity:.55}
+.barHi{fill:#ff6b6b}
+.base{stroke:#5d7380;stroke-width:1}
+.div{stroke:#5d7380;stroke-width:1;stroke-dasharray:2 4;opacity:.6}
+@media (prefers-color-scheme: dark){
+.bg{fill:#0b141a}
+.box,.boxA,.boxG{fill:#111e26}
+.box{stroke:#8aa3b0}
+.boxA{stroke:#4cc3ff}
+.boxG{stroke:#2ee6c9}
+.ink{fill:#e6f2f8}
+.mut{fill:#8aa3b0}
+.acc{fill:#4cc3ff}
+.acc2{fill:#2ee6c9}
+.acc3{fill:#ff8787}
+.arr{stroke:#8aa3b0}
+.arrG{stroke:#2ee6c9}
+.head{fill:#8aa3b0}
+.headG{fill:#2ee6c9}
+.bar{fill:#4cc3ff}
+.barHi{fill:#ff8787}
+.base,.div{stroke:#8aa3b0}
+}
+@keyframes flow{to{stroke-dashoffset:-22}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@media (prefers-reduced-motion: no-preference){
+.arr,.arrG{animation:flow 1.4s linear infinite}
+.barHi{animation:pulse 2.4s ease-in-out infinite}
+}
+</style>
+<defs>
+<marker id="mh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head"/></marker>
+<marker id="mg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="headG"/></marker>
+</defs>
+<rect class="bg" x="0" y="0" width="900" height="460" rx="16"/>
+<text class="t h ink" x="30" y="42">Where the critic's supervision comes from</text>
+
+<text class="t lab acc" x="30" y="82">DISCRIMINATIVE CRITIC</text>
+<rect class="boxA" x="30" y="95" width="110" height="64" rx="10"/>
+<text class="t b ink" x="85" y="123" text-anchor="middle">(s, a)</text>
+<text class="t s mut" x="85" y="142" text-anchor="middle">state, action</text>
+<path class="arr" d="M142 127H186" marker-end="url(#mh)"/>
+<rect class="box" x="190" y="95" width="170" height="64" rx="10"/>
+<text class="t b ink" x="275" y="123" text-anchor="middle">Q network</text>
+<text class="t s mut" x="275" y="142" text-anchor="middle">pair in, value out</text>
+<path class="arr" d="M362 127H406" marker-end="url(#mh)"/>
+<rect class="box" x="410" y="95" width="150" height="64" rx="10"/>
+<text class="t b ink" x="485" y="123" text-anchor="middle">one number</text>
+<text class="t s mut" x="485" y="142" text-anchor="middle">Q(s, a)</text>
+<path class="arr" d="M562 127H606" marker-end="url(#mh)"/>
+<rect class="box" x="610" y="95" width="260" height="64" rx="10"/>
+<text class="t b ink" x="740" y="123" text-anchor="middle">regress to return target</text>
+<text class="t s mut" x="740" y="142" text-anchor="middle">scalar or distributional</text>
+<text class="t m mut" x="30" y="188">Training signal: the return. The action is only an input.</text>
+
+<line class="div" x1="30" y1="212" x2="870" y2="212"/>
+
+<text class="t lab acc2" x="30" y="244">GENERATIVE CRITIC</text>
+<rect class="boxG" x="30" y="258" width="110" height="120" rx="10"/>
+<text class="t b ink" x="85" y="306" text-anchor="middle">(s, a)</text>
+<text class="t s acc2" x="85" y="328" text-anchor="middle">the action is</text>
+<text class="t s acc2" x="85" y="344" text-anchor="middle">now a label</text>
+<path class="arrG" d="M142 318H186" marker-end="url(#mg)"/>
+<rect class="box" x="190" y="258" width="170" height="120" rx="10"/>
+<text class="t b ink" x="275" y="292" text-anchor="middle">return-conditioned</text>
+<text class="t b ink" x="275" y="312" text-anchor="middle">policy</text>
+<text class="t m acc2" x="275" y="336" text-anchor="middle">p(a | s, R)</text>
+<text class="t s mut" x="275" y="358" text-anchor="middle">can share actor's design</text>
+<path class="arrG" d="M362 318H406" marker-end="url(#mg)"/>
+<rect class="box" x="410" y="258" width="200" height="120" rx="10"/>
+<text class="t s ink" x="510" y="279" text-anchor="middle">how likely is a under each R?</text>
+<rect class="bar" x="426" y="330" width="24" height="20" rx="3"/>
+<rect class="bar" x="462" y="312" width="24" height="38" rx="3"/>
+<rect class="barHi" x="498" y="290" width="24" height="60" rx="3"/>
+<rect class="bar" x="534" y="316" width="24" height="34" rx="3"/>
+<rect class="bar" x="570" y="334" width="24" height="16" rx="3"/>
+<line class="base" x1="420" y1="350" x2="600" y2="350"/>
+<text class="t s mut" x="438" y="368" text-anchor="middle">R1</text>
+<text class="t s mut" x="474" y="368" text-anchor="middle">R2</text>
+<text class="t s mut" x="510" y="368" text-anchor="middle">R3</text>
+<text class="t s mut" x="546" y="368" text-anchor="middle">R4</text>
+<text class="t s mut" x="582" y="368" text-anchor="middle">R5</text>
+<path class="arrG" d="M612 318H646" marker-end="url(#mg)"/>
+<rect class="box" x="650" y="258" width="220" height="120" rx="10"/>
+<text class="t b ink" x="760" y="296" text-anchor="middle">Q-value</text>
+<text class="t s mut" x="760" y="322" text-anchor="middle">squared-error loss keeps it</text>
+<text class="t s mut" x="760" y="340" text-anchor="middle">anchored to the</text>
+<text class="t s mut" x="760" y="358" text-anchor="middle">bootstrapped target</text>
+<text class="t m acc2" x="30" y="404">Training signal: every logged action, plus the return.</text>
+
+<text class="t s mut" x="30" y="440">Illustrative schematic of Swerdlow, Dong and Finn, Generative Value Classifier. Toy bars, not paper results.</text>
+</svg>

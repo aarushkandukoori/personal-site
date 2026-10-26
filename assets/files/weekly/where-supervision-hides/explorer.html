@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many Myopic Teachers, One Steady Student</title>
+<style>
+:root {
+  --bg: #f2f8fb; --surface: #ffffff; --ink: #0d1b24; --muted: #5d7380;
+  --accent: #0077b6; --accent2: #00a896; --accent3: #ff6b6b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b141a; --surface: #111e26; --ink: #e6f2f8; --muted: #8aa3b0;
+    --accent: #4cc3ff; --accent2: #2ee6c9; --accent3: #ff8787;
+  }
+}
+html, body {
+  margin: 0; overflow: hidden; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+* { box-sizing: border-box; }
+.wrap { padding: 14px 14px 12px; max-width: 760px; margin: 0 auto; }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+h1 { font-size: 17px; margin: 0 0 3px; line-height: 1.25; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; line-height: 1.4; }
+button {
+  font: inherit; font-size: 12.5px; color: var(--ink); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--muted) 45%, transparent); border-radius: 999px;
+  padding: 5px 11px; cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .1s;
+}
+button:active { transform: scale(.96); }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+#reset { flex: none; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 8px; font-size: 12.5px; color: var(--muted); }
+.controls .gap { width: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.sw { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+.panel { position: relative; background: var(--surface); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--muted) 25%, transparent); }
+canvas { display: block; width: 100%; touch-action: pan-y; cursor: ew-resize; outline: none; }
+canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+#demo {
+  position: absolute; right: 10px; top: 8px; font-size: 11px; color: var(--surface); background: var(--accent);
+  padding: 3px 8px; border-radius: 999px; transition: opacity .4s; pointer-events: none;
+}
+.read {
+  font-size: 13px; margin: 8px 2px; line-height: 1.5; min-height: 40px;
+  font-variant-numeric: tabular-nums;
+}
+.read b { font-weight: 650; }
+.read .t { color: var(--accent3); }
+.read .s { color: var(--accent2); }
+.chartlabel { font-size: 12px; color: var(--muted); margin: 10px 2px 4px; }
+.note { font-size: 11.5px; color: var(--muted); margin: 8px 2px 0; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Many myopic teachers, one steady student</h1>
+      <p class="hint">Drag left or right on either plot to set the window length W. Each coral line is a teacher integrating noisy IMU data over one window.</p>
+    </div>
+    <button id="reset" type="button">Reset</button>
+  </header>
+
+  <div class="controls">
+    <span>Windows averaged (N):</span>
+    <button type="button" data-n="4">4</button>
+    <button type="button" data-n="32">32</button>
+    <button type="button" data-n="128">128</button>
+    <span class="gap"></span>
+    <button type="button" id="bias" aria-pressed="false">IMU bias: off</button>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--accent3)"></i>teacher: one window's integrated velocity error</span>
+    <span><i class="sw" style="background:var(--accent2)"></i>student (toy: average over N windows)</span>
+  </div>
+
+  <div class="panel">
+    <canvas id="swarm" tabindex="0" aria-label="Velocity error of teacher integrations over time. Use arrow keys to change window length."></canvas>
+    <span id="demo">demo playing, drag to take over</span>
+  </div>
+
+  <div class="read" id="read" aria-live="polite"></div>
+
+  <div class="chartlabel">Error at the end of the window vs. window length (curves: toy theory, dots: each sweep above)</div>
+  <div class="panel"><canvas id="chart" aria-label="Error versus window length chart"></canvas></div>
+
+  <p class="note">Toy model with made-up noise levels (accelerometer noise 0.1 m/s per &radic;s, bias 0.06 m/s&sup2;). These are not results from SSIO. The real student is a neural network sharing weights across windows; here it is approximated by a plain average. Random noise averages out, bias does not, which is one reason a calibrated IMU matters. For the real result, see Qiu et al. (SSIO): label-free models come within 0.07 m/s average velocity error of a supervised baseline.</p>
+</div>
+
+<script>
+(function () {
+  const STEPS = 90, TMAX = 4, WMIN = 0.1, SIG = 0.1, BIAS = 0.06, YM = 0.8, CY = 0.35, POOL = 128;
+  const DEMO = [0.4, 1.2, 2.4, 4.0, 2.0];
+  const PAD = { l: 46, r: 16, t: 16, b: 30 };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SWEEP = reduce ? 5 : 2.0, HOLD = reduce ? 2 : 1.0;
+
+  const swarm = document.getElementById('swarm');
+  const chart = document.getElementById('chart');
+  const sctx = swarm.getContext('2d');
+  const cctx = chart.getContext('2d');
+  const readEl = document.getElementById('read');
+  const demoEl = document.getElementById('demo');
+  const biasBtn = document.getElementById('bias');
+  const nBtns = [...document.querySelectorAll('[data-n]')];
+
+  let N, bias, W, Wt, touched, demoI, Z, phase, prog, holdT, history;
+  let col = {};
+  const size = { sw: 0, sh: 0, cw: 0, ch: 0, dpr: 1 };
+
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    ['bg', 'surface', 'ink', 'muted', 'accent', 'accent2', 'accent3'].forEach(k => {
+      col[k] = cs.getPropertyValue('--' + k).trim();
+    });
+  }
+  readColors();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+
+  function gauss() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  // Unit random walks, rescaled to the current W when drawn so dragging morphs the fan smoothly.
+  function newSweep() {
+    Z = [];
+    for (let i = 0; i < POOL; i++) {
+      const a = new Float32Array(STEPS + 1);
+      let s = 0;
+      for (let j = 1; j <= STEPS; j++) { s += gauss(); a[j] = s; }
+      Z.push(a);
+    }
+    phase = 'run'; prog = 0; holdT = 0;
+    if (!touched) Wt = DEMO[demoI++ % DEMO.length];
+  }
+
+  const b = () => (bias ? BIAS : 0);
+  function val(i, j) {
+    const dt = W / STEPS;
+    return b() * j * dt + SIG * Math.sqrt(dt) * Z[i][j];
+  }
+  function statsAt(j) {
+    let m = 0, sq = 0;
+    for (let i = 0; i < N; i++) { const v = val(i, j); m += v; sq += v * v; }
+    m /= N;
+    return { mean: m, rms: Math.sqrt(sq / N) };
+  }
+  const teachTheory = w => Math.sqrt(SIG * SIG * w + (b() * w) ** 2);
+  const studTheory = w => Math.sqrt(SIG * SIG * w / N + (b() * w) ** 2);
+
+  function reset() {
+    N = 32; bias = false; W = 1.2; Wt = 1.2; touched = false; demoI = 0; history = [];
+    syncButtons();
+    demoEl.style.opacity = 1;
+    newSweep();
+  }
+
+  function syncButtons() {
+    nBtns.forEach(btn => btn.setAttribute('aria-pressed', String(+btn.dataset.n === N)));
+    biasBtn.setAttribute('aria-pressed', String(bias));
+    biasBtn.textContent = 'IMU bias: ' + (bias ? 'on' : 'off');
+  }
+
+  function fit() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = swarm.parentElement.clientWidth;
+    size.dpr = dpr; size.sw = w; size.sh = w < 480 ? 220 : 260;
+    size.cw = w; size.ch = w < 480 ? 150 : 170;
+    [[swarm, size.sw, size.sh], [chart, size.cw, size.ch]].forEach(([cv, cw, ch]) => {
+      cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+      cv.style.height = ch + 'px';
+    });
+  }
+  new ResizeObserver(fit).observe(document.querySelector('.wrap'));
+  fit();
+
+  const xOf = (t, w) => PAD.l + (t / TMAX) * (w - PAD.l - PAD.r);
+  const tOf = (x, w) => ((x - PAD.l) / (w - PAD.l - PAD.r)) * TMAX;
+
+  function alpha(c, a) { return 'color-mix(in srgb, ' + c + ' ' + Math.round(a * 100) + '%, transparent)'; }
+
+  function axesX(ctx, w, h) {
+    ctx.fillStyle = col.muted; ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center';
+    for (let t = 0; t <= TMAX; t++) {
+      const x = xOf(t, w);
+      ctx.strokeStyle = alpha(col.muted, 0.15); ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, h - PAD.b); ctx.stroke();
+      ctx.fillText(t + ' s', x, h - PAD.b + 14);
+    }
+    ctx.fillText('time since window start (s)', (PAD.l + w - PAD.r) / 2, h - 3);
+  }
+
+  function drawSwarm() {
+    const ctx = sctx, w = size.sw, h = size.sh;
+    ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    ctx.fillStyle = col.surface; ctx.fillRect(0, 0, w, h);
+    const yOf = v => PAD.t + (1 - (v + YM) / (2 * YM)) * (h - PAD.t - PAD.b);
+
+    axesX(ctx, w, h);
+    ctx.textAlign = 'right';
+    for (let v = -0.8; v <= 0.81; v += 0.4) {
+      const y = yOf(v);
+      ctx.strokeStyle = alpha(col.muted, 0.15); ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(w - PAD.r, y); ctx.stroke();
+      ctx.fillStyle = col.muted; ctx.fillText(v.toFixed(1), PAD.l - 6, y + 4);
+    }
+    ctx.save(); ctx.translate(11, (PAD.t + h - PAD.b) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.fillText('velocity error (m/s)', 0, 0); ctx.restore();
+
+    const xW = xOf(W, w);
+    ctx.fillStyle = alpha(col.muted, 0.08);
+    ctx.fillRect(xW, PAD.t, w - PAD.r - xW, h - PAD.t - PAD.b);
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(PAD.l, PAD.t, w - PAD.l - PAD.r, h - PAD.t - PAD.b); ctx.clip();
+
+    const head = prog * STEPS, kInt = Math.floor(head), frac = head - kInt;
+    const dt = W / STEPS;
+
+    // Expected teacher spread (+/- 1 sigma) as a soft envelope.
+    ctx.beginPath();
+    for (let j = 0; j <= kInt; j++) { const t = j * dt; ctx.lineTo(xOf(t, w), yOf(b() * t + SIG * Math.sqrt(t))); }
+    for (let j = kInt; j >= 0; j--) { const t = j * dt; ctx.lineTo(xOf(t, w), yOf(b() * t - SIG * Math.sqrt(t))); }
+    ctx.fillStyle = alpha(col.accent3, 0.12); ctx.fill();
+
+    ctx.strokeStyle = alpha(col.ink, 0.55); ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(PAD.l, yOf(0)); ctx.lineTo(w - PAD.r, yOf(0)); ctx.stroke(); ctx.setLineDash([]);
+
+    const lineA = N > 64 ? 0.18 : N > 16 ? 0.3 : 0.55;
+    ctx.lineWidth = 1.2; ctx.strokeStyle = alpha(col.accent3, lineA);
+    const heads = [];
+    for (let i = 0; i < N; i++) {
+      ctx.beginPath(); ctx.moveTo(xOf(0, w), yOf(0));
+      for (let j = 1; j <= kInt; j++) ctx.lineTo(xOf(j * dt, w), yOf(val(i, j)));
+      let hv = val(i, kInt), ht = kInt * dt;
+      if (kInt < STEPS) { hv += (val(i, kInt + 1) - hv) * frac; ht += frac * dt; ctx.lineTo(xOf(ht, w), yOf(hv)); }
+      ctx.stroke();
+      heads.push([xOf(ht, w), yOf(hv)]);
+    }
+    ctx.fillStyle = col.accent3;
+    heads.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill(); });
+
+    ctx.lineWidth = 3; ctx.strokeStyle = col.accent2; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(xOf(0, w), yOf(0));
+    for (let j = 1; j <= kInt; j++) ctx.lineTo(xOf(j * dt, w), yOf(statsAt(j).mean));
+    ctx.stroke(); ctx.lineWidth = 1;
+    ctx.restore();
+
+    ctx.fillStyle = col.muted; ctx.textAlign = 'left'; ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText('true velocity change (zero error)', PAD.l + 6, yOf(0) - 6);
+
+    if (phase === 'hold') {
+      const s = statsAt(STEPS), pulse = reduce ? 0 : Math.sin(holdT * 8) * 1.5;
+      const yTop = yOf(s.mean + s.rms), yBot = yOf(s.mean - s.rms);
+      ctx.strokeStyle = col.accent3; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(xW + 7, yTop); ctx.lineTo(xW + 7, yBot);
+      ctx.moveTo(xW + 2, yTop); ctx.lineTo(xW + 12, yTop); ctx.moveTo(xW + 2, yBot); ctx.lineTo(xW + 12, yBot); ctx.stroke();
+      ctx.lineWidth = 2.5; ctx.strokeStyle = col.accent2;
+      ctx.beginPath(); ctx.arc(xW, yOf(s.mean), 8 + pulse, 0, 7); ctx.stroke(); ctx.lineWidth = 1;
+      const left = xW > w - 150;
+      ctx.textAlign = left ? 'right' : 'left';
+      const lx = left ? xW - 14 : xW + 16;
+      ctx.fillStyle = col.accent3; ctx.fillText('teacher spread \u00b1' + s.rms.toFixed(2), lx, Math.max(PAD.t + 10, yTop - 4));
+      ctx.fillStyle = col.accent2; ctx.fillText('student ' + Math.abs(s.mean).toFixed(3) + ' m/s', lx, Math.min(h - PAD.b - 4, yBot + 14));
+    }
+
+    ctx.strokeStyle = col.ink; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(xW, PAD.t); ctx.lineTo(xW, h - PAD.b); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = col.accent;
+    const kw = 64, kx = Math.min(Math.max(xW - kw / 2, 2), w - kw - 2);
+    ctx.beginPath(); ctx.roundRect(kx, 2, kw, 16, 8); ctx.fill();
+    ctx.fillStyle = col.surface; ctx.textAlign = 'center'; ctx.font = '600 11px system-ui, sans-serif';
+    ctx.fillText('\u2194 W ' + W.toFixed(1) + ' s', kx + kw / 2, 14);
+  }
+
+  function drawChart() {
+    const ctx = cctx, w = size.cw, h = size.ch;
+    ctx.setTransform(size.dpr, 0, 0, size.dpr, 0, 0);
+    ctx.fillStyle = col.surface; ctx.fillRect(0, 0, w, h);
+    const yOf = v => PAD.t + (1 - Math.min(v, CY * 1.05) / CY) * (h - PAD.t - PAD.b);
+    axesX(ctx, w, h);
+    ctx.textAlign = 'right';
+    for (let v = 0; v <= CY + 0.001; v += 0.1) {
+      const y = yOf(v);
+      ctx.strokeStyle = alpha(col.muted, 0.15); ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(w - PAD.r, y); ctx.stroke();
+      ctx.fillStyle = col.muted; ctx.fillText(v.toFixed(1), PAD.l - 6, y + 4);
+    }
+    ctx.save(); ctx.translate(11, (PAD.t + h - PAD.b) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.fillText('error (m/s)', 0, 0); ctx.restore();
+
+    [[teachTheory, col.accent3, 'teacher'], [studTheory, col.accent2, 'student, N=' + N]].forEach(([f, c, lab]) => {
+      ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath();
+      for (let k = 0; k <= 100; k++) { const t = (k / 100) * TMAX; ctx[k ? 'lineTo' : 'moveTo'](xOf(t, w), yOf(f(t))); }
+      ctx.stroke(); ctx.lineWidth = 1;
+      ctx.fillStyle = c; ctx.textAlign = 'right'; ctx.font = '600 11px system-ui, sans-serif';
+      ctx.fillText(lab, w - PAD.r - 4, yOf(f(TMAX)) - 6);
+      ctx.font = '11px system-ui, sans-serif';
+    });
+
+    history.forEach((p, i) => {
+      const a = 0.25 + 0.75 * (i + 1) / history.length;
+      ctx.strokeStyle = alpha(col.accent3, a); ctx.beginPath(); ctx.arc(xOf(p.w, w), yOf(p.t), 3.5, 0, 7); ctx.stroke();
+      ctx.fillStyle = alpha(col.accent2, a); ctx.beginPath(); ctx.arc(xOf(p.w, w), yOf(p.s), 3, 0, 7); ctx.fill();
+    });
+
+    const xW = xOf(W, w);
+    ctx.strokeStyle = col.ink; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(xW, PAD.t); ctx.lineTo(xW, h - PAD.b); ctx.stroke(); ctx.setLineDash([]);
+    [[teachTheory(W), col.accent3], [studTheory(W), col.accent2]].forEach(([v, c]) => {
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(xW, yOf(v), 5.5, 0, 7); ctx.fill();
+      ctx.strokeStyle = col.surface; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+    });
+  }
+
+  function updateReadout() {
+    const j = Math.min(STEPS, Math.round(prog * STEPS));
+    const s = statsAt(j), t = (j / STEPS) * W;
+    const err = Math.abs(s.mean);
+    const ratio = err > 1e-4 ? s.rms / err : Infinity;
+    const rTxt = j === 0 ? '' : ratio > 50 ? ' The student is <b>over 50\u00d7</b> closer right now.' : ' The student is <b>' + ratio.toFixed(1) + '\u00d7</b> closer right now.';
+    readEl.innerHTML = 'Window <b>' + W.toFixed(2) + ' s</b>, at t = ' + t.toFixed(2) + ' s: ' +
+      '<span class="t">teacher spread <b>\u00b1' + s.rms.toFixed(3) + ' m/s</b></span>, ' +
+      '<span class="s">student error <b>' + err.toFixed(3) + ' m/s</b></span> (average of ' + N + ' windows).' + rTxt;
+  }
+
+  function setW(x, cv) {
+    const w = cv === swarm ? size.sw : size.cw;
+    Wt = Math.max(WMIN, Math.min(TMAX, tOf(x, w)));
+    if (!touched) { touched = true; demoEl.style.opacity = 0; }
+  }
+  [swarm, chart].forEach(cv => {
+    let dragging = false;
+    cv.addEventListener('pointerdown', e => {
+      dragging = true; cv.setPointerCapture(e.pointerId);
+      setW(e.clientX - cv.getBoundingClientRect().left, cv);
+    });
+    cv.addEventListener('pointermove', e => { if (dragging) setW(e.clientX - cv.getBoundingClientRect().left, cv); });
+    const end = () => { dragging = false; };
+    cv.addEventListener('pointerup', end);
+    cv.addEventListener('pointercancel', end);
+  });
+  swarm.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    touched = true; demoEl.style.opacity = 0;
+    Wt = Math.max(WMIN, Math.min(TMAX, Wt + (e.key === 'ArrowRight' ? 0.1 : -0.1)));
+  });
+
+  nBtns.forEach(btn => btn.addEventListener('click', () => { N = +btn.dataset.n; history = []; syncButtons(); }));
+  biasBtn.addEventListener('click', () => { bias = !bias; history = []; syncButtons(); });
+  document.getElementById('reset').addEventListener('click', reset);
+
+  let last = performance.now();
+  function frame(now) {
+    const el = Math.min(0.05, (now - last) / 1000); last = now;
+    W += (Wt - W) * Math.min(1, el * (touched ? 14 : 3));
+    if (phase === 'run') {
+      prog += el / SWEEP;
+      if (prog >= 1) {
+        prog = 1; phase = 'hold'; holdT = 0;
+        const s = statsAt(STEPS);
+        history.push({ w: W, t: s.rms, s: Math.abs(s.mean) });
+        if (history.length > 40) history.shift();
+      }
+    } else {
+      holdT += el;
+      if (holdT > HOLD) newSweep();
+    }
+    if (size.sw > 0) { drawSwarm(); drawChart(); updateReadout(); }
+    requestAnimationFrame(frame);
+  }
+
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+</script>
+</body>
+</html>
