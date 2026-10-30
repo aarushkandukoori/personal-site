@@ -1,0 +1,365 @@
+---
+layout: explorable
+title: "My iPhone Has 8 GB. The Engine Asked for 4 TB."
+date: 2026-11-02 08:00:00 -05:00
+categories: [Writing, Research]
+tags: [pie, llm-inference, ios, webgpu, wasm, systems]
+description: "How Pie, a programmable LLM engine, got onto my iPhone and into a browser tab. You fix the crashes, then you fork its sentences, with the real engine if your browser can run it."
+image:
+  path: /assets/posts/pie-on-my-iphone/img/social.png
+  alt: "An iPhone against a wall of memory slots, under the words: My iPhone has 8 GB. The engine asked for 4 TB."
+asset_dir: pie-on-my-iphone
+toc: false
+---
+
+<div id="crashbar" class="crashbar" hidden aria-live="polite"></div>
+
+<header class="hero" id="top">
+  <canvas class="hero-slots" id="hero-slots" aria-hidden="true"></canvas>
+  <nav class="topbar">
+    <a href="/">Aarush Kandukoori</a>
+    <span class="topbar-right">
+      <a href="#fork">Skip to running it</a>
+      <button type="button" id="theme-toggle" class="linklike" aria-label="Switch between light and dark">Dark</button>
+    </span>
+  </nav>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <h1>
+        <span class="h-line">My iPhone has 8 GB.</span>
+        <span class="h-line">The engine asked for</span>
+        <span class="h-huge">4&nbsp;TB.</span>
+      </h1>
+      <p class="dek">How <a href="https://pie-project.org/">Pie</a>, a programmable LLM engine, got onto my phone and into a browser tab. It crashed a lot. You can crash it too.</p>
+      <p class="byline">Aarush Kandukoori <span aria-hidden="true">&middot;</span> November 2, 2026</p>
+    </div>
+    <div class="hero-device">
+      <div id="hero-phone" class="phone-slot"></div>
+      <p class="tap-hint" id="tap-hint">Tap the app.</p>
+    </div>
+  </div>
+  <div class="console hero-console" id="hero-console" role="log" aria-label="What the phone logged">
+    <div class="console-line dim">iPhone 16 Pro, iOS 26.1. Waiting for you to open the app.</div>
+  </div>
+</header>
+
+<main class="story">
+
+<section class="prose">
+  <p>That's the app. It opens, then it's gone. No error, no dialog, just the home screen again. Other times it sat on a spinner forever. Meanwhile in the iOS Simulator, the same build booted in <button type="button" class="num" data-r="sim-boot">about 3 seconds</button> and chatted happily.</p>
+  <p>This is the story of getting it working. As of my last run on October 8, Pie answers on my phone in <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> at <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button> with nothing leaving the device, and the same runtime runs in a browser tab. At the bottom of this page you can boot it in <em>this</em> tab and fork its sentences with your mouse.</p>
+  <p class="how-to-read">Numbers with a dotted line under them have receipts. Tap one to see where it came from.</p>
+
+  <h2 id="what">What Pie is</h2>
+  <p>Pie is a programmable inference engine from <a href="https://www.linzhong.org">Prof. Lin Zhong's</a> group at Yale, built mainly by <a href="https://ingim.org">In Gim</a> (<a href="https://ingim.org/papers/gim2025pie.pdf">SOSP '25 paper</a>). A normal LLM server is a box: prompt in, text out, one fixed loop in between. Pie runs a small program you wrote, called an inferlet, right next to the model. The inferlet drives every forward pass and owns the KV cache, which is the model's notes on everything it has read so far. So you can fork a conversation, rewind it, or invent your own sampler without touching the engine.</p>
+  <p>In July, Prof. Zhong suggested I try getting it onto a phone. That's where owning those notes starts to matter: memory is tight, the data is personal, and there's no server bill. Pie was built for servers, and some of its defaults show it.</p>
+
+  <h2 id="four">Four ways to die</h2>
+  <p>By August 11 I had real inference running in the Simulator: a Swift app with Pie embedded in the same process, tokens streaming into a chat bubble. It took three small changes, and Pulley was the real trick. iOS doesn't allow JIT compilation, and Pie runs inferlets on <a href="https://wasmtime.dev">Wasmtime</a>, which normally compiles WebAssembly to machine code on the fly. Wasmtime also has an interpreter called Pulley that generates no machine code at runtime, so inferlets run on that. An interpreter sounds slow until you remember what an inferlet does. It makes decisions. The math still happens in the engine.</p>
+  <p>Then on August 26 I put it on a real iPhone, and it turned out the Simulator had been lying to me. The Simulator is a Mac process, so it gets a Mac's generosity. The phone stopped the app four different ways. You're going to do the fixing.</p>
+
+  <h3>Death 1. Nowhere to write</h3>
+  <p>Pie keeps its state in <code>$PIE_HOME</code>, which defaults to <code>~/.pie</code>. On iOS, <code>~</code> is the app's container root, and the sandbox makes it read-only.</p>
+</section>
+
+<figure class="fig" id="fig-sandbox">
+  <div class="fig-split">
+    <div class="phone-slot small" data-phone></div>
+    <div class="fig-main">
+      <div class="console" data-console role="log"></div>
+      <div class="fs" data-fs></div>
+    </div>
+  </div>
+  <figcaption>Figure 1. Drag <code>PIE_HOME</code> somewhere the app is allowed to write. Or just tap the folder.</figcaption>
+</figure>
+
+<section class="prose">
+  <h3>Death 2. The spinner that lied</h3>
+  <p>Now the app stayed open and sat on "starting the engine" forever. Every button was disabled. No crash, no error, nothing in the logs I could see. I asked the group for ideas.</p>
+  <p><a href="https://arxiv.org/abs/2609.01338">Hongseung Yu</a> at Seoul National University, who makes LLMs fast on Android and doesn't have an iPhone to build on, read my code and found it from the other side of the world. One line, in the function that starts the engine, threw the error away.</p>
+</section>
+
+<figure class="fig" id="fig-swallow">
+  <div class="fig-split">
+    <div class="phone-slot small" data-phone></div>
+    <div class="fig-main">
+      <p class="fig-note">Swift's <code>try?</code> turns an error into nothing, and <code>_ =</code> throws the nothing away. Tap the line.</p>
+      <button type="button" class="codeline" data-line><span data-code>_ = try? await run(text: "hello", ...)</span></button>
+      <div class="console" data-console role="log"></div>
+    </div>
+  </div>
+  <figcaption>Figure 2. First try tapping the buttons on the phone. Then let the error out.</figcaption>
+</figure>
+
+<section class="prose">
+  <h3>Death 3. Four terabytes</h3>
+  <p>Hongseung's other tip was to run it from Xcode and read stderr from the whole stack. That's where the disappearing act explained itself. Swift never saw this one: it's a Rust panic, and it takes the whole process down.</p>
+</section>
+
+<figure class="fig narrow" id="fig-hex">
+  <pre class="logblock">called `Result::unwrap()` on an `Err` value: failed to create memory pool mapping
+
+Caused by:
+    0: mmap failed to reserve <span class="hex"><button type="button" data-hex="a" class="hex-a">0x3e8</button><button type="button" data-hex="b" class="hex-b">00000000</button></span> bytes
+    1: Cannot allocate memory (os error 12)
+fatal runtime error: failed to initiate panic, error 3, aborting</pre>
+  <p class="hex-out" data-out aria-live="polite">The whole bug is printed in that number. Tap the two halves.</p>
+</figure>
+
+<section class="prose">
+  <p>Hongseung read the number for me: <code>wasm_max_instances</code> = 1000 times <code>wasm_max_memory_mb</code> = 4096, Pie's server defaults. I checked the config and it matched byte for byte. Wasmtime's pooling allocator reserves address space up front, so a new WebAssembly instance can start instantly, and those defaults add up to <button type="button" class="num" data-r="pool">3.9 TiB</button>.</p>
+  <p>Reserving costs nothing until something writes. It's like booking every room in a hotel because some guests might show up. A Mac shrugs and says sure. Hongseung also said to measure the real ceiling. My iPhone's largest single reservation, found by bisecting <code>mmap</code> at launch, is <button type="button" class="num" data-r="va-ceiling">5.2 GiB</button>. Keep scrolling to see that to scale.</p>
+</section>
+
+<section class="zoom" id="fig-zoom" aria-label="A scroll-driven picture: one memory slot grows to a wall of 1000 slots, and the phone's limit shrinks to a speck.">
+  <div class="zoom-stage">
+    <canvas data-canvas></canvas>
+    <div class="zoom-hud">
+      <p class="zoom-count" data-count>1 slot</p>
+      <p class="zoom-bytes" data-bytes>4 GiB</p>
+    </div>
+    <p class="zoom-caption" data-caption>The red square is the most one reservation can get on my phone. The blue one is a single Wasmtime slot.</p>
+  </div>
+</section>
+
+<section class="prose">
+  <p>So the fix he suggested is obvious once you can see it. Shrink both.</p>
+</section>
+
+<figure class="fig" id="fig-pad">
+  <div class="fig-split">
+    <div class="phone-slot small" data-phone></div>
+    <div class="fig-main">
+      <div class="pad-wrap" data-pad></div>
+      <p class="pad-read" data-read aria-live="polite"></p>
+      <div class="console" data-console role="log"></div>
+    </div>
+  </div>
+  <figcaption>Figure 3. Drag the dot into the region that fits. The axes are the two real settings, <code>wasm_max_instances</code> and <code>wasm_max_memory_mb</code>, on log scales.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>I settled on 4 slots of 128 MiB. A phone runs one inferlet at a time, so that's plenty. My first idea was to skip the pool and allocate on demand, because I was treating a reservation as if it cost real memory. Hongseung talked me into keeping a small one, which keeps the fast start. In's mainline allocates on demand, and that works too.</p>
+
+  <h3>Death 4. Same disease, different organ</h3>
+  <p>Now the engine booted, loaded the model, and died on the first forward pass.</p>
+</section>
+
+<figure class="fig narrow">
+  <pre class="logblock">ggml.c:1604: GGML_ASSERT(ctx->mem_buffer != NULL)
+ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
+</figure>
+
+<section class="prose">
+  <p>Pie 0.4's CPU driver was built on ggml, and its scheduler budgeted for 2<sup>19</sup> graph nodes at about 20 KB each. That's a <button type="button" class="num" data-r="sched">9.9 GiB</button> malloc that macOS grants lazily and iOS refuses. I estimated a turn on this model at a few thousand nodes.</p>
+</section>
+
+<figure class="fig" id="fig-halve">
+  <div class="fig-split">
+    <div class="phone-slot small" data-phone></div>
+    <div class="fig-main halve">
+      <div class="halve-tower" data-tower aria-hidden="true"><div class="halve-bar" data-bar></div><div class="halve-line" data-line></div></div>
+      <div class="halve-side">
+        <p class="halve-num" data-num></p>
+        <p class="halve-bytes" data-bytes></p>
+        <button type="button" class="btn" data-go>Halve the budget</button>
+      </div>
+    </div>
+  </div>
+  <figcaption>Figure 4. My iPhone build budgeted 2<sup>14</sup> nodes. Keep tapping until you get there.</figcaption>
+</figure>
+
+<section class="payoff" id="payoff">
+  <div class="payoff-inner">
+    <p class="payoff-date">September 21, 2026, <button type="button" class="num" data-r="first-run">12:17 AM</button></p>
+    <p class="payoff-big">First token on a real iPhone.</p>
+    <p class="payoff-nums"><button type="button" class="num" data-r="boot-04">0.97 s</button> to boot. <button type="button" class="num" data-r="ttft-04">0.57 s</button> to first token. <button type="button" class="num" data-r="tps-04">62.6 tok/s</button>. <button type="button" class="num" data-r="peak-04">1.0 GiB</button> at peak. CPU only, Pie 0.4.</p>
+  </div>
+</section>
+
+<section class="prose">
+  <h2 id="says">What it actually says</h2>
+  <p>Seventeen days later, on a newer engine and a newer model with more parameters, this is a real reply on my phone at the real speed. It waits 0.24 seconds, then writes 68 tokens at <button type="button" class="num" data-r="tour">76 tok/s</button>.</p>
+</section>
+
+<figure class="fig" id="fig-speed">
+  <div class="fig-two">
+    <div>
+      <div class="phone-slot" data-phone></div>
+      <p class="fig-buttons">
+        <button type="button" class="btn" data-again>Ask it again</button>
+        <button type="button" class="btn ghost" data-slow>At 1/10 speed</button>
+      </p>
+    </div>
+    <div class="real-shot">
+      <div class="phone-frame"><img src="../../assets/posts/pie-on-my-iphone/img/03-answered.webp" width="603" height="1311" loading="lazy" alt="Screenshot of the Pie app on the iPhone, showing the question, the model's reply and the stats line: 0.24 s to first token, 76 tok/s, 0 of 111 prompt tokens reused."></div>
+      <p class="shot-note">The screenshot the app took of itself on my phone. The one on the left is redrawn so it can replay.</p>
+    </div>
+  </div>
+  <figcaption>Figure 5. It's over before you can read it. Now read it.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>"...large amounts of data—such as text from millions of devices or the entire internet—in milliseconds without significant power consumption." That's Qwen3.5-0.8B, 421 MiB in its phone build, and it will confidently tell you anything. I don't mind. At this size it's a stress test for the engine, and the engine passed. The open question, which Prof. Zhong asked me back in August, is how big a model this phone can run at a usable speed. I still owe him that answer.</p>
+
+  <h2 id="ground">Then I had to move</h2>
+  <p>Pie 0.5, a rewrite, had come out on September 10, while I was still finishing on 0.4. The CPU driver I had built everything on was gone, replaced by real GPU engines. On October 2 Prof. Zhong asked me to move. Then I tried this.</p>
+</section>
+
+<figure class="fig narrow">
+  <pre class="logblock"><span class="prompt">$</span> cargo check -p pie --features metal --target aarch64-apple-ios
+    Checking runtime v0.5.4
+    Checking worker v0.5.4
+    Checking pie v0.5.4
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 47.80s</pre>
+  <figcaption>Pie 0.5 main at <code>236c09246</code>, zero code changes. I re-ran it for this post. It's only a type check, but the Metal engine compiles its shaders from source on the device, so there was nothing to cross-compile there.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>The only engine code that needed changing was the Wasmtime setup from Death 3. My side took more: a new inferlet, a rewritten shim and config, and a new model, because 0.5 has no Qwen3-0.6B. On October 8 it was running on the phone's GPU: <button type="button" class="num" data-r="boot-05">0.30 to 0.63 s</button> to boot, <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> to first token, <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button>, <button type="button" class="num" data-r="peak-05">981 MiB</button> at peak.</p>
+  <p>Later that same day, In merged iOS support into Pie's mainline himself (<a href="https://github.com/pie-project/pie/pull/838">#838</a>). I want to be clear about this: his Swift package is the right way to use Pie on iOS today, and my fork isn't. What I got out of it was an app, a measuring harness and a good list of ways a phone is different.</p>
+  <p>Here's what a token passes through in the app I ended up with.</p>
+</section>
+
+<figure class="fig" id="fig-stack">
+  <div class="stack-wrap">
+    <svg class="stack" data-svg viewBox="0 0 640 460" role="img" aria-label="A stack of six layers: the app, the C boundary, the Pie runtime, the inferlet, the Metal engine and the model."></svg>
+    <div class="stack-note" data-note aria-live="polite"></div>
+  </div>
+  <figcaption>Figure 6. Drag up and down to pull the layers apart. Tap one to read about it.</figcaption>
+</figure>
+
+<section class="prose">
+  <h2 id="kv">Why a follow-up question is cheap</h2>
+  <p>Every token a model reads leaves notes in the KV cache. Throw the notes away and every new question means re-reading the whole conversation, which gets slower as the chat gets longer. The app keeps them between turns. This is a real five-turn benchmark on the phone, with scripted questions. Step through it.</p>
+</section>
+
+<figure class="fig" id="fig-kv">
+  <div class="kv">
+    <div class="kv-q" data-q aria-live="polite"></div>
+    <div class="kv-tape" data-tape aria-hidden="true"></div>
+    <div class="kv-legend"><span class="sw reused"></span> reused from KV <span class="sw prefill"></span> read this turn <span class="sw gen"></span> written this turn</div>
+    <div class="kv-stats" data-stats aria-live="polite"></div>
+    <div class="kv-ghost" data-ghost></div>
+    <p class="fig-buttons"><button type="button" class="btn" data-next>Ask the first question</button></p>
+  </div>
+  <figcaption>Figure 7. A warm relaunch on the iPhone 16 Pro, October 8. Each block of 32 cells is one KV page.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>Two details matter here. Reuse moves in chunks, because KV lives in pages, so every count is a multiple of 32. And with the inferlet I wrote for 0.5, it stops short of the last reply. The app resends the transcript every turn, the chat template replays a reply as different tokens than the model generated, and this model's recurrent state can only resume where a prefill chunk ended, so the inferlet saves one checkpoint at the end of the question. Each turn reads the previous reply plus the new question: <button type="button" class="num" data-r="prefill-05">54 to 101 tokens</button> in these runs, more after a long reply. My snapshot-based inferlet on Pie 0.4 read only 19 to 21.</p>
+
+  <h2 id="echo">It heard itself</h2>
+  <p>Prof. Zhong's ask back on August 12, the day after the Simulator demo, was an app you could talk to. That's the app that kept dying above. Speech goes in, Pie answers, speech comes out, all on the device. On the real phone in October, the problem was that the speaking and the listening worked at the same time. This is a real conversation from my phone's saved chats, in voice mode, on the night of October 8.</p>
+</section>
+
+<figure class="fig" id="fig-echo">
+  <div class="echo">
+    <svg class="echo-loop" data-svg viewBox="0 0 320 320" role="img" aria-label="A loop: the speaker plays the reply, the microphone hears it, the recognizer writes it down, and the model answers it."></svg>
+    <div class="echo-right">
+      <div class="echo-log" data-log role="log"></div>
+      <p class="fig-buttons">
+        <button type="button" class="btn" data-next>Keep listening</button>
+        <button type="button" class="btn ghost" data-filter aria-pressed="false">Add the echo filter</button>
+        <button type="button" class="btn ghost" data-sound aria-pressed="false">Sound on</button>
+      </p>
+    </div>
+  </div>
+  <figcaption>Figure 8. Every line is word for word from the phone. "Lynn Zhang" is the recognizer's take on "Lin Zhong". Sorry, Prof. Zhong.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>The reply leaked past the echo canceller, the recognizer wrote it down with mistakes ("I don't have any personal experiences" became "Don't have your personal list"), and an exact-word filter decided that must be me. So the app cancelled its own reply and answered itself.</p>
+  <p>The fix is a filter that judges anything heard during or just after a reply against the reply's own words, tolerant of misheard ones, plus cleaner audio going into the echo canceller. Afterwards, voice mode ran six rounds with nobody talking and took itself for the user <button type="button" class="num" data-r="soak">0</button> times. No echo even reached the filter in that run, so the new audio path gets the credit there. A stop quiets the playback channel in <button type="button" class="num" data-r="stop">4 to 38 ms</button>, the engine lets go of a cancelled reply in <button type="button" class="num" data-r="cancel">under a millisecond</button>, and the next reply starts <button type="button" class="num" data-r="next-reply">0.20 to 0.29 s</button> later. I haven't properly tested a real person talking over it yet, so don't take this as solved.</p>
+
+  <h2 id="tab">Now put it in a tab</h2>
+  <p>In's advice was to build something I care about with Pie and report what got in the way, because that shows what's missing from the API. I wanted to see what a model is choosing between at every token. A hosted API can give you top logprobs. It can't let you drive the decode loop or fork its KV. An inferlet can. And Pie also runs in a browser: the same runtime compiled to WebAssembly, with a WebGPU engine where the phone has Metal.</p>
+  <p>My site is on GitHub Pages, which brought two new problems. Pie's tab runtime wants the page cross-origin isolated, which takes two headers Pages can't send, so a service worker adds them and the page reloads itself once. Pie's own Playground does the same. And the browser build I used, which carries a vision tower, was 618 MiB, while GitHub caps a file at 100 MB. So I did the obvious thing with a project called Pie.</p>
+</section>
+
+<figure class="fig" id="fig-slices">
+  <div class="slices">
+    <svg data-svg viewBox="0 0 400 400" role="img" aria-label="A pie chart of the model file, cut into equal slices."></svg>
+    <div class="slices-side">
+      <p class="slices-num" data-num></p>
+      <p class="slices-read" data-read aria-live="polite"></p>
+    </div>
+  </div>
+  <figcaption>Figure 9. Drag the knife around the rim to change the slice size. The service worker stitched the slices back into one file, Range requests included. Tap a slice to see what it asked for.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>You don't need to do that. In publishes browser models on Hugging Face, and Pie 0.6, out last week, added a <a href="https://pie-project.org/playground">Playground</a>. This page uses the 0.6 files.</p>
+  <p>What I reported to In, back on the October build: first visits spent <button type="button" class="num" data-r="pipes">17.9 s</button> building WebGPU pipelines before the second token, a reused forward pass could hang silently if you fed one of its eight channels the wrong way, and the page ran at <button type="button" class="num" data-r="tab-38">38 ms</button> a token. I rewrote the inferlet for this post on 0.6.2, with a fresh pass per token, and six of the eight channels are no longer mine to feed. I still hand over the tokens and their index. You call <code>StateGeometry::folding()</code>, and the runtime keeps track of where every row lands. <code>Channel::put</code> still drops its result, so I'd expect that hang to still be there for anyone reusing a pass. I just don't hit it anymore.</p>
+  <p>On the same laptop a token now takes <button type="button" class="num" data-r="tab-06">16 to 23 ms</button>, though I can't split how much of that is Pie, a newer Chrome or my rewrite. Once the background save has finished, a repeat visit boots from the browser's cache in <button type="button" class="num" data-r="boot-cache">1.0 s</button>. Close the tab sooner and the next visit downloads it all again. Two things are still rough on a fresh first visit: pipelines still take <button type="button" class="num" data-r="pipes-06">about 14.5 s</button>, and the 618 MiB model gets downloaded twice, once to boot and once to save it for next time.</p>
+
+  <h2 id="fork">Fork it yourself</h2>
+  <p>This is Qwen3.5-0.8B on Pie 0.6.2, with a <a href="pie/token-tree.txt">small inferlet</a> I wrote for this post. It reads your prompt once. After that, every reply is a <em>fork</em> of the prompt's KV. On my M4 MacBook, a fork plus its first new token takes <button type="button" class="num" data-r="fork-06">16 to 22 ms</button>, however long the prompt is. Reading an 800-token prompt from scratch takes <button type="button" class="num" data-r="read-800">about 1.1 s</button>.</p>
+  <p>By default you're watching replies I recorded from the real engine, so this works on a phone. If you have Chrome on a computer and can spare <button type="button" class="num" data-r="download">about 1.3 GB</button> of download, press the button and it becomes the real thing, running on your own GPU, with nothing sent anywhere.</p>
+  <p>Warm tokens are where the model wasn't sure. Tap one to see what else it was considering. Tap a candidate to fork the reply from that point.</p>
+</section>
+
+<figure class="fig wide" id="fig-tree">
+  <div class="tree">
+    <div class="tree-bar">
+      <div class="tree-prompt" data-prompts></div>
+      <div class="tree-boot">
+        <svg class="boot-pie" data-pie viewBox="0 0 40 40" aria-hidden="true"></svg>
+        <button type="button" class="btn" data-boot>Boot Pie in this tab (about 1.3 GB)</button>
+        <p class="tree-status" data-status aria-live="polite">Recorded on my MacBook (M4).</p>
+      </div>
+    </div>
+    <form class="tree-input" data-form hidden>
+      <label for="tree-text">Your prompt</label>
+      <input id="tree-text" type="text" maxlength="600" value="Write one sentence about Pittsburgh." autocomplete="off">
+      <button type="submit" class="btn">Run</button>
+    </form>
+    <div class="tree-body">
+      <div class="tree-rows" data-rows role="group" aria-label="Replies, each one a fork of the prompt"><svg class="tree-gutter" data-gutter aria-hidden="true"></svg></div>
+      <aside class="tree-detail" data-detail aria-live="polite"></aside>
+    </div>
+    <div class="tree-controls">
+      <button type="button" class="btn" data-auto>Let it branch by itself</button>
+      <button type="button" class="btn ghost" data-reset>Start over</button>
+      <label class="heat" data-heat hidden>Temperature <input type="range" min="0" max="2" step="0.1" value="0" data-temp> <output data-temp-out>0.0</output></label>
+      <button type="button" class="btn ghost" data-stop hidden>Stop</button>
+    </div>
+  </div>
+  <figcaption>Figure 10. Real output from the real model. Every row shares the prompt's KV with every other row.</figcaption>
+</figure>
+
+<section class="prose">
+  <p>Yes, it thinks Pittsburgh is the capital of the United States. Look at how close that was, though. "Capital" was a 16% guess, with "largest" at 12% and "second" at 11% right behind it, and it comes out in the same confident voice as everything else. I find that more useful to look at than an accuracy number.</p>
+
+  <h2 id="took">What I'm taking from this</h2>
+  <ul>
+    <li>Test on the device on day one. The Simulator gets a Mac's generosity and hid all four failures above.</li>
+    <li>Make your errors impossible to lose. One <code>try?</code> turned a failed boot into a silent spinner, and a Rust panic only ever reached stderr.</li>
+    <li>Have the app measure itself. Every number from the phone here came from the app logging its own run, which is the only reason I can show you receipts.</li>
+    <li>The small-model limit is the honest next question. The phone numbers here are Pie 0.4 and 0.5 on small models. I haven't re-run them on 0.6 or measured bigger models on the real phone.</li>
+  </ul>
+
+  <h2 id="thanks">Thanks and disclosure</h2>
+  <p>Pie is In Gim's and Prof. Lin Zhong's work, along with the rest of their group. Everything clever about the engine on this page is theirs. Prof. Zhong suggested this project and keeps asking better questions than I have answers for. In answered my questions, told me to build something I care about and shipped iOS in mainline. Hongseung Yu spotted the swallowed error, told me to read stderr, read the 4 TB as those two settings and talked me into a small pool. Prof. Zhong also pointed me to Seung-seob Lee's <a href="https://github.com/shsym/RatioThink">RatioThink</a>, a Mac app that runs Pie behind a SwiftUI front end.</p>
+  <p>I built the app, the inferlet and this page with a lot of help from AI coding tools, and my <a href="https://github.com/pie-project/pie/pull/863">draft PR</a> to Pie said so. I ran everything on my own phone and laptop, and the logs are real. Any mistakes here are mine.</p>
+  <p class="links">Code - <a href="https://github.com/aarushkandukoori/pie/tree/ios-voice-05/ios">the iPhone app</a>, <a href="https://github.com/aarushkandukoori/pie-decoder">Watch the decoder</a> and <a href="https://github.com/aarushkandukoori/pie-decoder/blob/main/FINDINGS.md">my notes on it</a>. Pie - <a href="https://pie-project.org/">website</a>, <a href="https://github.com/pie-project/pie">GitHub</a>, <a href="https://pie-project.org/playground">Playground</a>.</p>
+</section>
+
+<section class="closing" id="closing" aria-live="polite">
+  <div id="closing-phone" class="phone-slot"></div>
+  <p class="closing-line" data-line>It boots now.</p>
+</section>
+
+</main>
+
+<div class="receipt" id="receipt" role="dialog" aria-label="Receipt" hidden>
+  <button type="button" class="receipt-close" aria-label="Close">&times;</button>
+  <p class="receipt-value" data-value></p>
+  <p class="receipt-what" data-what></p>
+  <pre class="receipt-raw" data-raw></pre>
+  <p class="receipt-source" data-source></p>
+</div>
+
+<div class="reading-pie" id="reading-pie" aria-hidden="true"><svg viewBox="0 0 40 40"></svg></div>
+
+<noscript><p class="prose">The figures on this page need JavaScript. The story above still reads fine without them.</p></noscript>

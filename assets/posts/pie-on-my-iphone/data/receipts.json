@@ -1,0 +1,176 @@
+{
+"sim-boot": {
+"value": "about 3 seconds",
+"what": "The same build in the iOS Simulator, booting the engine and loading Qwen3-0.6B Q4_K_M.",
+"source": "My email to the group, August 26, 2026",
+"raw": "The same build in the Simulator boots the engine and loads Qwen3-0.6B Q4_K_M in about 3 seconds."
+},
+"va-ceiling": {
+"value": "5.2 GiB",
+"what": "The largest single anonymous mmap the kernel grants, found by bisecting at launch. iPhone 16 Pro, iOS 26.1, without the extended-virtual-addressing entitlement. The log says GB, but the app divides by 2^30, so it's GiB.",
+"source": "Documents/pie-console.log, pulled from the phone",
+"raw": "[launch] iPhone17,1 iOS Version 26.1 (Build 23B82) \u00b7 7.5 GB RAM \u00b7 6 cores \u00b7 va_ceiling\u22485.2 GB"
+},
+"pool": {
+"value": "3.9 TiB",
+"what": "1000 slots x 4 GiB = 4000 GiB. Wasmtime's pooling allocator, with Pie's defaults at the time (wasm_max_instances = 1000, wasm_max_memory_mb = 4096).",
+"source": "Documents/pie-console.log, pulled from the phone, first seen August 26, 2026",
+"raw": "called `Result::unwrap()` on an `Err` value: failed to create memory pool mapping\n\nCaused by:\n    0: mmap failed to reserve 0x3e800000000 bytes\n    1: Cannot allocate memory (os error 12)\n\n0x3e800000000 = 4,294,967,296,000 bytes"
+},
+"sched": {
+"value": "9.9 GiB",
+"what": "Worked out from ggml's source, since no log printed it: 2^19 nodes x 30 x 2 tensors x 336 bytes, plus about 21 MB of graph overhead, is 10.59 GB. The commit message at the time guessed a bit high, at 11.6 GB.",
+"source": "Commit b7dc1ad6c, September 21, 2026, and ggml-backend.cpp",
+"raw": "ggml.c:1604: GGML_ASSERT(ctx->mem_buffer != NULL)\nggml_backend_sched_split_graph <- ggml_backend_sched_alloc_graph",
+"link": "https://github.com/aarushkandukoori/pie/commit/b7dc1ad6c"
+},
+"first-run": {
+"value": "12:17 AM",
+"what": "The first launch that got through the first forward pass. 04:17:45 UTC is 12:17 AM in Pittsburgh.",
+"source": "Documents/pie-console.log, pulled from the phone",
+"raw": "=== PieVoice launch 2026-09-21 04:17:45 +0000 ===\n[warmup] engine boot starting\n[wasmtime] ios: pooling allocator with 4 slot(s) x 128 MiB\n[warmup] engine boot complete"
+},
+"boot-04": {
+"value": "0.97 s",
+"what": "Engine boot plus weight load. Pie 0.4, ggml CPU driver, Qwen3-0.6B Q4_K_M, iPhone 16 Pro, warm relaunch.",
+"source": "dev-20260921-iphone16pro-qwen3-0.6b.jsonl",
+"raw": "{\"event\": \"warmup\", \"seconds\": 0.974761962890625, \"footprint_mb\": 1009.3307418823242}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20260921-iphone16pro-qwen3-0.6b.jsonl"
+},
+"ttft-04": {
+"value": "0.57 s",
+"what": "Time to first token on turn 1.",
+"source": "dev-20260921-iphone16pro-qwen3-0.6b.jsonl",
+"raw": "{\"turn\": 1, \"ttft_s\": 0.5667610168457031, \"prefill\": 83, \"generated\": 22, \"decode_tps\": 62.636822634183424}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20260921-iphone16pro-qwen3-0.6b.jsonl"
+},
+"tps-04": {
+"value": "62.6 tok/s",
+"what": "Decode rate on turn 1, CPU only, 4 threads.",
+"source": "dev-20260921-iphone16pro-qwen3-0.6b.jsonl",
+"raw": "{\"turn\": 1, \"decode_tps\": 62.636822634183424, \"generated\": 22, \"total_s\": 0.917992115020752}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20260921-iphone16pro-qwen3-0.6b.jsonl"
+},
+"peak-04": {
+"value": "1.0 GiB",
+"what": "Peak physical footprint, the figure iOS's memory limit judges.",
+"source": "dev-20260921-iphone16pro-qwen3-0.6b.jsonl",
+"raw": "{\"event\": \"done\", \"peak_footprint_mb\": 1028.6744918823242}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20260921-iphone16pro-qwen3-0.6b.jsonl"
+},
+"ttft-05": {
+"value": "0.11 to 0.25 s",
+"what": "Time to first token across all ten turns of both runs. Pie 0.5, Metal engine, Qwen3.5-0.8B.",
+"source": "dev-20261008-iphone16pro-qwen3.5-0.8b-run1.jsonl and run2",
+"raw": "{\"turn\": 1, \"ttft_s\": 0.11355292797088623}\n{\"turn\": 2, \"ttft_s\": 0.12432301044464111}\n{\"turn\": 3, \"ttft_s\": 0.15021800994873047}\n{\"turn\": 4, \"ttft_s\": 0.13407599925994873}\n{\"turn\": 5, \"ttft_s\": 0.1255660057067871}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20261008-iphone16pro-qwen3.5-0.8b-run2.jsonl"
+},
+"tps-05": {
+"value": "59 to 72 tok/s",
+"what": "Decode rate on the nine turns that don't pay for kernel warm-up. The one left out is the first turn of the first benchmark run after install, 35.9 tok/s.",
+"source": "dev-20261008-iphone16pro-qwen3.5-0.8b-run1.jsonl and run2",
+"raw": "{\"turn\": 1, \"decode_tps\": 35.89403081959771}\n{\"turn\": 2, \"decode_tps\": 66.8404500019406}\n{\"turn\": 3, \"decode_tps\": 68.82814945946753}\n{\"turn\": 4, \"decode_tps\": 71.72042085768365}\n{\"turn\": 5, \"decode_tps\": 69.95265240688089}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20261008-iphone16pro-qwen3.5-0.8b-run1.jsonl"
+},
+"peak-05": {
+"value": "981 MiB",
+"what": "Peak physical footprint over the five turns.",
+"source": "dev-20261008-iphone16pro-qwen3.5-0.8b-run2.jsonl",
+"raw": "{\"event\": \"done\", \"peak_footprint_mb\": 980.8457489013672}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20261008-iphone16pro-qwen3.5-0.8b-run2.jsonl"
+},
+"boot-05": {
+"value": "0.30 to 0.63 s",
+"what": "Engine boot plus a warm-up turn, in the first benchmark run after install and then a warm relaunch.",
+"source": "dev-20261008-iphone16pro-qwen3.5-0.8b-run1.jsonl and run2",
+"raw": "{\"event\": \"warmup\", \"seconds\": 0.301069974899292, \"footprint_mb\": 654.2985763549805}\n{\"event\": \"warmup\", \"seconds\": 0.6312899589538574, \"footprint_mb\": 653.9704513549805}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20261008-iphone16pro-qwen3.5-0.8b-run1.jsonl"
+},
+"prefill-05": {
+"value": "54 to 101 tokens",
+"what": "New tokens read per turn across both runs.",
+"source": "dev-20261008-iphone16pro-qwen3.5-0.8b-run2.jsonl",
+"raw": "{\"turn\": 1, \"prompt\": 87, \"reused\": 0, \"prefill\": 87}\n{\"turn\": 2, \"prompt\": 130, \"reused\": 64, \"prefill\": 66}\n{\"turn\": 3, \"prompt\": 174, \"reused\": 96, \"prefill\": 78}\n{\"turn\": 4, \"prompt\": 214, \"reused\": 160, \"prefill\": 54}\n{\"turn\": 5, \"prompt\": 277, \"reused\": 192, \"prefill\": 85}",
+"link": "https://github.com/aarushkandukoori/pie/blob/ios-voice-05/ios/PieVoice/results/dev-20261008-iphone16pro-qwen3.5-0.8b-run2.jsonl"
+},
+"tour": {
+"value": "76 tok/s",
+"what": "One reply on the phone during the app's self-recorded tour, the one in the screenshot.",
+"source": "tour.jsonl, pulled from the phone, October 8, 2026",
+"raw": "{\"name\": \"03-answered\", \"notes\": \"generated 68, reused 0 of 111 prompt tokens, ttft 0.24 s, 75.6 tok/s\", \"step\": 3, \"t\": 3.3}"
+},
+"soak": {
+"value": "0",
+"what": "Voice mode ran six rounds with nobody talking and counted any time it took its own reply for the user. echo_heard is 0 too, so no echo even reached the filter in this run.",
+"source": "soak.jsonl, pulled from the phone",
+"raw": "{\"soak\": \"summary\", \"rounds\": 6, \"rounds_run\": 6, \"seconds\": 76.73, \"echo_heard\": 0, \"echo_taken\": 0, \"extra_user_message_count\": 0, \"stopped_reply_count\": 0, \"result\": \"pass, no echo reached the detector\"}"
+},
+"stop": {
+"value": "4 to 38 ms",
+"what": "From calling stop to the playback channel going quiet. That's the channel. The sound you hear takes a little longer to die away in the room.",
+"source": "ac.jsonl, the audio checks after the fix, pulled from the phone",
+"raw": "{\"date\": \"2026-10-09T04:54:44Z\", \"stop_to_channel_quiet\": 0.004}\n{\"date\": \"2026-10-09T04:55:39Z\", \"stop_to_channel_quiet\": 0.007}\n{\"date\": \"2026-10-09T05:00:55Z\", \"stop_to_channel_quiet\": 0.038}"
+},
+"cancel": {
+"value": "under a millisecond",
+"what": "From cancelling a long reply to the engine handing the turn back. The log has millisecond resolution and reads 0.",
+"source": "ac.jsonl, the audio checks after the fix, pulled from the phone",
+"raw": "{\"date\": \"2026-10-09T04:54:44Z\", \"long_cancel_to_return\": 0}\n{\"date\": \"2026-10-09T04:55:39Z\", \"long_cancel_to_return\": 0}\n{\"date\": \"2026-10-09T05:00:55Z\", \"long_cancel_to_return\": 0}"
+},
+"next-reply": {
+"value": "0.20 to 0.29 s",
+"what": "From a cancelled reply to the next reply's first token.",
+"source": "ac.jsonl, the audio checks after the fix, pulled from the phone",
+"raw": "{\"date\": \"2026-10-09T04:54:44Z\", \"next_first_event\": 0.257}\n{\"date\": \"2026-10-09T04:55:39Z\", \"next_first_event\": 0.204}\n{\"date\": \"2026-10-09T05:00:55Z\", \"next_first_event\": 0.293}"
+},
+"tab-38": {
+"value": "38 ms",
+"what": "Per token in a Chrome 152 tab on my MacBook (M4), October 15, 2026, Pie main 281c92a2d.",
+"source": "FINDINGS.md in pie-decoder",
+"raw": "In a tab - boot in 2.0 s from the origin cache, first token in about 0.2 s, then 38 ms per token (26 tokens/s).",
+"link": "https://github.com/aarushkandukoori/pie-decoder/blob/main/FINDINGS.md"
+},
+"pipes": {
+"value": "17.9 s",
+"what": "First-visit WebGPU pipeline builds: 10.6 s for the prefill pass (47 pipelines) plus 7.3 s for my decode pass (49 pipelines). 28 ms on a repeat visit.",
+"source": "FINDINGS.md in pie-decoder",
+"raw": "First visit - the prefill pass took 10.6 s to build (47 pipelines) and my decode pass 7.3 s (49 pipelines).\nRepeat visits - 28 ms (the browser's cache).",
+"link": "https://github.com/aarushkandukoori/pie-decoder/blob/main/FINDINGS.md"
+},
+"pipes-06": {
+"value": "about 14.5 s",
+"what": "How much longer the first two passes take on a fresh first visit than on a later one: 14.55 s plus 0.31 s, against 0.27 s plus 0.11 s. MacBook Pro (M4, 24 GB), Chrome 156, foreground tab, @pie-project/server-web 0.6.2, October 30, 2026.",
+"source": "My own measurement page, on the real engine",
+"raw": "{\"first_visit\": {\"prompt_pass_ms\": 14554.47, \"first_decode_ms\": 314.62}, \"later\": {\"prompt_pass_ms\": 267.635001, \"first_decode_ms\": 109.235}}"
+},
+"tab-06": {
+"value": "16 to 23 ms",
+"what": "Mean milliseconds per token over a reply, once warm, across four page loads. MacBook Pro (M4, 24 GB), Chrome 156, foreground tab, @pie-project/server-web 0.6.2, October 30, 2026.",
+"source": "My own measurement page, on the real engine",
+"raw": "{\"ms_per_token\": [16.07, 16.65, 22.57, 16.17]}"
+},
+"boot-cache": {
+"value": "1.0 s",
+"what": "Engine boot with the model already saved in the browser's private file system. A load before the save finished still took 60 s from the network. MacBook Pro (M4, 24 GB), Chrome 156, foreground tab, @pie-project/server-web 0.6.2, October 30, 2026.",
+"source": "My own measurement page, on the real engine",
+"raw": "{\"boot_s_from_cache\": 1.03, \"boot_s_before_the_save_finished\": 59.7, \"boot_s_first_visit\": 75.9}"
+},
+"fork-06": {
+"value": "16 to 22 ms",
+"what": "From forking the prompt's KV to the model having read one new token, median of 8, on prompts of 230, 515 and 800 tokens across three page loads. The fork call by itself returns in about 0.01 ms, since a fork is just bookkeeping, but this is what a reader waits for. MacBook Pro (M4, 24 GB), Chrome 156, foreground tab, @pie-project/server-web 0.6.2, October 30, 2026.",
+"source": "My own measurement page, on the real engine",
+"raw": "{\"prompt_tokens\": 230, \"fork_plus_token_ms\": 15.8, \"read_from_scratch_ms\": 372.9}\n{\"prompt_tokens\": 515, \"fork_plus_token_ms\": 20.1, \"read_from_scratch_ms\": 693.5}\n{\"prompt_tokens\": 800, \"fork_plus_token_ms\": 18.2, \"read_from_scratch_ms\": 1056.1}\n{\"prompt_tokens\": 230, \"fork_plus_token_ms\": 19.2, \"read_from_scratch_ms\": 417.4}\n{\"prompt_tokens\": 515, \"fork_plus_token_ms\": 19.4, \"read_from_scratch_ms\": 731.4}\n{\"prompt_tokens\": 800, \"fork_plus_token_ms\": 21.6, \"read_from_scratch_ms\": 1112.6}\n{\"prompt_tokens\": 230, \"fork_plus_token_ms\": 18.3, \"read_from_scratch_ms\": 389.9}\n{\"prompt_tokens\": 515, \"fork_plus_token_ms\": 19.8, \"read_from_scratch_ms\": 726.7}\n{\"prompt_tokens\": 800, \"fork_plus_token_ms\": 19.7, \"read_from_scratch_ms\": 1124.2}"
+},
+"read-800": {
+"value": "about 1.1 s",
+"what": "Reading an 800-token prompt into an empty KV, across three page loads. MacBook Pro (M4, 24 GB), Chrome 156, foreground tab, @pie-project/server-web 0.6.2, October 30, 2026.",
+"source": "My own measurement page, on the real engine",
+"raw": "{\"read_from_scratch_ms\": [1056.1, 1112.6, 1124.2]}"
+},
+"download": {
+"value": "about 1.3 GB",
+"what": "The model is 648 MB, and a first visit fetches it twice: range requests to boot, then the whole file again to save it. My Mac's network counter moved 1,445 MB in the first three minutes of a fresh visit, other traffic included.",
+"source": "worker.mjs in @pie-project/server-web 0.6.2, and netstat",
+"raw": "async function fillCache(href, dir, key, size) {\n  const res = await fetch(href);\n  ..."
+}
+}
