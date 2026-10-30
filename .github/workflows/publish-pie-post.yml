@@ -1,0 +1,96 @@
+# One-time job: on Monday November 2, 2026 it merges the post's branch into
+# main and deploys the site. It checks the merged site first, so a broken build
+# can never reach main. Harmless afterwards: the merge step sees it's done, and
+# the year guard stops it next November.
+name: "Publish scheduled post"
+
+on:
+  schedule:
+    - cron: "17 12 2 11 *" # 7:17 AM EST
+    - cron: "47 12 2 11 *" # 7:47 AM EST
+    - cron: "17 13 2 11 *" # 8:17 AM EST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Test everything without touching main"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      BRANCH: pie-on-my-iphone
+      DRY_RUN: ${{ inputs.dry_run || 'false' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Only in 2026
+        run: |
+          if [ "$(date -u +%Y)" != "2026" ]; then echo "Past its date." ; exit 1; fi
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Merge the post into a local copy of main
+        id: merge
+        run: |
+          git fetch origin "$BRANCH"
+          git config user.name "Aarush Kandukoori"
+          git config user.email "66923736+aarushkandukoori@users.noreply.github.com"
+          if git merge-base --is-ancestor "origin/$BRANCH" HEAD; then
+            echo "Already merged."
+            echo "done=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git merge --no-ff "origin/$BRANCH" -m "post: My iPhone Has 8 GB. The Engine Asked for 4 TB."
+
+      - name: Setup Ruby
+        if: steps.merge.outputs.done != 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+
+      - name: Build the merged site, the same way the deploy does
+        if: steps.merge.outputs.done != 'true'
+        run: bundle exec jekyll b -d _site
+        env:
+          JEKYLL_ENV: "production"
+
+      - name: Test the merged site, the same way the deploy does
+        if: steps.merge.outputs.done != 'true'
+        run: |
+          bundle exec htmlproofer _site \
+            --disable-external \
+            --ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/"
+
+      - name: Push to main and deploy
+        if: steps.merge.outputs.done != 'true'
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            # Proves the token can push and dispatch, without changing main.
+            git push origin HEAD:refs/heads/publish-dry-run
+            git push origin --delete publish-dry-run
+            gh workflow run pages-deploy.yml --ref main
+            echo "Dry run passed."
+            exit 0
+          fi
+          # The status board pushes to main every few minutes, so retry on a race.
+          for attempt in 1 2 3 4 5 6; do
+            if git push origin HEAD:main; then
+              gh workflow run pages-deploy.yml --ref main
+              echo "Published."
+              exit 0
+            fi
+            sleep 20
+            git reset --hard HEAD~1
+            git pull --ff-only origin main
+            git merge --no-ff "origin/$BRANCH" -m "post: My iPhone Has 8 GB. The Engine Asked for 4 TB."
+          done
+          echo "Could not push." ; exit 1
