@@ -1,0 +1,61 @@
+{
+"page": 32,
+"warm_mb": 653.9704513549805,
+"turns": [
+{
+"turn": 1,
+"utterance": "What is one good reason to run a language model on a phone instead of in the cloud?",
+"ttft_s": 0.11355292797088623,
+"decode_tps": 62.27752677158767,
+"prompt": 87,
+"reused": 0,
+"prefill": 87,
+"generated": 26,
+"footprint_mb": 722.3455429077148
+},
+{
+"turn": 2,
+"utterance": "Can you say that more simply?",
+"ttft_s": 0.12432301044464111,
+"decode_tps": 58.69894828177372,
+"prompt": 130,
+"reused": 64,
+"prefill": 66,
+"generated": 25,
+"footprint_mb": 786.220588684082
+},
+{
+"turn": 3,
+"utterance": "What is the hardest part of doing that?",
+"ttft_s": 0.15021800994873047,
+"decode_tps": 60.12722710145125,
+"prompt": 174,
+"reused": 96,
+"prefill": 78,
+"generated": 20,
+"footprint_mb": 857.6112594604492
+},
+{
+"turn": 4,
+"utterance": "Give me one example of where that would matter.",
+"ttft_s": 0.13407599925994873,
+"decode_tps": 67.33584701885994,
+"prompt": 214,
+"reused": 160,
+"prefill": 54,
+"generated": 44,
+"footprint_mb": 916.423828125
+},
+{
+"turn": 5,
+"utterance": "How would you explain that to someone new?",
+"ttft_s": 0.1255660057067871,
+"decode_tps": 66.7407858961513,
+"prompt": 277,
+"reused": 192,
+"prefill": 85,
+"generated": 50,
+"footprint_mb": 980.8457489013672
+}
+]
+}

@@ -1,0 +1,386 @@
+//! token-tree: reads a prompt once, then writes as many different replies as
+//! the page asks for, each one a fork of the prompt's KV.
+//!
+//! For every token the page gets one JSON message: the token picked, how sure
+//! the model was, the entropy of the whole distribution and the top candidates.
+//! While a reply is being written the page can change the temperature or stop
+//! it, and the text so far is kept.
+//!
+//! Page to inferlet:
+//!   {"grow": {"path": [ids], "max_tokens": 48, "temperature": 0.0, "seed": 1}}
+//!   {"temperature": 0.8}
+//!   {"stop": true}
+//!   {"quit": true}
+//! `path` is the reply so far, ending in the candidate the reader clicked.
+
+use inferlet::chat;
+use inferlet::eta::prelude::*;
+use inferlet::session;
+use serde::{Deserialize, Serialize};
+use std::future::Future;
+use std::pin::Pin;
+use std::task::Poll;
+
+/// Candidates read out per token: what the page shows, and the pool a sampled
+/// token is drawn from.
+const TOP_K: u32 = 10;
+
+#[derive(Deserialize)]
+struct Input {
+    prompt: String,
+    /// Wrap the prompt as a chat turn (true) or continue it as raw text.
+    #[serde(default = "yes")]
+    chat: bool,
+}
+
+fn yes() -> bool {
+    true
+}
+
+#[derive(Deserialize)]
+struct Grow {
+    #[serde(default)]
+    path: Vec<u32>,
+    #[serde(default = "default_max_tokens")]
+    max_tokens: usize,
+    #[serde(default)]
+    temperature: f32,
+    #[serde(default = "default_seed")]
+    seed: u64,
+}
+
+fn default_max_tokens() -> usize {
+    48
+}
+fn default_seed() -> u64 {
+    1
+}
+
+#[derive(Deserialize)]
+struct Command {
+    grow: Option<Grow>,
+    temperature: Option<f32>,
+    stop: Option<bool>,
+    quit: Option<bool>,
+}
+
+#[derive(Serialize)]
+struct Candidate {
+    id: u32,
+    text: String,
+    p: f32,
+}
+
+#[derive(Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+enum Message {
+    /// The prompt is in the KV.
+    Root {
+        model: String,
+        prompt_tokens: u32,
+        /// Prompt tokens the runtime already held from an earlier run.
+        cached_tokens: u32,
+        ms: f64,
+    },
+    /// A fork of the prompt is ready and has read its path.
+    Forked {
+        reused: u32,
+        reread: u32,
+        ms: f64,
+    },
+    Token {
+        step: usize,
+        id: u32,
+        text: String,
+        p: f32,
+        /// 0 = the most likely candidate.
+        rank: usize,
+        entropy: f32,
+        temperature: f32,
+        ms: f64,
+        /// The model's end-of-turn token: the reply stops here.
+        end: bool,
+        top: Vec<Candidate>,
+    },
+    Done {
+        /// "stop" (the page asked), "eos" (the model ended its turn) or "max_tokens".
+        reason: &'static str,
+        tokens: usize,
+        /// Mean time per token once decoding is warm.
+        ms_per_token: f64,
+    },
+}
+
+fn send(message: &Message) {
+    if let Ok(json) = inferlet::serde_json::to_string(message) {
+        session::send(&json);
+    }
+}
+
+/// What one forward pass says about the next token.
+#[derive(Clone)]
+struct Row {
+    ids: Vec<i32>,
+    probs: Vec<f32>,
+    entropy: f32,
+}
+
+/// The page's next message, kept pending across tokens so a control message is
+/// seen while a forward pass is in flight.
+type Inbox = Pin<Box<dyn Future<Output = Option<String>>>>;
+
+/// What the page can change while a reply is being written.
+struct Controls {
+    temperature: f32,
+    stop: bool,
+}
+
+/// Reads `tokens` into `ws` and returns what the model says comes next.
+/// One forward pass per call: the epilogue runs on the device and publishes
+/// the top candidates and the entropy of the last row.
+async fn forward(
+    ws: &WorkingSet,
+    pipe: &Pipeline,
+    tokens: &[u32],
+    inbox: &mut Inbox,
+    controls: &mut Controls,
+) -> Result<Row> {
+    let vocab = model::output_vocab_size();
+    let ids = Channel::new([TOP_K], dtype::i32);
+    let probs = Channel::new([TOP_K], dtype::f32);
+    let ent = Channel::new([1], dtype::f32);
+
+    let input: Vec<i32> = tokens.iter().map(|&t| t as i32).collect();
+    let toks = Channel::from(&input[..]);
+    let indptr = Channel::from([0u32, tokens.len() as u32]);
+    let fwd = ForwardPass::new();
+    fwd.embed(&toks, &indptr)?;
+    fwd.state(&[ws], StateGeometry::folding())?;
+    fwd.epilogue(move || {
+        let p = softmax(reshape(intrinsics::output(0, "logits"), [vocab]));
+        let (top_p, top_i) = top_k(&p, TOP_K);
+        ids.put(cast(&top_i, dtype::i32));
+        probs.put(&top_p);
+        ent.put(reshape(entropy(&p), [1]));
+    });
+    fwd.submit(pipe).context("submit")?;
+
+    let mut row = Box::pin(async move {
+        Ok::<Row, String>(Row {
+            ids: ids.take_host::<Vec<i32>>().await?,
+            probs: probs.take_host::<Vec<f32>>().await?,
+            entropy: ent.take_host::<Vec<f32>>().await?[0],
+        })
+    });
+    loop {
+        // Poll the inbox first, then the pass. Neither is dropped while
+        // pending, so neither a message nor a readout is lost.
+        let woke = std::future::poll_fn(|cx| {
+            if let Poll::Ready(message) = inbox.as_mut().poll(cx) {
+                return Poll::Ready(Err(message));
+            }
+            row.as_mut().poll(cx).map(Ok)
+        })
+        .await;
+        match woke {
+            Ok(row) => return row,
+            Err(message) => {
+                if let Some(message) = message {
+                    apply(&message, controls);
+                }
+                *inbox = Box::pin(session::receive());
+            }
+        }
+    }
+}
+
+fn apply(message: &str, controls: &mut Controls) {
+    let Ok(command) = inferlet::serde_json::from_str::<Command>(message) else {
+        return;
+    };
+    if let Some(t) = command.temperature {
+        controls.temperature = t.clamp(0.0, 2.0);
+    }
+    if command.stop == Some(true) {
+        controls.stop = true;
+    }
+}
+
+/// splitmix64: a small seeded generator, so a run is repeatable.
+fn next_f64(state: &mut u64) -> f64 {
+    *state = state.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    let mut z = *state;
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^= z >> 31;
+    (z >> 11) as f64 / (1u64 << 53) as f64
+}
+
+/// Index into the row's candidates. Temperature 0 is the most likely one;
+/// otherwise a draw restricted to the top `TOP_K`, which is each probability
+/// raised to 1/T and renormalised.
+fn pick(row: &Row, temperature: f32, rng: &mut u64) -> usize {
+    if temperature <= 0.0 {
+        return 0; // top_k returns them most likely first
+    }
+    let weights: Vec<f64> = row.probs.iter().map(|&p| (p as f64).powf(1.0 / temperature as f64)).collect();
+    let total: f64 = weights.iter().sum();
+    if total <= 0.0 || !total.is_finite() {
+        return 0;
+    }
+    let mut r = next_f64(rng) * total;
+    for (i, w) in weights.iter().enumerate() {
+        if r < *w {
+            return i;
+        }
+        r -= w;
+    }
+    weights.len() - 1
+}
+
+fn piece(id: u32) -> String {
+    model::decode(&[id]).unwrap_or_default()
+}
+
+fn ms_since(start_ns: u64) -> f64 {
+    inferlet::monotonic_now_ns().saturating_sub(start_ns) as f64 / 1e6
+}
+
+/// Writes one reply on a fork of the prompt.
+async fn grow(
+    root: &WorkingSet,
+    root_row: &Row,
+    prompt_tokens: u32,
+    pipe: &Pipeline,
+    job: Grow,
+    inbox: &mut Inbox,
+) -> Result<()> {
+    let stop_tokens = chat::stop_tokens();
+    let mut controls = Controls {
+        temperature: job.temperature.clamp(0.0, 2.0),
+        stop: false,
+    };
+    let mut rng = job.seed;
+
+    let started = inferlet::monotonic_now_ns();
+    let ws = root.fork(pipe)?;
+    // An empty path starts from what the prompt said comes next.
+    let mut row = if job.path.is_empty() {
+        root_row.clone()
+    } else {
+        forward(&ws, pipe, &job.path, inbox, &mut controls).await?
+    };
+    send(&Message::Forked {
+        reused: prompt_tokens,
+        reread: job.path.len() as u32,
+        ms: ms_since(started),
+    });
+
+    let mut generated = 0usize;
+    let mut reason = "max_tokens";
+    let mut last = inferlet::monotonic_now_ns();
+    let (mut warm_ms, mut warm_count) = (0.0, 0usize);
+    loop {
+        if controls.stop {
+            reason = "stop";
+            break;
+        }
+        let ms = ms_since(last);
+        if generated >= 2 {
+            warm_ms += ms;
+            warm_count += 1;
+        }
+        let chosen = pick(&row, controls.temperature, &mut rng);
+        let id = row.ids[chosen] as u32;
+        let end = stop_tokens.contains(&id);
+        send(&Message::Token {
+            step: job.path.len() + generated,
+            id,
+            text: piece(id),
+            p: row.probs[chosen],
+            rank: chosen,
+            entropy: row.entropy,
+            temperature: controls.temperature,
+            ms,
+            end,
+            top: row
+                .ids
+                .iter()
+                .zip(&row.probs)
+                .map(|(&id, &p)| Candidate {
+                    id: id as u32,
+                    text: piece(id as u32),
+                    p,
+                })
+                .collect(),
+        });
+        last = inferlet::monotonic_now_ns();
+        if end {
+            reason = "eos";
+            break;
+        }
+        generated += 1;
+        if generated >= job.max_tokens {
+            break;
+        }
+        row = forward(&ws, pipe, &[id], inbox, &mut controls).await?;
+    }
+    send(&Message::Done {
+        reason,
+        tokens: generated,
+        ms_per_token: if warm_count > 0 { warm_ms / warm_count as f64 } else { 0.0 },
+    });
+    Ok(())
+}
+
+#[inferlet::main]
+async fn main(input: Input) -> Result<String> {
+    let prompt: Vec<u32> = if input.chat {
+        let mut p = chat::first_user(&input.prompt);
+        p.extend(chat::cue_without_thinking());
+        p
+    } else {
+        let mut p = chat::prefix();
+        p.extend(model::encode(&input.prompt));
+        p
+    };
+    if prompt.is_empty() {
+        return Err("empty prompt".into());
+    }
+
+    let pipe = Pipeline::new();
+    let root = WorkingSet::new();
+    let mut inbox: Inbox = Box::pin(session::receive());
+    let mut idle = Controls {
+        temperature: 0.0,
+        stop: false,
+    };
+
+    let started = inferlet::monotonic_now_ns();
+    let root_row = forward(&root, &pipe, &prompt, &mut inbox, &mut idle).await?;
+    send(&Message::Root {
+        model: model::name(),
+        prompt_tokens: prompt.len() as u32,
+        cached_tokens: root.cached_tokens(),
+        ms: ms_since(started),
+    });
+
+    // Wait for the page: each command is one more reply on a fresh fork.
+    loop {
+        let Some(message) = inbox.as_mut().await else {
+            break;
+        };
+        inbox = Box::pin(session::receive());
+        let Ok(command) = inferlet::serde_json::from_str::<Command>(&message) else {
+            continue;
+        };
+        if command.quit == Some(true) {
+            break;
+        }
+        if let Some(job) = command.grow {
+            grow(&root, &root_row, prompt.len() as u32, &pipe, job, &mut inbox).await?;
+        }
+    }
+    pipe.close();
+    Ok(String::new())
+}

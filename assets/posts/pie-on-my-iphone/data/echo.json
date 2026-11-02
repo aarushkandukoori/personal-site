@@ -1,0 +1,50 @@
+[
+{
+"role": "user",
+"text": "How are you?",
+"voice": true
+},
+{
+"role": "assistant",
+"text": "I'm doing well, thank you for asking! 😊 I can help with that or other tasks anytime. What's on your mind today?",
+"voice": true,
+"reused": 96,
+"prompt": 270
+},
+{
+"role": "user",
+"text": "How is Lynn Zhang doing?",
+"voice": true
+},
+{
+"role": "assistant",
+"text": "I don't have any personal experiences or feelings, so I can't say how Lynn Zhang is doing. I'm an AI assistant designed to help with tasks, but I don't know who you are or what we might be discussing right now.",
+"voice": true,
+"reused": 256,
+"prompt": 336
+},
+{
+"role": "user",
+"text": "Don't have your personal list",
+"voice": true
+},
+{
+"role": "assistant",
+"text": "I don't have personal lists, but I can help with questions about Lynn Zhang if you tell me what you need to know! 😊",
+"voice": true,
+"reused": 320,
+"prompt": 422
+},
+{
+"role": "user",
+"text": "I don't have personal",
+"voice": true
+},
+{
+"role": "assistant",
+"text": "I don't have personal experiences or feelings, so I can't say how you are doing. However, if you need something about Lynn Zhang, I can help with that! 😊",
+"voice": true,
+"reused": 384,
+"prompt": 486
+}
+]
