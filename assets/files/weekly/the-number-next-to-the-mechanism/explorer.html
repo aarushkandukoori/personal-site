@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What the Second Block Costs</title>
+<style>
+  :root {
+    --bg: #f8f5fc; --surface: #ffffff; --ink: #1c1328; --muted: #6f6380;
+    --accent: #7048e8; --accent2: #e64980; --accent3: #1098ad;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #130f1b; --surface: #1b1526; --ink: #f1ecf8; --muted: #a297b3;
+      --accent: #9775fa; --accent2: #f783ac; --accent3: #3bc9db;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; overflow: hidden; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  #app { padding: 14px 12px; }
+  h2 { margin: 0; font-size: 18px; line-height: 1.25; }
+  .lede { margin: 3px 0 10px; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+  .main { display: flex; flex-wrap: wrap; gap: 14px 20px; justify-content: center; align-items: center; }
+  #wrap { flex: 1 1 300px; max-width: 380px; min-width: 0; width: 100%; }
+  canvas { display: block; touch-action: none; }
+  .panel { flex: 1 1 280px; min-width: 0; }
+  .eq { font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .eq small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); margin-top: 1px; }
+  .slider-row { margin: 8px 0 6px; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  input[type=range] { width: 100%; margin: 3px 0 0; accent-color: var(--accent); }
+  .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  button {
+    font: inherit; font-size: 12.5px; color: var(--ink); background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--muted) 40%, transparent);
+    border-radius: 999px; padding: 5px 10px; cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button b { color: var(--accent); }
+  .lane { margin-bottom: 7px; }
+  .lane-head {
+    display: flex; justify-content: space-between; gap: 8px; font-size: 12px;
+    color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .lane-head span:last-child { color: var(--ink); font-weight: 600; text-align: right; }
+  .track {
+    position: relative; height: 10px; margin-top: 3px; border-radius: 5px; overflow: hidden;
+    background: color-mix(in srgb, var(--muted) 18%, transparent);
+  }
+  .fill { height: 100%; border-radius: 5px; }
+  #fillS { background: var(--accent3); }
+  #fillP { background: var(--accent); }
+  #fillP.behind { background: var(--accent2); }
+  #notch { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); opacity: .55; }
+  #verdict { margin: 8px 0 0; font-size: 13px; line-height: 1.4; min-height: 4.2em; }
+  #tally { margin: 2px 0 0; font-size: 12px; line-height: 1.35; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .foot { margin: 10px 0 0; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+  <h2>What the second block costs</h2>
+  <p class="lede">Drag the knob around the dial (or tap A or B). The tokens-per-pass gain stays fixed at 42.3%. Only the bill changes.</p>
+  <div class="main">
+    <div id="wrap"><canvas id="dial" role="img" aria-label="Dial setting the relative cost of a paired-block pass from 1.0x to 2.0x, with two rings of dots showing passes completing"></canvas></div>
+    <div class="panel">
+      <div class="eq"><span id="eq"></span><small>toy model: throughput multiple = 1.423 ÷ relative cost</small></div>
+      <div class="slider-row">
+        <label for="cost"><span>Cost of a paired pass (relative to one block)</span><span id="costLabel"></span></label>
+        <input id="cost" type="range" min="1" max="2" step="0.001" value="1">
+      </div>
+      <div class="btns">
+        <button id="goA" type="button"><b>A</b> Paper's 16.3%</button>
+        <button id="goB" type="button"><b>B</b> Break-even</button>
+        <button id="reset" type="button">Reset and replay</button>
+      </div>
+      <div class="lane">
+        <div class="lane-head"><span>One block: 15.64 tokens per pass</span><span id="rateS">15.6</span></div>
+        <div class="track"><div class="fill" id="fillS"></div></div>
+      </div>
+      <div class="lane">
+        <div class="lane-head"><span>Paired: 22.25 tokens per pass ÷ cost</span><span id="rateP"></span></div>
+        <div class="track"><div class="fill" id="fillP"></div><div id="notch"></div></div>
+      </div>
+      <p id="verdict"></p>
+      <p id="tally"></p>
+    </div>
+  </div>
+  <p class="foot">Toy model with cost as the only variable. From One Block Ahead, averaged over ten benchmarks: tokens per pass 15.64 to 22.25 (+42.3%), throughput +16.3%. The 1.22x and 1.42x marks are the post's arithmetic on those averages, not numbers from the abstract. The 16 and 22 dots are illustrative stand-ins for tokens.</p>
+</div>
+<script>
+(function () {
+  var GAIN = 1.423, MARK_A = 1.423 / 1.163, MARK_B = 1.423;
+  var TOK_S = 15.64, TOK_P = 22.25;
+  var FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+
+  var canvas = document.getElementById('dial');
+  var ctx = canvas.getContext('2d');
+  var wrap = document.getElementById('wrap');
+  var slider = document.getElementById('cost');
+  var el = {};
+  ['eq', 'costLabel', 'rateP', 'fillS', 'fillP', 'notch', 'verdict', 'tally'].forEach(function (id) {
+    el[id] = document.getElementById(id);
+  });
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var size = 0, dpr = 1, col = {};
+
+  // State: target cost T, eased display cost c.
+  var T = 1, c = 1;
+  var dragging = false, sliderActive = false, demo = null, counting = false;
+  var phaseS = 0, phaseP = 0, flashS = 0, flashP = 0;
+  var tallyS = 0, tallyP = 0, pulses = [];
+  var breath = 0;
+
+  function readColors() {
+    var s = getComputedStyle(document.documentElement);
+    ['bg', 'surface', 'ink', 'muted', 'accent', 'accent2', 'accent3'].forEach(function (k) {
+      col[k] = s.getPropertyValue('--' + k).trim();
+    });
+  }
+  readColors();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+
+  function resize() {
+    size = wrap.clientWidth;
+    dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+  }
+  new ResizeObserver(resize).observe(wrap);
+  resize();
+
+  // Dial geometry: 270 degrees, starting lower-left and running clockwise.
+  function angleOf(v) { return (135 + (v - 1) * 270) * Math.PI / 180; }
+
+  function snap(v) {
+    if (Math.abs(v - MARK_A) < 0.012) return MARK_A;
+    if (Math.abs(v - MARK_B) < 0.012) return MARK_B;
+    return v;
+  }
+
+  function commit() {
+    phaseS = 0; phaseP = 0; tallyS = 0; tallyP = 0; counting = true;
+  }
+
+  function stopDemo() { demo = null; }
+
+  function startDemo() {
+    counting = false; tallyS = 0; tallyP = 0;
+    if (reduced) { T = MARK_A; commit(); return; }
+    demo = {
+      t: 0,
+      segs: [
+        { from: T, to: 1, dur: 0.6 },
+        { from: 1, to: MARK_B, dur: 1.7 },
+        { from: MARK_B, to: MARK_B, dur: 0.6 },
+        { from: MARK_B, to: 2, dur: 1.2 },
+        { from: 2, to: 2, dur: 0.35 },
+        { from: 2, to: MARK_A, dur: 1.8 }
+      ]
+    };
+  }
+
+  function stepDemo(dt) {
+    demo.t += dt;
+    var t = demo.t;
+    for (var i = 0; i < demo.segs.length; i++) {
+      var s = demo.segs[i];
+      if (t <= s.dur) {
+        var u = t / s.dur, e = u * u * (3 - 2 * u);
+        T = s.from + (s.to - s.from) * e;
+        return;
+      }
+      t -= s.dur;
+    }
+    T = MARK_A;
+    demo = null;
+    commit();
+  }
+
+  // Pointer handling: drag the knob or tap anywhere on the outer band.
+  function pointAt(e) {
+    var r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left - size / 2, y: e.clientY - r.top - size / 2 };
+  }
+
+  function setFromPoint(p, guard) {
+    var deg = Math.atan2(p.y, p.x) * 180 / Math.PI;
+    var rel = (deg - 135 + 720) % 360;
+    if (rel > 270) rel = (rel - 270 < 360 - rel) ? 270 : 0;
+    var v = 1 + rel / 270;
+    if (guard && Math.abs(v - T) > 0.6) return;
+    T = snap(v);
+  }
+
+  canvas.addEventListener('pointerdown', function (e) {
+    var p = pointAt(e);
+    if (Math.hypot(p.x, p.y) < size * 0.28) return;
+    stopDemo();
+    dragging = true;
+    counting = false;
+    canvas.setPointerCapture(e.pointerId);
+    setFromPoint(p, false);
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    var p = pointAt(e);
+    if (dragging) { setFromPoint(p, true); canvas.style.cursor = 'grabbing'; }
+    else canvas.style.cursor = Math.hypot(p.x, p.y) >= size * 0.28 ? 'grab' : 'default';
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    canvas.style.cursor = 'grab';
+    commit();
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  slider.addEventListener('input', function () {
+    stopDemo();
+    sliderActive = true;
+    counting = false;
+    T = snap(parseFloat(slider.value));
+  });
+  slider.addEventListener('change', function () { sliderActive = false; commit(); });
+
+  document.getElementById('goA').addEventListener('click', function () { stopDemo(); T = MARK_A; commit(); });
+  document.getElementById('goB').addEventListener('click', function () { stopDemo(); T = MARK_B; commit(); });
+  document.getElementById('reset').addEventListener('click', function () { stopDemo(); startDemo(); });
+
+  function pct(v) {
+    var n = (v - 1) * 100;
+    if (Math.abs(n) < 0.05) return '0.0%';
+    return (n > 0 ? '+' : '') + n.toFixed(1) + '%';
+  }
+
+  function verdictFor(v) {
+    var g = (GAIN / v - 1) * 100;
+    if (Math.abs(v - MARK_A) < 0.004) {
+      return "This is the paper's reported 16.3%. In the toy model it implies a paired pass costs about 22% more, which is the post's arithmetic and not a number in the abstract.";
+    }
+    if (Math.abs(v - MARK_B) <= 0.005) {
+      return 'Break-even in the toy model: the extra cost cancels the entire 42.3%. The authors derive their own break-even criterion; this is the simple version.';
+    }
+    if (v <= 1.03) {
+      return 'Paired pass at about the same cost as one block: nearly all of the 42.3% tokens-per-pass gain reaches throughput. This is the ceiling.';
+    }
+    if (v < MARK_B) {
+      return 'Still ahead: the cost has eaten ' + (42.3 - g).toFixed(1) + ' of the 42.3 percentage points.';
+    }
+    return 'Past break-even: more tokens per pass, but ' + Math.abs(g).toFixed(1) + '% lower throughput than decoding one block at a time.';
+  }
+
+  var lastText = {};
+  function setText(node, key, text) {
+    if (lastText[key] !== text) { node.textContent = text; lastText[key] = text; }
+  }
+
+  function updatePanel() {
+    var mult = GAIN / c;
+    setText(el.eq, 'eq', '1.423 ÷ ' + c.toFixed(2) + ' = ' + mult.toFixed(3) + 'x throughput (' + pct(mult) + ')');
+    setText(el.costLabel, 'cost', c.toFixed(2) + 'x');
+    var rateP = TOK_P / c;
+    setText(el.rateP, 'rateP', rateP.toFixed(1));
+    el.fillS.style.width = (TOK_S / TOK_P * 100) + '%';
+    el.fillP.style.width = (rateP / TOK_P * 100) + '%';
+    el.notch.style.left = (TOK_S / TOK_P * 100) + '%';
+    el.fillP.classList.toggle('behind', rateP < TOK_S);
+    setText(el.verdict, 'verdict', verdictFor(T));
+    var tally = counting
+      ? 'Toy tally since the dial settled: one block ' + Math.round(tallyS) + ' tokens, paired ' + Math.round(tallyP) + ' tokens.'
+      : 'Toy tally starts when the dial settles.';
+    setText(el.tally, 'tally', tally);
+    if (!sliderActive) {
+      var sv = T.toFixed(3);
+      if (slider.value !== sv) slider.value = sv;
+    }
+    slider.setAttribute('aria-valuetext', T.toFixed(2) + 'x cost, ' + pct(GAIN / T) + ' throughput');
+  }
+
+  // Drawing helpers.
+  function arc(r, a0, a1, width, color, alpha) {
+    ctx.beginPath();
+    ctx.arc(0, 0, r, a0, a1);
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function disc(x, y, r, color, alpha) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  function font(px, weight) {
+    ctx.font = (weight || 400) + ' ' + px + 'px ' + FONT;
+  }
+
+  function drawTrack() {
+    var R = size * 0.44, w = Math.max(9, size * 0.032);
+    var a0 = angleOf(1), aB = angleOf(MARK_B), a1 = angleOf(2), ac = angleOf(c);
+    arc(R, a0, aB, w, col.accent, 0.2);
+    arc(R, aB, a1, w, col.accent2, 0.2);
+    arc(R, a0, Math.min(ac, aB), w, col.accent, 1);
+    if (ac > aB) arc(R, aB, ac, w, col.accent2, 1);
+
+    // Tick marks every 0.1x, just inside the track.
+    ctx.strokeStyle = col.muted;
+    ctx.lineWidth = 1;
+    for (var i = 0; i <= 10; i++) {
+      var a = angleOf(1 + i / 10);
+      var r0 = R - w / 2 - 2, r1 = r0 - (i % 5 === 0 ? 6 : 3);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
+      ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+      ctx.stroke();
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = col.muted;
+    font(Math.max(10, size * 0.032));
+    var lx = R * Math.cos(Math.PI / 4), ly = R * Math.sin(Math.PI / 4) + size * 0.07;
+    ctx.fillText('1.0x', -lx, ly);
+    ctx.fillText('2.0x', lx, ly);
+    ctx.fillText('1.5x', 0, -(R - w / 2 - 16));
+    ctx.fillText('paired-pass cost', 0, size * 0.46);
+
+    badge(MARK_A, 'A', R);
+    badge(MARK_B, 'B', R);
+
+    // Knob, with a breathing halo while idle.
+    var kr = Math.max(12, size * 0.036);
+    var kx = Math.cos(ac) * R, ky = Math.sin(ac) * R;
+    var behind = c > MARK_B + 0.0005;
+    var kc = behind ? col.accent2 : col.accent;
+    var halo = dragging ? 7 : 3 + 2.5 * (0.5 + 0.5 * Math.sin(breath));
+    disc(kx, ky, kr + halo, kc, 0.22);
+    disc(kx, ky, kr, kc, 1);
+    disc(kx, ky, kr - 3.5, col.surface, 1);
+    var near = Math.abs(c - MARK_A) < 0.006 ? 'A' : Math.abs(c - MARK_B) < 0.006 ? 'B' : '';
+    if (near) {
+      ctx.fillStyle = col.ink;
+      font(Math.max(10, size * 0.03), 700);
+      ctx.fillText(near, kx, ky + 0.5);
+    }
+  }
+
+  function badge(v, letter, R) {
+    var a = angleOf(v), r = Math.max(9, size * 0.028);
+    var x = Math.cos(a) * R, y = Math.sin(a) * R;
+    disc(x, y, r, col.surface, 1);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = col.ink;
+    ctx.stroke();
+    ctx.fillStyle = col.ink;
+    font(Math.max(10, size * 0.029), 700);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, x, y + 0.5);
+  }
+
+  function drawRing(R, N, phase, flash, colorAt) {
+    var top = -Math.PI / 2, head = top + phase * Math.PI * 2;
+    arc(R, top, head, Math.max(2, size * 0.01), colorAt(0), 0.22);
+    for (var i = 0; i < N; i++) {
+      var a = top + (i / N) * Math.PI * 2;
+      var lit = i / N < phase;
+      var rd = lit ? size * 0.012 * (1 + flash * 0.6) : size * 0.0075 * (1 + flash * 0.8);
+      disc(Math.cos(a) * R, Math.sin(a) * R, Math.max(1.5, rd), lit || flash > 0.05 ? colorAt(i) : col.muted, lit ? 1 : 0.4 + flash * 0.6);
+    }
+    disc(Math.cos(head) * R, Math.sin(head) * R, Math.max(3, size * 0.015), colorAt(0), 1);
+  }
+
+  function drawCenter() {
+    var mult = GAIN / c;
+    var color = Math.abs(mult - 1) < 0.0005 ? col.ink : (mult > 1 ? col.accent : col.accent2);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = col.muted;
+    font(Math.max(10, size * 0.033));
+    ctx.fillText('at ' + c.toFixed(2) + 'x cost', 0, -size * 0.09);
+    ctx.fillStyle = color;
+    font(size * 0.105, 750);
+    ctx.fillText(pct(mult), 0, -size * 0.012);
+    ctx.fillStyle = col.muted;
+    font(Math.max(10, size * 0.033));
+    ctx.fillText('throughput gain', 0, size * 0.07);
+    ctx.fillText('(toy model)', 0, size * 0.112);
+  }
+
+  var lastNow = 0;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastNow) / 1000 || 0);
+    lastNow = now;
+
+    if (demo) stepDemo(dt);
+    c += (T - c) * (1 - Math.exp(-dt * (dragging || sliderActive ? 18 : 8)));
+    if (Math.abs(T - c) < 0.0004) c = T;
+    breath += dt * (reduced ? 0.6 : 2.4);
+
+    // One-block pass takes 1 unit of time; a paired pass takes c units.
+    var speed = reduced ? 0.15 : 0.62;
+    phaseS += dt * speed;
+    phaseP += dt * speed / c;
+    if (phaseS >= 1) {
+      phaseS -= 1;
+      flashS = 1;
+      if (counting) tallyS += TOK_S;
+      if (!reduced) pulses.push({ r: size * 0.245, life: 1, color: col.accent3 });
+    }
+    if (phaseP >= 1) {
+      phaseP -= 1;
+      flashP = 1;
+      if (counting) tallyP += TOK_P;
+      if (!reduced) pulses.push({ r: size * 0.335, life: 1, color: col.accent });
+    }
+    flashS = Math.max(0, flashS - dt * 2.6);
+    flashP = Math.max(0, flashP - dt * 2.6);
+
+    updatePanel();
+
+    if (size > 0) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+      ctx.translate(size / 2, size / 2);
+      ctx.lineCap = 'butt';
+
+      for (var i = pulses.length - 1; i >= 0; i--) {
+        var p = pulses[i];
+        p.life -= dt * 2;
+        if (p.life <= 0) { pulses.splice(i, 1); continue; }
+        arc(p.r + (1 - p.life) * size * 0.05, 0, Math.PI * 2, 2, p.color, p.life * 0.45);
+      }
+
+      drawTrack();
+      drawRing(size * 0.335, 22, phaseP, flashP, function (k) { return k < 16 ? col.accent : col.accent2; });
+      drawRing(size * 0.245, 16, phaseS, flashS, function () { return col.accent3; });
+      drawCenter();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  startDemo();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+</script>
+</body>
+</html>
