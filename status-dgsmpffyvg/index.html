@@ -1129,8 +1129,10 @@ function sentenceFor(a, totals, doctor){
   if(st === "pending_today") return pendingSentence(a);
   if(st === "held"){
     var h = a.hold || {};
+    /* "since Oct 9", not the raw ISO stamp (2026-11-06) */
+    var since = h.since ? parseISO(h.since) : null;
     return "Paused on purpose" + (h.reason ? " — " + String(h.reason) : "") +
-           (h.since ? " (since " + String(h.since) + ")" : "");
+           (since ? " (since " + monthDay(since) + ")" : "");
   }
   if(st === "issue"){
     /* the doctor tile explains itself: lead with its first issue string */
