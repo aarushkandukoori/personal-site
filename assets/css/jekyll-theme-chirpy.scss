@@ -637,6 +637,12 @@ a {
   border-color: var(--btn-border-color) !important;
 }
 
+/* Pagination: the current page needs to look different from the other page numbers. */
+.page-item.active .page-link {
+  background-color: var(--btn-paginator-hover-color) !important;
+  font-weight: 600;
+}
+
 .post-tag:hover,
 .category:hover,
 .btn:hover {
@@ -671,7 +677,7 @@ a {
   background: var(--card-hover-bg);
 }
 
-.post-content iframe.interactive-embed {
+.content iframe.interactive-embed {
   display: block;
   width: 100%;
   margin: 1.25rem 0 0.5rem;
@@ -682,18 +688,18 @@ a {
   overflow: hidden;
 }
 
-.post-content iframe.interactive-embed--landscape {
+.content iframe.interactive-embed--landscape {
   height: 700px;
   min-height: 700px;
 }
 
-.post-content iframe.interactive-embed--rate {
+.content iframe.interactive-embed--rate {
   height: 720px;
   min-height: 720px;
 }
 
 @media (max-width: 820px) {
-  .post-content iframe.interactive-embed--landscape {
+  .content iframe.interactive-embed--landscape {
     height: 1320px;
     min-height: 1320px;
   }
@@ -769,21 +775,21 @@ a {
   box-shadow: 0 12px 32px rgb(0 0 0 / 6%);
 }
 
-.post-content iframe.interactive-embed--sigmoid {
+.content iframe.interactive-embed--sigmoid {
   height: 520px;
   min-height: 520px;
 }
 
-.post-content iframe.interactive-embed--logistic {
+.content iframe.interactive-embed--logistic {
   height: 720px;
   min-height: 720px;
 }
 
 /* 2026-11-07 site audit fixes */
 
-/* Heading "#" anchors: on touch screens they can't be hovered, and when a heading
-   fills its line the anchor wraps onto a line of its own and leaves a gap. */
-@media (hover: none) {
+/* Heading "#" anchors: on touch screens they can't be hovered, and on narrow screens a
+   heading that fills its line pushes the anchor onto a line of its own and leaves a gap. */
+@media (hover: none), (max-width: 576px) {
   .content :is(h2, h3, h4, h5) > a.anchor {
     display: none;
   }
@@ -819,6 +825,27 @@ a {
   a.img-link {
     break-inside: avoid;
     margin-bottom: 1rem;
+  }
+}
+
+/* Resume: phone browsers can't show a PDF inside an iframe, so phones get an image
+   of the page instead (tap to zoom). Larger screens keep the PDF viewer. */
+.resume-viewer > a.popup {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .resume-viewer {
+    iframe {
+      display: none;
+    }
+
+    > a.popup {
+      display: block;
+      border: 1px solid var(--main-border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
   }
 }
 

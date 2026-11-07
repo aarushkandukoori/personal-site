@@ -1,5 +1,5 @@
 ---
-title: "Confessions of Stever Dorm's President"
+title: "Confessions of Stever House's President"
 date: 2026-05-22 09:00:00 -0400
 categories: [Writing, Campus Life]
 tags: [cmu, stever, leadership, community]
@@ -27,11 +27,11 @@ As president, I've become a walking, talking backup plan. My screen time report 
 
 There are, I've realized, a few unwritten laws of Stever House:
 
-## At least one laundry machine will be "broken"
+### At least one laundry machine will be "broken"
 
 "Broken" is in quotes because half the time it's just someone who forgot to press start and then rage-posted in the group chat about it. The other half, a mysterious puddle appears and we all quietly pretend it's just water.
 
-## The fire alarm will go off when you least deserve it
+### The fire alarm will go off when you least deserve it
 
 Not during your free afternoon. Not when you're bored. No, it will go off:
 
@@ -41,9 +41,11 @@ Not during your free afternoon. Not when you're bored. No, it will go off:
 
 As president, you're suddenly The Responsible One, standing outside in the cold, doing a headcount like you didn't also sprint out of your room wearing one sock and clutching your laptop like a newborn child.
 
-## There will always be one mysterious smell on your floor
+### There will always be one mysterious smell on your floor
 
 Is it food? Is it science? Is it someone's forgotten bio lab sample? We may never know. We just open a window and move on.
+
+### The part that actually matters
 
 People assume being house president is all about big things, planning events, talking to housing, making sure the whiteboard in the lounge doesn't permanently say "midterm doom :)." And yeah, there's plenty of that.
 
@@ -56,6 +58,8 @@ Like the first-year who quietly asks if they can study in your room because thei
 You start to notice patterns. The kid who always jokes around a bit too much when grades come back. The one who always shows up to events early "just to help set up" because they don't want to walk in alone. The pair of strangers who become best friends after a Mario Kart race gets way too competitive.
 
 Somewhere between the broken printers and the elevator small talk, you start to realize: this isn't just a dorm. It's a very weird, very chaotic, very earnest little ecosystem.
+
+### From strangers to a community
 
 My favorite part of being Stever President, though, is watching the house slowly transform from a random assortment of strangers into something that actually feels like a community.
 
@@ -89,7 +93,9 @@ Being Stever House President definitely wasn't on my CMU bingo card. But I'm gla
 Because in a place where it's easy to get lost in p-sets, projects, and internship panic, Stever forces you to remember something simple: at the end of the day, college isn't just about what you're learning in class.
 
 It's about the people yelling in the hallway at midnight because someone burned popcorn.
+
 It's about the friendships formed over broken washing machines and group study misery.
+
 It's about that feeling, when you walk into the lobby after a long day, and realize:
 
 Oh. These are my people. This is home.

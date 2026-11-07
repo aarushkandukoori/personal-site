@@ -16,7 +16,7 @@ The SSIO recipe has two stages. First comes what the authors call integration se
 
 Why would a student beat its teacher? My guess (and it is only a guess, the abstract does not explain the mechanism) is that the teacher's errors are noisy and window-specific, while the student shares parameters across every window it sees. A network that has to explain thousands of noisy short integrations at once is pushed toward the structure they have in common, and that common structure is closer to the true velocity than any single integration. It is the same intuition behind averaging many noisy measurements to get a better estimate.
 
-Drag the slider below to see how the teacher's error behaves as its window gets longer, and why many short windows might be easier to learn from than one long one.
+Drag left or right on the plots below to see how the teacher's error behaves as its window gets longer, and why many short windows might be easier to learn from than one long one.
 
 <iframe
   class="interactive-embed"
@@ -39,7 +39,7 @@ So they flip the question. Instead of asking what the return of a state-action p
   <figcaption>The top row is the usual discriminative critic: the state-action pair goes in, one return number comes out, and only the return supervises it. The bottom row is the generative critic, which asks how likely the logged action is under each possible return (toy bars), so the action itself becomes a label. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2610.22497v1">Generative Value Classifier</a>. Illustrative schematic of the discriminative vs generative critic contrast described in Swerdlow, Dong and Finn's Generative Value Classifier; the bars are a toy, not results.)</figcaption>
 </figure>
 
-This reminds me of the generative versus discriminative classifier story from intro ML, where you model p(x | y) instead of p(y | x). The usual lesson there is that generative models can be more data-efficient but pay for it when their assumptions are wrong. I would want to know whether the same tradeoff shows up here. If the logged actions come from a messy mix of behavior policies, does conditioning on them help the critic or confuse it? The abstract does not say, and that is the first thing I would look for in the full paper.
+This reminds me of the generative versus discriminative classifier story from intro ML, where you model p(x \| y) instead of p(y \| x). The usual lesson there is that generative models can be more data-efficient but pay for it when their assumptions are wrong. I would want to know whether the same tradeoff shows up here. If the logged actions come from a messy mix of behavior policies, does conditioning on them help the critic or confuse it? The abstract does not say, and that is the first thing I would look for in the full paper.
 
 ### One model, different amounts of evidence
 
@@ -64,9 +64,9 @@ Recht keeps me honest about what that buys you, though. Better prediction from c
 ### Sources
 
 - [Import AI 476: Creativity and RSI; worse-than-China open weight models; AI goes to space](https://importai.substack.com/p/import-ai-476-creativity-and-rsi) (Jack Clark)
-- [Generative Value Classifier](https://arxiv.org/abs/2610.22497v1) (Chelsea Finn)
+- [Generative Value Classifier](https://arxiv.org/abs/2610.22497v1) (Alexander Swerdlow et al.)
 - [Predictive Models Are Never Clean](https://www.argmin.net/p/predictive-models-are-never-clean) (Ben Recht)
-- [Into the LidarVerse: A Real-Time Unified LiDAR World Model Across Tasks and Sensors](https://arxiv.org/abs/2610.19201v1) (Sanja Fidler)
-- [SSIO: Self-Supervised Inertial Odometry](https://arxiv.org/abs/2610.25988v2) (Pieter Abbeel)
+- [Into the LidarVerse: A Real-Time Unified LiDAR World Model Across Tasks and Sensors](https://arxiv.org/abs/2610.19201v1) (Henry Che et al.)
+- [SSIO: Self-Supervised Inertial Odometry](https://arxiv.org/abs/2610.25988v2) (Yuheng Qiu et al.)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

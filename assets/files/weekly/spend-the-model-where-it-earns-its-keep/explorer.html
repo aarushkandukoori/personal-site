@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Where the gaze spends its tokens</title>
   <link rel="stylesheet" href="../../gradient-descent/interactive.css">
+  <style>
+    .canvas-wrap canvas { max-width: 340px; margin: 0 auto; }
+  </style>
 </head>
 <body>
   <div class="shell">
@@ -12,74 +15,134 @@
       <div class="card-header">
         <div>
           <h2 class="card-title">Where the gaze spends its tokens</h2>
-          <p class="card-subtitle">Shift the attention mass toward the center and watch how little is left for the periphery.</p>
+          <p class="card-subtitle">A toy foveal budget of 100 visual tokens over a 10&nbsp;x&nbsp;10 grid of image patches. Narrow the fovea and watch how little is left for the periphery.</p>
         </div>
       </div>
-      
-      <div class="canvas-wrap"><canvas id="canvas" width="760" height="320"></canvas></div>
+
+      <div class="canvas-wrap"><canvas id="canvas" width="680" height="680" role="img" aria-label="Grid of 10 by 10 image patches shaded by how many tokens each one gets"></canvas></div>
       <div class="controls">
         <div class="control">
-          <div class="control-top"><span class="control-label">Query position</span><span class="control-value" id="qi">3</span></div>
-          <input id="q" type="range" min="0" max="7" step="1" value="3">
+          <div class="control-top"><span class="control-label">Fovea width</span><span class="control-value" id="sv">1.5 patches</span></div>
+          <input id="s" type="range" min="0.8" max="10" step="0.1" value="1.5" aria-label="Fovea width in patches">
         </div>
         <div class="metric-row">
-          <div class="metric"><span class="metric-label">focus key</span><span class="metric-value" id="fk">-</span></div>
-          <div class="metric"><span class="metric-label">max weight</span><span class="metric-value" id="mw">-</span></div>
+          <div class="metric"><span class="metric-label">central 4 patches</span><span class="metric-value" id="c4">-</span></div>
+          <div class="metric"><span class="metric-label">edge ring, 36 patches</span><span class="metric-value" id="ring">-</span></div>
+          <div class="metric"><span class="metric-label">busiest patch</span><span class="metric-value" id="mx">-</span></div>
         </div>
-        <p class="hint">Causal mask: a query can only attend to keys at or before its position.</p>
+        <p class="hint">Each patch's share falls off with its distance from the fixation point (+) at the center. An even spread would give the central 4 patches 4% and the edge ring 36%. The falloff is made up for illustration and is not taken from the EyeRobot paper.</p>
       </div>
-    
     </section>
   </div>
   <script>
 
-    // Fixed toy scores
-    const scores = [
-      [2,0,0,0,0,0,0,0],
-      [1,2,0,0,0,0,0,0],
-      [0.5,1,2.2,0,0,0,0,0],
-      [0.2,0.6,1.1,2.4,0,0,0,0],
-      [0.1,0.3,0.7,1.2,2.1,0,0,0],
-      [0.1,0.2,0.4,0.8,1.3,2.0,0,0],
-      [0.05,0.1,0.3,0.5,0.9,1.4,2.3,0],
-      [0.05,0.1,0.2,0.4,0.7,1.1,1.6,2.5]
-    ];
+    // Toy model: a fixed budget of 100 tokens split over a 10x10 patch grid.
+    // Each patch gets a share proportional to exp(-d^2 / (2 * width^2)),
+    // where d is its distance (in patches) from the fixation point at the grid center.
+    const N = 10, BUDGET = 100;
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    const input = document.getElementById("q");
-    function softmax(row, q) {
-      const vals = row.slice(0, q+1);
-      const m = Math.max(...vals);
-      const ex = vals.map(v => Math.exp(v-m));
-      const s = ex.reduce((a,b)=>a+b,0);
-      const out = Array(row.length).fill(0);
-      ex.forEach((v,i)=> out[i]=v/s);
-      return out;
-    }
-    function draw(q) {
-      document.getElementById("qi").textContent = String(q);
-      const w = softmax(scores[q], q);
-      let best=0; for (let i=1;i<w.length;i++) if (w[i]>w[best]) best=i;
-      document.getElementById("fk").textContent = String(best);
-      document.getElementById("mw").textContent = w[best].toFixed(3);
-      const W=canvas.width,H=canvas.height,pad=50;
-      ctx.clearRect(0,0,W,H);
-      const cell = Math.min((W-pad*2)/8, (H-pad*2)/8);
-      for (let i=0;i<8;i++){
-        const ww = softmax(scores[i], i);
-        for (let j=0;j<8;j++){
-          const v = ww[j];
-          const g = Math.floor(255*(1-v));
-          ctx.fillStyle = "rgb("+g+","+g+","+g+")";
-          ctx.fillRect(pad+j*cell, pad+i*cell, cell-2, cell-2);
+    const input = document.getElementById("s");
+
+    function allocate(width) {
+      const weights = [];
+      let total = 0;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const dx = c + 0.5 - N / 2, dy = r + 0.5 - N / 2;
+          const w = Math.exp(-(dx * dx + dy * dy) / (2 * width * width));
+          weights.push(w);
+          total += w;
         }
       }
-      ctx.strokeStyle = "#e11"; ctx.lineWidth=2;
-      ctx.strokeRect(pad, pad+q*cell, cell*8-2, cell-2);
+      return weights.map(w => BUDGET * w / total);
     }
-    input.addEventListener("input", () => draw(parseInt(input.value,10)));
-    draw(parseInt(input.value,10));
-    
+
+    function cssVar(name, fallback) {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    }
+
+    function draw(width) {
+      const tokens = allocate(width);
+      const S = canvas.width, pad = 16, gap = 4;
+      const cell = (S - 2 * pad) / N;
+      const ink = cssVar("--text", "#111111");
+      ctx.clearRect(0, 0, S, S);
+      ctx.font = "600 22px Inter, system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      let center4 = 0, edge = 0, busiest = 0;
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const t = tokens[r * N + c];
+          if ((r === 4 || r === 5) && (c === 4 || c === 5)) center4 += t;
+          if (r === 0 || r === N - 1 || c === 0 || c === N - 1) edge += t;
+          busiest = Math.max(busiest, t);
+
+          // Shade on a fixed scale (8 tokens = full color) so an even spread looks pale.
+          const a = Math.min(1, t / 8);
+          const x = pad + c * cell + gap / 2, y = pad + r * cell + gap / 2;
+          ctx.fillStyle = "rgba(31, 119, 180, " + (0.05 + 0.95 * a).toFixed(3) + ")";
+          ctx.fillRect(x, y, cell - gap, cell - gap);
+          if (t >= 0.05) {
+            ctx.fillStyle = a > 0.45 ? "#ffffff" : ink;
+            ctx.fillText(t.toFixed(1), x + (cell - gap) / 2, y + (cell - gap) / 2 + 1);
+          }
+        }
+      }
+
+      // Fixation point: where the two eyes are looking, at the grid center.
+      const m = S / 2, arm = cell * 0.32;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(m - arm, m); ctx.lineTo(m + arm, m); ctx.moveTo(m, m - arm); ctx.lineTo(m, m + arm); ctx.stroke();
+      ctx.strokeStyle = "#d62728"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(m - arm, m); ctx.lineTo(m + arm, m); ctx.moveTo(m, m - arm); ctx.lineTo(m, m + arm); ctx.stroke();
+
+      document.getElementById("c4").textContent = center4.toFixed(1) + "%";
+      document.getElementById("ring").textContent = edge.toFixed(1) + "%";
+      document.getElementById("mx").textContent = busiest.toFixed(1) + " tokens";
+    }
+
+    function update() {
+      const width = parseFloat(input.value);
+      document.getElementById("sv").textContent = width.toFixed(1) + " patches";
+      draw(width);
+      reportHeight();
+    }
+
+    // On load, start from a nearly even spread and narrow down to 1.5 patches,
+    // unless the reader prefers reduced motion. Touching the slider stops it.
+    let anim = null;
+    input.addEventListener("input", () => {
+      if (anim) { cancelAnimationFrame(anim); anim = null; }
+      update();
+    });
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      update();
+    } else {
+      const from = 8, to = 1.5, duration = 1400;
+      let start = null;
+      input.value = from;
+      update();
+      const step = (now) => {
+        if (start === null) start = now;
+        const k = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - k, 3);
+        input.value = (from + (to - from) * eased).toFixed(1);
+        update();
+        anim = k < 1 ? requestAnimationFrame(step) : null;
+      };
+      anim = requestAnimationFrame(step);
+    }
+    if (window.matchMedia) {
+      const dark = window.matchMedia("(prefers-color-scheme: dark)");
+      if (dark.addEventListener) dark.addEventListener("change", update);
+    }
+
 
     function reportHeight() {
       const height = Math.ceil(document.documentElement.getBoundingClientRect().height);

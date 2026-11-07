@@ -76,7 +76,7 @@
 
   <rect class="bg" width="900" height="464" rx="16"/>
   <text class="title" x="28" y="38">One attention row, one fixed budget</text>
-  <text class="m" x="28" y="60">A target token's attention always sums to the same total. Schematic, illustrative proportions, not measured values.</text>
+  <text class="m" x="28" y="60">A target token's attention always sums to the same total.</text>
 
   <!-- Left panel -->
   <rect class="surface" x="24" y="76" width="417" height="348" rx="12"/>
@@ -159,5 +159,5 @@
   <text class="verdict" x="667" y="384" text-anchor="middle">Editing collapses, model reproduces its input</text>
   <text class="s" x="667" y="404" text-anchor="middle">Applied in only a few early blocks</text>
 
-  <text class="s" x="28" y="447">Schematic of the idea in Copying As Defense (arXiv 2610.35566). Each chip is a share of one row, not a measurement.</text>
+  <text class="s" x="28" y="447">Schematic of the idea in Copying As Defense (arXiv 2610.35566). Each chip is a share of one row.</text>
 </svg>

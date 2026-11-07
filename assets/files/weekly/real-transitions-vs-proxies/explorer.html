@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How much should you trust an imagined rollout?</title>
+  <title>How picky should the checker be?</title>
   <link rel="stylesheet" href="../../gradient-descent/interactive.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <h2 class="card-title">How much should you trust an imagined rollout?</h2>
-          <p class="card-subtitle">Slide the trust threshold and watch what you gain in coverage versus what you lose in reliability.</p>
+          <h2 class="card-title">How picky should the checker be?</h2>
+          <p class="card-subtitle">A toy filter for generated candidates, with made-up curves. Raise the bar and what you accept gets more reliable, but fewer of the good candidates make it through.</p>
         </div>
       </div>
       
@@ -26,14 +26,14 @@
           <div class="metric"><span class="metric-label">recall</span><span class="metric-value" id="rc">-</span></div>
           <div class="metric"><span class="metric-label">F1</span><span class="metric-value" id="f1">-</span></div>
         </div>
-        <p class="hint">Raise the threshold: fewer false positives, more missed positives. There is no free lunch.</p>
+        <p class="hint">Precision is the share of accepted candidates that are actually good. Recall is the share of good candidates that get accepted. There is no free lunch.</p>
       </div>
     
     </section>
   </div>
   <script>
 
-    // Approximate curves with smooth formulas for a stable demo
+    // Made-up straight-line curves for a toy classifier (not data from any paper).
     function metrics(t) {
       const recall = Math.max(0, Math.min(1, 1.15 - 1.05*t));
       const precision = Math.max(0.05, Math.min(1, 0.35 + 0.7*t));

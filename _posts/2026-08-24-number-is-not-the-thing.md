@@ -6,7 +6,7 @@ tags: [metrics, benchmarks, robotics, evaluation, ai-policy, forecasting, ai-res
 math: true
 ---
 
-I spent most of this week reading things that had nothing to do with each other, and then could not stop noticing the same shape in all of them. A robot arm gets a speed number. A language model gets a benchmark score. A public gets a chart summarizing its concerns. A forecast gets an error metric. In every case, someone built a number that stands in for a thing, and then the number started doing the deciding.
+The things I read this week had nothing to do with each other, and then I could not stop noticing the same shape in all of them. A robot arm gets a speed number. A language model gets a benchmark score. A public gets a chart summarizing its concerns. A forecast gets an error metric. In every case, someone built a number that stands in for a thing, and then the number started doing the deciding.
 
 Ben Recht put words on the thing I had been circling in [From legibility to participation](https://www.argmin.net/p/from-legibility-to-participation). His argument is about policy, but the mechanism is familiar to anyone who has ever tuned a loss function. To make a messy situation legible to a decision maker, you quantify it. Because the quantification followed a transparent procedure, it feels objective. Objectivity buys authority, and authority becomes power. He calls this the quantification trap, and what I appreciate is that he does not pretend the alternative is to stop measuring. He is explicit that quantification buys intersubjectivity: anyone can trace the path from evidence to summary statistic, which is exactly why it works as a shared language. His worry is hegemony, not existence.
 
@@ -23,8 +23,8 @@ Simon Willison's note on the [FT story about Anthropic's model adoption](https:/
 I do not think this makes benchmarks worthless. I think it makes them one metric among several that are all measuring different things and being reported as if they measured one thing. Capability, cost, latency, and availability are separate axes, and the leaderboard collapses them to one.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/number-is-not-the-thing/figure.svg' %}" alt="Notice that the curve falls fastest right where adoption climbs. The cheapest usable model, not the best one, is what most of that spending buys." width="720" loading="lazy">
-  <figcaption>Notice that the curve falls fastest right where adoption climbs. The cheapest usable model, not the best one, is what most of that spending buys. (Figure generated for this post, inspired by <a href="https://simonwillison.net/2026/Aug/23/anthropics-best-ai-model-struggles-to-attract-users-as-cheaper-t/">Anthropic’s best AI model struggles to attract users as cheaper tools thrive</a>. Ramp billing data via Simon Willison shows Anthropic spend concentrated in older, cheaper models rather than the newest frontier release.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/number-is-not-the-thing/figure.svg' %}" alt="Log-scale line chart titled 'How fast nearly free inference arrives under different annual declines'. Relative price per million tokens from 2023 to 2028 for three steady rates of decline: 9x, 50x (labeled median) and 200x a year. All three lines start near 30 in 2023 and fall in straight lines, ending about 5, 8.5 and 11.5 orders of magnitude lower in 2028." width="720" loading="lazy">
+  <figcaption>A toy projection of relative price per million tokens from 2023 to 2028, if prices fall at a steady 9x, 50x or 200x a year. On the log scale each rate is a straight line, and even the slowest one ends almost five orders of magnitude lower. Cost is its own axis, and it moves fast. (Figure generated for this post, inspired by <a href="https://simonwillison.net/2026/Aug/23/anthropics-best-ai-model-struggles-to-attract-users-as-cheaper-t/">Anthropic’s best AI model struggles to attract users as cheaper tools thrive</a>. The Ramp spending numbers are in the text above; this chart only shows prices.)</figcaption>
 </figure>
 
 ### The robotics version is refreshingly honest
@@ -33,12 +33,12 @@ Which brings me to my favorite paper of the week, because it does the thing I wi
 
 So they train a lightweight RL layer that predicts the optimal execution speed per action, on top of a frozen base policy, with no new data collection. They report more than 2.4x speedup on pouring, throwing, and picking, while preserving an adequate success rate. That word, adequate, is doing real work, and I respect that they wrote it plainly. They also note that the empirical relationship between execution speed and task success was underexplored, which is a quiet admission that the field had two metrics and mostly reported one.
 
-This is the honest version of the quantification problem. Not "here is our number," but "here are two numbers in tension, and here is the frontier between them." You cannot read that as a single ranking. You have to pick a point on it, and picking is a judgment call that no chart makes for you.
+This is the honest version of the quantification problem: "here are two numbers in tension, and here is the frontier between them." You cannot read that as a single ranking. You have to pick a point on it, and picking is a judgment call that no chart makes for you.
 
 <iframe
   class="interactive-embed"
   src="/assets/files/weekly/number-is-not-the-thing/explorer.html"
-  title="Speed versus success"
+  title="One threshold, two numbers"
   width="100%"
   scrolling="no"
   loading="lazy"
@@ -48,8 +48,7 @@ This is the honest version of the quantification problem. Not "here is our numbe
 
 The CMU MLD post on [forking sequences and multi-horizon forecast ensembling](https://blog.ml.cmu.edu/2026/08/10/forking-sequences-part-ii-multi-horizon-forecast-ensembling-with-reduced-volatility/) fits here in a way I did not expect. Ensembling across horizons reduces volatility, which sounds like pure win, until you ask what volatility was telling you. Some of that variance is noise you want gone. Some of it is genuine disagreement about the future, and smoothing it away produces a forecast that looks more confident than the evidence supports.
 
-> **Key Point:**
-> Reducing the variance of a reported number and reducing the uncertainty of the underlying situation are completely different operations. The chart cannot tell you which one happened.
+> **Key Point** - Reducing the variance of a reported number and reducing the uncertainty of the underlying situation are completely different operations. The chart cannot tell you which one happened.
 
 ### What I am taking away
 
@@ -60,9 +59,9 @@ The thing I want to try this fall is embarrassingly simple. For the next project
 ### Sources
 
 - [From legibility to participation](https://www.argmin.net/p/from-legibility-to-participation) (Ben Recht)
-- [SpeedTuning: Speeding Up Policy Execution with Lightweight Reinforcement Learning](https://arxiv.org/abs/2608.09138v2) (Chelsea Finn)
+- [SpeedTuning: Speeding Up Policy Execution with Lightweight Reinforcement Learning](https://arxiv.org/abs/2608.09138v2) (David D. Yuan et al.)
 - [GLM-5.3: How Chinese labs keep stride with the frontier](https://www.interconnects.ai/p/glm-53-how-chinese-labs-keep-stride) (Nathan Lambert)
 - [Anthropic’s best AI model struggles to attract users as cheaper tools thrive](https://simonwillison.net/2026/Aug/23/anthropics-best-ai-model-struggles-to-attract-users-as-cheaper-t/) (Simon Willison)
-- [Forking-Sequences , Part II: Multi-Horizon Forecast Ensembling with Reduced Volatility](https://blog.ml.cmu.edu/2026/08/10/forking-sequences-part-ii-multi-horizon-forecast-ensembling-with-reduced-volatility/) (CMU MLD)
+- [Forking-Sequences, Part II: Multi-Horizon Forecast Ensembling with Reduced Volatility](https://blog.ml.cmu.edu/2026/08/10/forking-sequences-part-ii-multi-horizon-forecast-ensembling-with-reduced-volatility/) (CMU MLD)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

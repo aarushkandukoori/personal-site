@@ -24,17 +24,17 @@
       <div class="controls">
         <div class="control">
           <div class="control-top">
-            <span class="control-label">Learning rate η</span>
+            <span class="control-label">Learning rate <span class="sym">η</span></span>
             <span class="control-value" id="eta-display">0.10</span>
           </div>
-          <input id="eta" type="range" min="0.01" max="0.45" step="0.01" value="0.10">
+          <input id="eta" type="range" min="0.01" max="0.5" step="0.01" value="0.10">
         </div>
 
         <div class="chip-row" id="presets">
-          <button class="chip" data-eta="0.05">Slow · 0.05</button>
+          <button class="chip" data-eta="0.01">Slow · 0.01</button>
           <button class="chip is-active" data-eta="0.10">Balanced · 0.10</button>
-          <button class="chip" data-eta="0.22">Fast · 0.22</button>
-          <button class="chip" data-eta="0.38">Unstable · 0.38</button>
+          <button class="chip" data-eta="0.34">Overshoot · 0.34</button>
+          <button class="chip" data-eta="0.42">Unstable · 0.42</button>
         </div>
 
         <div class="toolbar">
@@ -43,14 +43,14 @@
         </div>
 
         <div class="status-bar">
-          <p class="status-text" id="status">Start far from the minimum and watch how step size changes the path.</p>
+          <p class="status-text" id="status">Every run starts from the same point. Pick a learning rate and press <strong>Run descent</strong>.</p>
           <div class="metric-row">
             <div class="metric">
               <span class="metric-label">Step</span>
               <span class="metric-value" id="step-count">0</span>
             </div>
             <div class="metric">
-              <span class="metric-label">w</span>
+              <span class="metric-label"><span class="sym">w</span></span>
               <span class="metric-value" id="w-metric">-2.80</span>
             </div>
             <div class="metric">
@@ -85,19 +85,38 @@
     const lossMetric = document.getElementById("loss-metric");
     const presetRow = document.getElementById("presets");
 
-    const xMin = -3.5;
-    const xMax = 3.5;
+    // The bowl: loss(w) = 0.5 * CURVE * (w - OPT)^2 + 0.2.
+    // Each step multiplies the distance to the minimum by (1 - eta * CURVE), so
+    // eta < 0.2 slides straight down, 0.2 < eta < 0.4 overshoots and zig-zags,
+    // and eta > 0.4 overshoots farther every step until the loss blows up.
+    const CURVE = 5;
     const OPT = 1;
-    let w = -2.8;
+    const START_W = -2.8;
+    const HALF_WIDTH = 6;
+    const xMin = OPT - HALF_WIDTH;
+    const xMax = OPT + HALF_WIDTH;
+    const MAX_STEPS = 40;
+
+    let w = START_W;
     let path = [w];
-    let animating = false;
+    let runId = 0;
 
     function loss(x) {
-      return 0.5 * (x - OPT) * (x - OPT) + 0.2;
+      return 0.5 * CURVE * (x - OPT) * (x - OPT) + 0.2;
     }
 
     function grad(x) {
-      return x - OPT;
+      return CURVE * (x - OPT);
+    }
+
+    // Top of the chart, with a little headroom above the rim of the bowl.
+    const yMax = loss(xMax) * 1.06;
+
+    // The canvas draws at a fixed 760px and is shrunk to fit the page. This is how
+    // much it is shrunk, so labels and markers can stay readable on a phone.
+    function uiScale() {
+      const shown = canvas.getBoundingClientRect().width;
+      return shown > 0 ? Math.max(1, canvas.width / shown) : 1;
     }
 
     function plotter() {
@@ -109,13 +128,15 @@
         H,
         pad,
         toX: (x) => pad + ((x - xMin) / (xMax - xMin)) * (W - pad * 2),
-        toY: (y) => H - pad - (y / 6.2) * (H - pad * 2),
+        toY: (y) => H - pad - (y / yMax) * (H - pad * 2),
       };
     }
 
     function draw() {
       const plot = plotter();
       const { W, H, pad, toX, toY } = plot;
+      const ui = uiScale();
+      const mk = Math.sqrt(ui);
       ctx.clearRect(0, 0, W, H);
       ctx.fillStyle = colors.canvas();
       ctx.fillRect(0, 0, W, H);
@@ -126,7 +147,7 @@
       fill.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = fill;
       ctx.beginPath();
-      for (let px = pad; px < W - pad; px++) {
+      for (let px = pad; px <= W - pad; px++) {
         const x = xMin + ((px - pad) / (W - pad * 2)) * (xMax - xMin);
         const y = loss(x);
         if (px === pad) ctx.moveTo(px, toY(y));
@@ -139,10 +160,11 @@
       ctx.restore();
 
       ctx.strokeStyle = colors.grid();
+      ctx.lineWidth = 1;
       ctx.setLineDash([4, 6]);
       ctx.beginPath();
       ctx.moveTo(toX(OPT), pad - 10);
-      ctx.lineTo(toX(OPT), H - pad + 10);
+      ctx.lineTo(toX(OPT), toY(loss(OPT)));
       ctx.stroke();
       ctx.setLineDash([]);
 
@@ -150,7 +172,7 @@
       ctx.lineWidth = 3;
       ctx.lineCap = "round";
       ctx.beginPath();
-      for (let px = pad; px < W - pad; px++) {
+      for (let px = pad; px <= W - pad; px++) {
         const x = xMin + ((px - pad) / (W - pad * 2)) * (xMax - xMin);
         const y = loss(x);
         if (px === pad) ctx.moveTo(px, toY(y));
@@ -158,15 +180,27 @@
       }
       ctx.stroke();
 
+      const onChart = (x) => Number.isFinite(x) && loss(x) <= yMax;
+
       if (path.length > 1) {
-        const gradient = ctx.createLinearGradient(toX(path[0]), 0, toX(path[path.length - 1]), 0);
-        gradient.addColorStop(0, colors.muted());
-        gradient.addColorStop(1, colors.accent());
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, H);
+        ctx.clip();
+        const x0 = toX(path[0]);
+        const x1 = toX(path[path.length - 1]);
+        let gradient = colors.accent();
+        if (Number.isFinite(x1) && Math.abs(x1 - x0) > 1) {
+          gradient = ctx.createLinearGradient(x0, 0, x1, 0);
+          gradient.addColorStop(0, colors.muted());
+          gradient.addColorStop(1, colors.accent());
+        }
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 2;
-        ctx.setLineDash([6, 6]);
+        ctx.lineWidth = 2 * mk;
+        ctx.setLineDash([6 * mk, 6 * mk]);
         ctx.beginPath();
         for (let i = 0; i < path.length; i++) {
+          if (!Number.isFinite(path[i])) break;
           const px = toX(path[i]);
           const py = toY(loss(path[i]));
           if (i === 0) ctx.moveTo(px, py);
@@ -176,14 +210,16 @@
         ctx.setLineDash([]);
 
         for (let i = 0; i < path.length; i += 1) {
+          if (!onChart(path[i])) continue;
           const alpha = 0.15 + (i / path.length) * 0.75;
           ctx.fillStyle = colors.accent();
           ctx.globalAlpha = alpha;
           ctx.beginPath();
-          ctx.arc(toX(path[i]), toY(loss(path[i])), 3, 0, Math.PI * 2);
+          ctx.arc(toX(path[i]), toY(loss(path[i])), 3 * mk, 0, Math.PI * 2);
           ctx.fill();
         }
         ctx.globalAlpha = 1;
+        ctx.restore();
       }
 
       const minX = toX(OPT);
@@ -192,40 +228,49 @@
       ctx.strokeStyle = colors.muted();
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(minX, minY, 5, 0, Math.PI * 2);
+      ctx.arc(minX, minY, 5 * mk, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      const px = toX(w);
-      const py = toY(loss(w));
-      const glow = ctx.createRadialGradient(px, py, 0, px, py, 24);
-      glow.addColorStop(0, "rgba(255,255,255,0.45)");
-      glow.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(px, py, 24, 0, Math.PI * 2);
-      ctx.fill();
+      if (onChart(w)) {
+        const px = toX(w);
+        const py = toY(loss(w));
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, 24 * mk);
+        glow.addColorStop(0, "rgba(255,255,255,0.45)");
+        glow.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(px, py, 24 * mk, 0, Math.PI * 2);
+        ctx.fill();
 
-      ctx.fillStyle = colors.canvas();
-      ctx.strokeStyle = colors.accent();
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(px, py, 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = colors.accent();
-      ctx.beginPath();
-      ctx.arc(px, py, 3.5, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = colors.canvas();
+        ctx.strokeStyle = colors.accent();
+        ctx.lineWidth = 2.5 * mk;
+        ctx.beginPath();
+        ctx.arc(px, py, 8 * mk, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = colors.accent();
+        ctx.beginPath();
+        ctx.arc(px, py, 3.5 * mk, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       ctx.fillStyle = colors.muted();
-      ctx.font = "600 11px Inter, sans-serif";
-      ctx.fillText("w", W - pad + 8, H - 12);
-      ctx.fillText("minimum", minX + 8, minY - 10);
+      ctx.font = `600 ${Math.round(11 * ui)}px Inter, sans-serif`;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillText("w", W - 10, H - 10);
+      // Under the minimum, where the curve never goes.
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("minimum", minX, minY + 8 * mk);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
 
       stepCount.textContent = String(Math.max(0, path.length - 1));
-      wMetric.textContent = w.toFixed(2);
-      lossMetric.textContent = loss(w).toFixed(3);
+      wMetric.textContent = Number.isFinite(w) ? w.toFixed(2) : "∞";
+      lossMetric.textContent = Number.isFinite(w) ? loss(w).toFixed(3) : "∞";
     }
 
     function setEta(value) {
@@ -238,44 +283,52 @@
     }
 
     function reset() {
-      animating = false;
-      w = -2.8;
+      runId += 1;
+      w = START_W;
       path = [w];
       draw();
       status.innerHTML = "<strong>Ready.</strong> Pick a learning rate and run descent.";
     }
 
+    // Each run starts from the same point, so different learning rates are easy to compare.
     async function run() {
-      if (animating) return;
-      animating = true;
+      const id = ++runId;
       const eta = parseFloat(etaInput.value);
-      let steps = 0;
-      status.innerHTML = `<strong>Running.</strong> Descending with η = ${eta.toFixed(2)}.`;
+      const label = eta.toFixed(2);
+      w = START_W;
+      path = [w];
+      draw();
+      status.innerHTML = `<strong>Running.</strong> Descending with η = ${label}.`;
 
-      while (steps < 40 && animating) {
-        const g = grad(w);
-        w = w - eta * g;
+      let crossed = false;
+      for (let step = 1; step <= MAX_STEPS; step++) {
+        await new Promise((r) => setTimeout(r, 110));
+        if (id !== runId) return;
+
+        const before = w - OPT;
+        w = w - eta * grad(w);
         path.push(w);
         draw();
 
-        if (!Number.isFinite(w) || Math.abs(w) > 20 || loss(w) > 20) {
-          status.innerHTML = `<strong>Diverged.</strong> η = ${eta.toFixed(2)} overshot the bowl and blew up.`;
-          animating = false;
+        const after = w - OPT;
+        if (Math.abs(after) > 1e-3 && Math.sign(after) !== Math.sign(before)) crossed = true;
+
+        if (!Number.isFinite(w) || loss(w) > yMax) {
+          status.innerHTML = `<strong>Diverged.</strong> With η = ${label} every step overshot farther than the last, and the loss blew up off the chart.`;
           return;
         }
 
-        if (Math.abs(g) < 0.001) {
-          status.innerHTML = `<strong>Converged.</strong> Reached the minimum in ${steps + 1} steps with η = ${eta.toFixed(2)}.`;
-          animating = false;
+        if (Math.abs(after) < 1e-3) {
+          const bounce = crossed ? " It overshot and bounced across the valley on the way down." : "";
+          const steps = step === 1 ? "1 step" : `${step} steps`;
+          status.innerHTML = `<strong>Converged.</strong> Reached the minimum in ${steps} with η = ${label}.${bounce}`;
           return;
         }
-
-        steps += 1;
-        await new Promise((r) => setTimeout(r, 110));
       }
 
-      status.innerHTML = `<strong>Still moving.</strong> η = ${eta.toFixed(2)} did not settle within 40 steps.`;
-      animating = false;
+      status.innerHTML = crossed
+        ? `<strong>Still bouncing.</strong> η = ${label} keeps jumping across the valley and did not settle within ${MAX_STEPS} steps.`
+        : `<strong>Still moving.</strong> η = ${label} did not settle within ${MAX_STEPS} steps.`;
     }
 
     etaInput.addEventListener("input", () => {
@@ -292,6 +345,8 @@
     document.getElementById("run").addEventListener("click", run);
     document.getElementById("reset").addEventListener("click", reset);
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+    window.addEventListener("resize", draw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
     draw();
 
     function reportHeight() {

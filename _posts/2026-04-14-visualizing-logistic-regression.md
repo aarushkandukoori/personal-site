@@ -1,9 +1,10 @@
 ---
-title: "Visualizing logistic regression: from a line to a probability"
+title: "Visualizing Logistic Regression: From a Line to a Probability"
 date: 2026-04-14 09:00:00 -0400
 categories: [Learning Interactively]
 tags: [machine-learning, logistic-regression, classification, visualization]
 math: true
+description: "To understand logistic regression I drew it out: the boundary, the sigmoid that turns a score into a probability, cross-entropy, and a small playground where you can watch the line learn."
 ---
 
 ### Introduction
@@ -32,7 +33,7 @@ $$\sigma(z) = \frac{1}{1 + e^{-z}}.$$
 The output is interpreted as $P(y=1 \mid x)$.
 
 > **Note**
-> This is assuming the weights are oriented so that larger scores mean class 1. If you flip the signs of $w$ and $b$, the line stays the same but the class labels swap. You will see that happen if you train from a bad initialization in the playground below.
+> This is assuming the weights are oriented so that larger scores mean class 1. If you flip the signs of $w$ and $b$, the line stays the same but the class labels swap. You can try it with **Flip signs** in the playground below: the dashed line stays put and every prediction swaps sides until you train again.
 
 Intuitively, if a point sits far above the line in the positive-score region, then $z$ is large and $\sigma(z)$ is near 1. If it sits far below, $\sigma(z)$ is near 0. Points hugging the line get probabilities near 0.5, which is exactly the behavior we want when the world is ambiguous.
 
@@ -59,10 +60,16 @@ Drag the slider below and watch a raw score turn into a probability. This is the
 
 If the model outputs a probability, we need a loss that punishes confident mistakes harshly. Mean squared error is a bad fit here: it plateaus in unhelpful ways and pushes probabilities in weird directions.
 
-The standard choice is **binary cross-entropy**. For one example with true label $y \in \{0,1\}$ and prediction $\hat{y} = \sigma(z)$:
+The standard choice is **binary cross-entropy**. For one example with true label $y \in \lbrace 0, 1 \rbrace$ and prediction $\hat{y} = \sigma(z)$:
 
-> **Key Point:**
-> $L(y, \hat{y}) = -\Big[y \log \hat{y} + (1-y)\log(1-\hat{y})\Big].$
+> **Key Point**
+>
+> $$
+> \begin{aligned}
+> L(y, \hat{y}) = -\Big[\, & y \log \hat{y} \\
+> & + (1-y)\log(1-\hat{y}) \,\Big].
+> \end{aligned}
+> $$
 
 Read that slowly. If $y=1$ and the model predicts 0.01, the first term blows up. If $y=0$ and the model predicts 0.99, the second term blows up. Correct confident predictions are cheap. Uncertainty is tolerated. Confident wrongness is expensive. That is the behavior you want from a classifier.
 
@@ -105,7 +112,7 @@ for each epoch:
 Compare that to the perceptron update: if a point is misclassified, nudge the weights by the input features. Logistic regression nudges on **every** point, but the nudge size depends on how wrong the probability was, not just whether the hard label was wrong. That small change is what makes the model smooth enough to optimize with calculus.
 
 > **Tip**
-> If training looks stuck, check the learning rate first. Too small and the boundary crawls. Too large and the loss oscillates or diverges. The playground below is deliberately sensitive so you can feel that tradeoff.
+> If training looks stuck, check the learning rate first. Too small and the boundary crawls. Too large and the loss oscillates or diverges. The learning rate lab in [my post on how a neural network learns](/posts/how-does-a-neural-network-learn/) lets you feel that tradeoff on a simple bowl.
 
 ### Try it yourself
 
@@ -115,11 +122,11 @@ This widget is a tiny logistic regression trainer in 2D.
 2. Click the plot to place a few of each (hollow on one side, filled on the other).
 3. Press **Train**. The gray background is predicted probability; the **dashed line** is the decision boundary.
 
-Start with **Reload demo** if you want sample data already on the canvas.
+It opens with six sample points and trains on them once, so you can see a finished boundary right away. Use **Clear points** to start from a blank plot, or **Reload demo** to bring the samples back untrained.
 
 <iframe
   class="interactive-embed interactive-embed--logistic"
-  src="/assets/files/logistic-regression/logistic_playground.html?v=3"
+  src="/assets/files/logistic-regression/logistic_playground.html?v=4"
   title="Logistic regression playground"
   width="100%"
   scrolling="no"
@@ -146,7 +153,7 @@ Logistic regression is old, which makes it easy to underestimate. But it is the 
 
 If you are learning this for the first time, my advice is to play with the playground until the boundary motion feels predictable. Then re-read the update rule and notice how each term exists to fix a specific kind of mistake. That is the habit that turns formulas into intuition.
 
-If you want to go deeper next, compare this post to a hard-margin classifier like the perceptron, or to the gradient-descent view of training in my earlier post on learning loops. The models change. The picture usually does not.
+If you want to go deeper next, compare this post to a hard-threshold classifier like the perceptron, or to the gradient-descent view of training in [my earlier post on how a neural network learns](/posts/how-does-a-neural-network-learn/). The models change. The picture usually does not.
 
 ### Sources
 

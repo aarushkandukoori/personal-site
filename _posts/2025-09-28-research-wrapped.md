@@ -8,20 +8,21 @@ pin: true
 
 I keep a journal for every research internship I do. Most of it is dated logistics, the kind of thing only my past self cares about. But reading back through three summers of entries, I realized there was a fun retrospective buried in the boring parts. So here is my Spotify Wrapped, except instead of top songs it is the data I stared at, the software I basically lived inside, and the experiments that worked (plus the ones that absolutely did not).
 
-Two "albums" carried the year:
+Two "albums" carried the year, plus one short EP:
 
 - Summers 2022 and 2023 at the University of Maryland MIND Lab, on a project about breathing.
 - Summer 2024 at Stanford's Alexander Lab, on a heart disease called cardiac amyloidosis.
+- Three weeks in summer 2024 at Harvard Medical School and Brigham and Women's Hospital, on multiple sclerosis biomarkers (the EP).
 
 ## The numbers
 
 - 750+ breathing graphs and microscope images stared at
-- 2 labs, 3 summers
+- 3 labs, 3 summers
 - Top tool: ImageJ. Runner-up: pandas inside a Jupyter notebook
 - Genre of the year: biomedical signal and image analysis
 - 8 speech experiments run with a real test subject
 - Certifications cleared to handle patient data and work in a wet lab
-- 2 articles published, 1 analysis method built from scratch, and 1 hardware project that turned into a paper
+- 1 paper on arXiv, 1 analysis method built from scratch, and 1 hardware project that turned into a paper
 
 Let me unpack the highlights.
 
@@ -45,7 +46,7 @@ I answered those two questions for more than 450 segments. It is tedious. But it
 
 The project I am proudest of came out of the Stanford summer. Cardiac amyloidosis is a disease where misfolded proteins build up in the heart and stiffen it, and one of its fingerprints is fibrosis, which is essentially scarring of the tissue. Pathologists can see it on a stained slide, but "seeing it" and "measuring it the same way every time" are different problems.
 
-So I built a color-thresholding pipeline in ImageJ to measure how much fibrosis was lighting up in each sample, and used it to separate diseased tissue from healthy tissue purely by the numbers. I called it FibroQuant. When we tested it across hundreds of mouse samples, the difference between the diseased and healthy groups held up statistically, which was the whole point: a measurement you can trust is one that gives you the same answer no matter who is running it.
+So I built a color-thresholding pipeline in ImageJ to measure how much fibrosis was lighting up in each sample, and used it to separate diseased tissue from healthy tissue purely by the numbers. I called it FibroQuant. When we tested it on about 300 images from 15 mice, the difference between the diseased and healthy groups held up statistically, which was the whole point: a measurement you can trust is one that gives you the same answer no matter who is running it.
 
 (I am keeping the specific results vague on purpose, since that is the lab's data to publish, not mine.)
 

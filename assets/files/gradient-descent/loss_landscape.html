@@ -24,14 +24,14 @@
           <div class="control-row">
             <div class="control">
               <div class="control-top">
-                <span class="control-label">Slope w</span>
+                <span class="control-label">Slope <span class="sym">w</span></span>
                 <span class="control-value" id="w-val">0.00</span>
               </div>
               <input id="w" type="range" min="-2" max="4" step="0.02" value="0">
             </div>
             <div class="control">
               <div class="control-top">
-                <span class="control-label">Intercept b</span>
+                <span class="control-label">Intercept <span class="sym">b</span></span>
                 <span class="control-value" id="b-val">0.00</span>
               </div>
               <input id="b" type="range" min="-2" max="6" step="0.02" value="0">
@@ -55,11 +55,11 @@
         <div class="controls">
           <div class="metric-row">
             <div class="metric">
-              <span class="metric-label">Current w</span>
+              <span class="metric-label">Current <span class="sym">w</span></span>
               <span class="metric-value" id="metric-w">0.00</span>
             </div>
             <div class="metric">
-              <span class="metric-label">Current b</span>
+              <span class="metric-label">Current <span class="sym">b</span></span>
               <span class="metric-value" id="metric-b">0.00</span>
             </div>
             <div class="metric">
@@ -67,7 +67,7 @@
               <span class="metric-value" id="metric-best">0.00</span>
             </div>
           </div>
-          <p class="hint">Darker regions are lower loss. The glowing marker is your current knob setting.</p>
+          <p class="hint" id="contour-hint">Darker regions are lower loss. The glowing marker is your current knob setting.</p>
         </div>
       </section>
     </div>
@@ -87,8 +87,8 @@
     const data = [
       [0, 1], [1, 2.1], [2, 3.9], [3, 5.8], [4, 7.9], [5, 9.8]
     ];
-    const OPT_W = 2;
-    const OPT_B = 1;
+    // The bottom of the bowl: the least-squares line through the data.
+    const [OPT_W, OPT_B] = leastSquares(data);
     const BEST_LOSS = mse(OPT_W, OPT_B);
 
     const wInput = document.getElementById("w");
@@ -105,6 +105,38 @@
     const contourCtx = contourCanvas.getContext("2d");
 
     let contourCache = null;
+
+    function leastSquares(points) {
+      const n = points.length;
+      let sx = 0, sy = 0, sxx = 0, sxy = 0;
+      for (const [x, y] of points) {
+        sx += x;
+        sy += y;
+        sxx += x * x;
+        sxy += x * y;
+      }
+      const w = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+      return [w, (sy - w * sx) / n];
+    }
+
+    // The canvases draw at a fixed size and are shrunk to fit the page. This is how
+    // much one is shrunk, so labels and markers can stay readable on a phone.
+    function uiScale(canvas) {
+      const shown = canvas.getBoundingClientRect().width;
+      return shown > 0 ? Math.max(1, canvas.width / shown) : 1;
+    }
+
+    // Text with a halo in the canvas color, so it reads on any background.
+    function haloText(ctx, text, x, y, ui) {
+      ctx.save();
+      ctx.lineJoin = "round";
+      ctx.lineWidth = 4 * ui;
+      ctx.strokeStyle = colors.canvas();
+      ctx.strokeText(text, x, y);
+      ctx.fillStyle = colors.text();
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
 
     function mse(w, b) {
       let sum = 0;
@@ -157,14 +189,13 @@
       ctx.lineTo(pad, H - pad);
       ctx.stroke();
 
+      const ui = uiScale(ctx.canvas);
       ctx.fillStyle = colors.muted();
-      ctx.font = "600 11px Inter, sans-serif";
-      ctx.fillText(xLabel, W - pad - 10, H - 12);
-      ctx.save();
-      ctx.translate(14, pad + 4);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText(yLabel, 0, 0);
-      ctx.restore();
+      ctx.font = `600 ${Math.round(11 * ui)}px Inter, sans-serif`;
+      ctx.textAlign = "right";
+      ctx.fillText(xLabel, W - pad, H - 10);
+      ctx.textAlign = "left";
+      ctx.fillText(yLabel, 10, pad + 16 * ui);
       ctx.restore();
     }
 
@@ -177,9 +208,11 @@
       drawAxes(ctx, plot, "x", "y");
 
       const { toX, toY } = plot;
+      const ui = uiScale(lineCanvas);
+      const mk = Math.sqrt(ui);
 
       ctx.strokeStyle = colors.accent();
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2.5 * mk;
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(toX(-0.5), toY(w * -0.5 + b));
@@ -192,8 +225,8 @@
         const pyPred = toY(w * x + b);
 
         ctx.strokeStyle = colors.muted();
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([3, 4]);
+        ctx.lineWidth = 1.2 * mk;
+        ctx.setLineDash([3 * mk, 4 * mk]);
         ctx.beginPath();
         ctx.moveTo(px, pyTrue);
         ctx.lineTo(px, pyPred);
@@ -202,21 +235,23 @@
 
         ctx.fillStyle = colors.canvas();
         ctx.strokeStyle = colors.accent();
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * mk;
         ctx.beginPath();
-        ctx.arc(px, pyTrue, 6, 0, Math.PI * 2);
+        ctx.arc(px, pyTrue, 6 * mk, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = colors.accent();
         ctx.beginPath();
-        ctx.arc(px, pyPred, 3.5, 0, Math.PI * 2);
+        ctx.arc(px, pyPred, 3.5 * mk, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      ctx.fillStyle = colors.text();
-      ctx.font = "600 12px Inter, sans-serif";
-      ctx.fillText(`ŷ = ${w.toFixed(2)}x + ${b.toFixed(2)}`, plot.pad, 22);
+      const sign = b < 0 ? "−" : "+";
+      ctx.font = `600 ${Math.round(12 * ui)}px Inter, sans-serif`;
+      ctx.textBaseline = "top";
+      haloText(ctx, `ŷ = ${w.toFixed(2)}x ${sign} ${Math.abs(b).toFixed(2)}`, plot.pad, 8, ui);
+      ctx.textBaseline = "alphabetic";
     }
 
     function buildContourCache() {
@@ -257,6 +292,9 @@
       }
 
       contourCache = { image, wMin, wMax, bMin, bMax, W, H };
+      // Dark mode flips the shading, so the hint has to flip with it.
+      document.getElementById("contour-hint").textContent =
+        `${isDark ? "Brighter" : "Darker"} regions are lower loss. The glowing marker is your current knob setting.`;
     }
 
     function drawContour(w, b) {
@@ -268,6 +306,7 @@
       const optX = ((OPT_W - wMin) / (wMax - wMin)) * (W - 1);
       const optY = ((bMax - OPT_B) / (bMax - bMin)) * (H - 1);
       ctx.strokeStyle = colors.muted();
+      ctx.lineWidth = 1.5 * Math.sqrt(uiScale(contourCanvas));
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(optX, 0);
@@ -279,35 +318,38 @@
 
       const dotX = ((w - wMin) / (wMax - wMin)) * (W - 1);
       const dotY = ((bMax - b) / (bMax - bMin)) * (H - 1);
+      const ui = uiScale(contourCanvas);
+      const mk = Math.sqrt(ui);
 
-      const glow = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 22);
+      const glow = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 22 * mk);
       glow.addColorStop(0, "rgba(255,255,255,0.55)");
       glow.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(dotX, dotY, 22, 0, Math.PI * 2);
+      ctx.arc(dotX, dotY, 22 * mk, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = colors.canvas();
       ctx.strokeStyle = colors.accent();
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 2.5 * mk;
       ctx.beginPath();
-      ctx.arc(dotX, dotY, 7, 0, Math.PI * 2);
+      ctx.arc(dotX, dotY, 7 * mk, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = colors.accent();
       ctx.beginPath();
-      ctx.arc(dotX, dotY, 3, 0, Math.PI * 2);
+      ctx.arc(dotX, dotY, 3 * mk, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = colors.muted();
-      ctx.font = "600 11px Inter, sans-serif";
-      ctx.fillText("w", W - 18, H - 10);
-      ctx.save();
-      ctx.translate(12, 18);
-      ctx.fillText("b", 0, 0);
-      ctx.restore();
+      ctx.font = `600 ${Math.round(12 * ui)}px Inter, sans-serif`;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "alphabetic";
+      haloText(ctx, "w", W - 10, H - 10, ui);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      haloText(ctx, "b", 10, 8, ui);
+      ctx.textBaseline = "alphabetic";
     }
 
     function update() {
@@ -326,6 +368,8 @@
 
     wInput.addEventListener("input", update);
     bInput.addEventListener("input", update);
+    window.addEventListener("resize", update);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
     window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
       contourCache = null;
       update();

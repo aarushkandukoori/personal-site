@@ -101,7 +101,8 @@ function loop(svg) {
   svg.append(ring);
   for (const s of stops) {
     const [x, y] = at(s.a);
-    svg.append(svgEl("circle", { cx: x, cy: y, r: 33, fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.2 }), svgEl("text", { x, y: y + 4, text: s.label, "font-size": 9.5 }));
+    // r 42 leaves room for a ten-letter label at size 12 ("Microphone").
+    svg.append(svgEl("circle", { cx: x, cy: y, r: 42, fill: "var(--paper)", stroke: "var(--ink)", "stroke-width": 1.2 }), svgEl("text", { x, y: y + 4, text: s.label, "font-size": 12 }));
   }
   const center = svgEl("text", { x: C, y: C + 4, "font-size": 13, text: "" });
   svg.append(center);

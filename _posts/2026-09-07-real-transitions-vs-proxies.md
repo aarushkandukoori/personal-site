@@ -6,7 +6,7 @@ tags: [reinforcement-learning, world-models, agent-memory, self-supervised-learn
 math: true
 ---
 
-I spent Wednesday night reading a robotics paper and a blog comment about legacy code migrations back to back, and I could not shake the feeling that they were making the same argument. That does not usually happen. One was about Q-learning on manipulation benchmarks and the other was about a doomed rewrite at some anonymous company, but both of them were circling the same instinct: the clean thing you generate to replace the messy thing you have is almost never as trustworthy as you want it to be, and the failure shows up later than you expect.
+On Wednesday night I read a robotics paper and a blog comment about legacy code migrations back to back, and I could not shake the feeling that they were making the same argument. That does not usually happen. One was about Q-learning on manipulation benchmarks and the other was about a doomed rewrite at some anonymous company, but both of them were circling the same instinct: the clean thing you generate to replace the messy thing you have is almost never as trustworthy as you want it to be, and the failure shows up later than you expect.
 
 That became the theme of my week. Call it the refusal to trust a proxy.
 
@@ -17,8 +17,8 @@ That became the theme of my week. Call it the refusal to trust a proxy.
 I find that split genuinely elegant. Imagination is used where its errors are cheap and recoverable (you pick a slightly worse action this step) and kept out of the place where its errors compound (the learned value estimate that everything else is bootstrapped from). On Robomimic and LIBERO it beats strong prior methods on both sample efficiency and final performance, which suggests the discipline is not just aesthetic.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/real-transitions-vs-proxies/figure.svg' %}" alt="Each curve shows KL divergence between a learned model's predicted next-state distribution and the true one, plotted as the imagined rollout gets longer. Notice that the divergence does not stay flat: short horizons are nearly free, and the gap widens fast past a handful of steps, which is exactly why QWM keeps its Q-function trained on real transitions and spends the world model only on short test-time search." width="720" loading="lazy">
-  <figcaption>Each curve shows KL divergence between a learned model's predicted next-state distribution and the true one, plotted as the imagined rollout gets longer. Notice that the divergence does not stay flat: short horizons are nearly free, and the gap widens fast past a handful of steps, which is exactly why QWM keeps its Q-function trained on real transitions and spends the world model only on short test-time search. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2608.17163v1">Q-Learning With World Models</a>. QWM argues that optimizing policies directly on imagined rollouts compounds model bias as horizon and visual complexity grow.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/real-transitions-vs-proxies/figure.svg' %}" alt="Line chart titled 'How fast KL grows when q drifts from a fixed p'. A single U-shaped curve of KL(p || q) against q(class 1) from 0.05 to 0.9: zero at q = 0.5, rising to about 0.51 at q = 0.9 and about 0.83 at q = 0.05." width="720" loading="lazy">
+  <figcaption>A toy illustration of model mismatch, with no rollouts in it: the KL divergence KL(p || q) between a fixed 50/50 distribution p and a model's guess q, as q's probability for class 1 moves from 0.05 to 0.9. Near 0.5 the mismatch costs almost nothing, and it climbs steeply as q drifts toward either end. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2608.17163v1">Q-Learning With World Models</a>. QWM argues that optimizing policies directly on imagined rollouts compounds model bias as horizon and visual complexity grow.)</figcaption>
 </figure>
 
 ### The same instinct, in vision, in agent memory, in legacy code
@@ -34,7 +34,7 @@ And then [Simon Willison's comment on rewrites](https://simonwillison.net/2026/S
 <iframe
   class="interactive-embed"
   src="/assets/files/weekly/real-transitions-vs-proxies/explorer.html"
-  title="How much should you trust an imagined rollout?"
+  title="How picky should the checker be?"
   width="100%"
   scrolling="no"
   loading="lazy"
@@ -57,7 +57,7 @@ The practical rule I am writing down for my own projects: be generous about what
 - [Import AI 470: No rights for machines; automating environment generation with SPADE; and building better GPU kernels with Hawkeye](https://importai.substack.com/p/import-ai-470-no-rights-for-machines) (Jack Clark)
 - [Give Your Coding Agents a Memory You Own](https://huggingface.co/blog/funes) (Hugging Face)
 - [There's No Limit to How Bad Code Can Get](https://simonwillison.net/2026/Sep/6/theres-no-limit-to-how-bad-code-can-get/) (Simon Willison)
-- [SSMB: Self-Supervised Local Feature Detection under Motion Blur](https://arxiv.org/abs/2608.27181v1) (Jiajun Wu)
-- [Q-Learning With World Models](https://arxiv.org/abs/2608.17163v1) (Chelsea Finn)
+- [SSMB: Self-Supervised Local Feature Detection under Motion Blur](https://arxiv.org/abs/2608.27181v1) (Zhenjun Zhao et al.)
+- [Q-Learning With World Models](https://arxiv.org/abs/2608.17163v1) (Perry Dong et al.)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

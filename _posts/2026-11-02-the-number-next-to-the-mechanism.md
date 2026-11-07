@@ -31,8 +31,8 @@ Here is my back-of-envelope version. If throughput is roughly tokens per pass di
 So they flip it. Copying-as-Defense maximizes attention from target tokens to the reference image in a few early blocks. Attention rows are normalized, so more mass on the reference means less for the text and the generated canvas. What surprised me is how little it takes: concentrating attention in only a few early blocks is enough to collapse the editing behavior, and the model reproduces its input, often as a lossy copy. Average edit success drops from 81.4% to 24.0%, against 43.0% for DeContext, the strongest baseline.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/the-number-next-to-the-mechanism/figure.svg' %}" alt="Each row of 20 chips is one attention row with a fixed budget, in illustrative proportions. Older defenses push mass off the reference, so text and canvas can still drive an edit, while Copying-as-Defense pulls mass onto the reference and squeezes the other two, so the model tends to reproduce its input." width="720" loading="lazy">
-  <figcaption>Each row of 20 chips is one attention row with a fixed budget, in illustrative proportions. Older defenses push mass off the reference, so text and canvas can still drive an edit, while Copying-as-Defense pulls mass onto the reference and squeezes the other two, so the model tends to reproduce its input. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2610.35566v1">Copying As Defense: Protecting Images from Editing By Eliciting Model Copying</a>. Schematic of the attention-row argument in Copying As Defense; chip counts are illustrative, not results from the paper.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/the-number-next-to-the-mechanism/figure.svg' %}" alt="Two panels, each showing one attention row as 20 colored chips. Older defenses: 4 reference, 7 text and 9 canvas chips, and the edit request yields a new, weakly grounded image. Copying-as-Defense: 15 reference, 2 text and 3 canvas chips, and the edit request often yields a lossy copy of the protected image." width="720" loading="lazy">
+  <figcaption>Each row of 20 chips is one attention row with a fixed budget. Older defenses push mass off the reference, so text and canvas can still drive an edit, while Copying-as-Defense pulls mass onto the reference and squeezes the other two, so the model tends to reproduce its input. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2610.35566v1">Copying As Defense: Protecting Images from Editing By Eliciting Model Copying</a>. Chip counts are illustrative and do not come from the paper.)</figcaption>
 </figure>
 
 I like that the objective is aimed at what the attacker wants, which is a working edit. My doubts start with that 24.0%. It is an average, so I would want to see the worst editor and the worst kind of edit, since one convincing fake is all an attacker needs. I would also want to know how the perturbation holds up when an image gets compressed or resized on its way across the internet, and when the attacker knows the defense exists. The abstract does not settle those questions, and they decide whether this protects anyone in practice. I want to try that test as a plan: take a protected image, re-encode it a few times, and see at what point the edit comes back.
@@ -59,10 +59,10 @@ The best idea I found this week is buried in the Mistral post: reproduce-then-pa
 
 ### Sources
 
-- [Copying As Defense: Protecting Images from Editing By Eliciting Model Copying](https://arxiv.org/abs/2610.35566v1) (Olga Russakovsky)
+- [Copying As Defense: Protecting Images from Editing By Eliciting Model Copying](https://arxiv.org/abs/2610.35566v1) (Salma Abdel Magid et al.)
 - [How We Took Over ChatGPT Accounts](https://simonwillison.net/2026/Oct/31/how-we-took-over-chatgpt-accounts/) (Simon Willison)
 - [Welcome Le Chonk: Mistral Large 4 on Hugging Face](https://huggingface.co/blog/mistral-large4) (Hugging Face)
 - [Import AI 477: In which I tell the IMF the Singularity has begun](https://importai.substack.com/p/import-ai-477-in-which-i-tell-the) (Jack Clark)
-- [One Block Ahead: Promoting Sampler State in Diffusion Language Models](https://arxiv.org/abs/2610.19510v1) (Stefano Ermon)
+- [One Block Ahead: Promoting Sampler State in Diffusion Language Models](https://arxiv.org/abs/2610.19510v1) (Yangyi Shen et al.)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

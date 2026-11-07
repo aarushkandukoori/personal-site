@@ -60,9 +60,10 @@ export function initSlices() {
     const name = `qwen3.5-0.8b.wgpu.zt.${String(picked).padStart(2, "0")}`;
     read.replaceChildren(
       tooBig ? el("span", { class: "bad", text: "GitHub refuses any file over 100 MB. Cut smaller.\n" }) : "",
-      el("span", { text: `The tab asks for bytes=${from}-${to}.` }),
+      // nowrap so a phone doesn't break the range or the file name at a hyphen
+      el("span", {}, "The tab asks for ", el("span", { class: "nowrap", text: `bytes=${from}-${to}.` })),
       el("br"),
-      el("span", { text: `The service worker answers from ${name}.` }),
+      el("span", {}, "The service worker answers from ", el("span", { class: "nowrap", text: `${name}.` })),
     );
   }
 

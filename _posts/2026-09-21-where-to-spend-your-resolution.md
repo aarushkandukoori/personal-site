@@ -6,9 +6,9 @@ tags: [adaptive-meshes, forecasting, spatial-reasoning, ai-safety, modeling, ai-
 math: true
 ---
 
-I spent an hour this week staring at a picture of a crack propagating through a simulated block of material, and what I could not stop thinking about was the mesh behind the crack. Not the tip, where all the interesting physics lives, but the wake: the part that already broke, that is not going to un-break, and that a naive simulation keeps resolving at full resolution forever. It is a very expensive way to remember something you already know.
+For an hour this week I stared at a picture of a crack propagating through a simulated block of material, and what I could not stop thinking about was the mesh behind the crack. Not the tip, where all the interesting physics lives, but the wake: the part that already broke, that is not going to un-break, and that a naive simulation keeps resolving at full resolution forever. It is a very expensive way to remember something you already know.
 
-That image ended up being the through-line for everything else I read this week. The question underneath all of it is not "how accurate can we be" but "where should the accuracy go."
+That image ended up being the through-line for everything else I read this week. The question underneath all of it is "where should the accuracy go."
 
 ### The crack tip is the only place that deserves a fine mesh
 
@@ -16,7 +16,7 @@ The paper is [Adaptive Mesh Coarsening for Efficient Phase-Field Fracture Simula
 
 Most adaptive refinement work I have seen answers this by refining aggressively near damage and then never letting go. The refined region only grows. What these authors add is the other half: coarsen the wake back down into a crack band that preserves the mechanical behavior (it still cannot carry load across the crack) without preserving the microscopic detail. So the fine mesh becomes a small moving window that follows the tip.
 
-The part I actually find clever is the refinement indicator. Instead of a heuristic like "refine where the phase field is between 0.1 and 0.9," they derive it from violation of the material strength surface, which is a necessary condition for fracture to evolve. That means the indicator is not tuned to a material or a geometry, it is tuned to the physics of when a crack is about to happen. I keep thinking about how many ML heuristics I have written that were the first kind and should have been the second.
+The part I actually find clever is the refinement indicator. Instead of a heuristic like "refine where the phase field is between 0.1 and 0.9," they derive it from violation of the material strength surface, which is a necessary condition for fracture to evolve. That means the indicator is tuned to the physics of when a crack is about to happen, instead of to a material or a geometry. I keep thinking about how many ML heuristics I have written that were the first kind and should have been the second.
 
 ### Precision you cannot validate is not precision
 
@@ -27,8 +27,8 @@ The setup is Cascadia. Geological samples give 41 major earthquakes in ten thous
 What survives is coarse and genuinely useful: this fault will rupture, it will be catastrophic, build for it. That is a crack band, not a fine mesh. I find this more persuasive than I want to. My instinct as a stats student is that a sharper posterior is always better, and the honest answer is that a sharper posterior over a quantity you can never score is just a more confident guess.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/where-to-spend-your-resolution/figure.svg' %}" alt="A precision-recall curve for a rare-event warning system. Notice how flat the right side is: pushing recall toward catching every event collapses precision almost immediately, which is why a coarse 'this region will shake, build for it' warning is more useful than a finely tuned probability you can never validate." width="720" loading="lazy">
-  <figcaption>A precision-recall curve for a rare-event warning system. Notice how flat the right side is: pushing recall toward catching every event collapses precision almost immediately, which is why a coarse 'this region will shake, build for it' warning is more useful than a finely tuned probability you can never validate. (Figure generated for this post, inspired by <a href="https://www.argmin.net/p/the-chances-of-earthquakes">The Chances of Earthquakes</a>. Recht's earthquake post argues precise seismological probabilities are untestable on human time scales, so the useful output is a coarse but actionable warning.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/where-to-spend-your-resolution/figure.svg' %}" alt="Line chart titled 'Precision vs recall as the threshold moves'. As the decision threshold goes from 0.05 to 0.95, precision rises from about 0.51 to 1.0 and recall falls from 1.0 to 0.1. The two lines cross just above 0.5, at about 0.85." width="720" loading="lazy">
+  <figcaption>A toy chart with made-up numbers, showing the precision and recall of a warning system as its alarm threshold moves. Lower the threshold to catch every event (recall near 1 on the left) and precision sinks toward 0.5, so about half the alarms are false. Raise it and the alarms get trustworthy while more and more events go unflagged. (Figure generated for this post, inspired by <a href="https://www.argmin.net/p/the-chances-of-earthquakes">The Chances of Earthquakes</a>. Recht's earthquake post argues precise seismological probabilities are untestable on human time scales, so the useful output is a coarse but actionable warning.)</figcaption>
 </figure>
 
 The threshold question sits right underneath both of these. Refine too eagerly and you burn everything on regions that will never matter. Refine too late and you miss the nucleation event entirely. Same shape as a warning system deciding what counts as alarming.
@@ -42,7 +42,7 @@ The threshold question sits right underneath both of these. Refine too eagerly a
   loading="lazy"
 ></iframe>
 
-Drag the slider below and watch the two curves trade against each other. The thing I want you to notice is how asymmetric the cost is near the ends.
+Drag the slider above and watch precision and recall trade against each other. The thing I want you to notice is how asymmetric the cost is near the ends.
 
 ### Models that have the metric details but not the shape
 
@@ -65,9 +65,9 @@ Resolution is a budget, not a virtue. The good work this week all came from some
 ### Sources
 
 - [datasette-auth-github 1.0](https://simonwillison.net/2026/Sep/19/datasette-auth-github/) (Simon Willison)
-- [Adaptive Mesh Coarsening for Efficient Phase-Field Fracture Simulations](https://arxiv.org/abs/2609.21201v1) (Abhinav Gupta)
+- [Adaptive Mesh Coarsening for Efficient Phase-Field Fracture Simulations](https://arxiv.org/abs/2609.21201v1) (Aarosh Dahal et al.)
 - [The Chances of Earthquakes](https://www.argmin.net/p/the-chances-of-earthquakes) (Ben Recht)
-- [MindTopo: Can Foundation Models Reason in Topological Space?](https://arxiv.org/abs/2609.11900v1) (Jiajun Wu)
-- [Import AI 471: Why Hugging Face worries me; space mining; FIve Eyes on AI](https://importai.substack.com/p/import-ai-471-why-hugging-face-worries) (Jack Clark)
+- [MindTopo: Can Foundation Models Reason in Topological Space?](https://arxiv.org/abs/2609.11900v1) (Yunfei Ge et al.)
+- [Import AI 471: Why Hugging Face worries me; space mining; Five Eyes on AI](https://importai.substack.com/p/import-ai-471-why-hugging-face-worries) (Jack Clark)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

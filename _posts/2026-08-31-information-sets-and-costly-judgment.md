@@ -6,11 +6,11 @@ tags: [agent-security, evaluation, routing, video-generation, forecasting, ai-re
 math: true
 ---
 
-I spent an embarrassing amount of time this week staring at one sentence from a security writeup, and I think it accidentally explains four other things I read.
+I kept rereading one sentence from a security writeup this week, and I think it accidentally explains four other things I read.
 
-The sentence is Simon Willison's, describing [an attack Johann Rehberger found against Claude Code's Auto Mode](https://simonwillison.net/2026/Aug/27/breaking-claude-code-opus-5-auto-mode/). The agent is tricked into unzipping an archive and running code that imports `base64`, which quietly pulls in a malicious `struct.py` sitting in the extracted directory. What got me is not the cleverness of the payload. It is what happened next: in some runs, Claude noticed it had been compromised and tried to kill the malware process, and the safety classifier blocked the cleanup command. The guardrail permitted the thing that created the danger and then forbade the thing that would have ended it.
+The sentence is Simon Willison's, describing [an attack Johann Rehberger found against Claude Code's Auto Mode](https://simonwillison.net/2026/Aug/27/breaking-claude-code-opus-5-auto-mode/). The agent is tricked into unzipping an archive and running code that imports `base64`, which quietly pulls in a malicious `struct.py` sitting in the extracted directory. What got me is what happened next: in some runs, Claude noticed it had been compromised and tried to kill the malware process, and the safety classifier blocked the cleanup command. The guardrail permitted the thing that created the danger and then forbade the thing that would have ended it.
 
-That is not a story about a bad classifier. It is a story about a classifier being asked to judge `python -c "import base64"` without knowing what is on the filesystem. Willison notes the update that this is not really prompt injection at all, since no attacker text is ever followed as an instruction. It is what a commenter called a confused environment attack. The decision was made with the wrong information set.
+That is a story about a classifier being asked to judge `python -c "import base64"` without knowing what is on the filesystem. Willison notes the update that this is not really prompt injection at all, since no attacker text is ever followed as an instruction. It is what a commenter called a confused environment attack. The decision was made with the wrong information set.
 
 ### The same phrase, in a video paper
 
@@ -18,8 +18,7 @@ That is not a story about a bad classifier. It is a story about a classifier bei
 
 CMD's fix is to make the teacher causal too, and then go further: Prefix Scoring evaluates each target under the actual student-generated prefix that produced it, not under some clean ground-truth history. I find this genuinely satisfying in a way that most distillation tricks are not. It is the same failure as the Auto Mode classifier, just with the sign flipped. There the judge had too little context. Here the judge had too much, context from the future, and that leaked into supervision that the student could never act on. Both are misalignments of who-knew-what-when.
 
-> **Key Point:**
-> A supervisor's information set has to match the actor's. Extra information is not free; it produces a signal the actor cannot follow. Missing information is not free either; it produces a verdict nobody should trust.
+> **Key Point** - A supervisor's information set has to match the actor's. Extra information is not free; it produces a signal the actor cannot follow. Missing information is not free either; it produces a verdict nobody should trust.
 
 ### When more information is worth buying
 
@@ -37,8 +36,8 @@ The headline result is the one you would hope for: Pandora's Router matches exha
 ></iframe>
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/information-sets-and-costly-judgment/figure.svg' %}" alt="Notice that no single point on this curve is safe: pushing recall up to catch the malicious command also blocks benign ones, and the Auto Mode failure Rehberger found lives on both ends of the same curve at once (it permitted the process that launched the malware, then denied the command meant to kill it)." width="720" loading="lazy">
-  <figcaption>Notice that no single point on this curve is safe: pushing recall up to catch the malicious command also blocks benign ones, and the Auto Mode failure Rehberger found lives on both ends of the same curve at once (it permitted the process that launched the malware, then denied the command meant to kill it). (Figure generated for this post, inspired by <a href="https://simonwillison.net/2026/Aug/27/breaking-claude-code-opus-5-auto-mode/">Breaking Claude Code Opus 5 Auto Mode</a>. Simon Willison's writeup of Johann Rehberger's Claude Code Auto Mode attack, where the classifier both allowed the compromise and blocked the cleanup.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/information-sets-and-costly-judgment/figure.svg' %}" alt="Line chart titled 'Precision vs recall as the threshold moves'. As the decision threshold goes from 0.05 to 0.95, precision rises from about 0.51 to 1.0 and recall falls from 1.0 to 0.1. The two lines cross just above 0.5, at about 0.85." width="720" loading="lazy">
+  <figcaption>A toy chart with made-up numbers, showing the precision and recall of a block classifier as its decision threshold moves. Lower the threshold and it catches more malicious commands (recall near 1 on the left) but blocks more benign ones too (precision sinks toward 0.5), so no single setting is safe. (Figure generated for this post, inspired by <a href="https://simonwillison.net/2026/Aug/27/breaking-claude-code-opus-5-auto-mode/">Breaking Claude Code Opus 5 Auto Mode</a>. Simon Willison's writeup of Johann Rehberger's Claude Code Auto Mode attack, where the classifier both allowed the compromise and blocked the cleanup.)</figcaption>
 </figure>
 
 ### The benchmark only sees what it recorded
@@ -61,8 +60,8 @@ I want to build the habit of asking, of any evaluation I write this semester, wh
 
 - [Breaking Claude Code Opus 5 Auto Mode](https://simonwillison.net/2026/Aug/27/breaking-claude-code-opus-5-auto-mode/) (Simon Willison)
 - [The Open ASR Leaderboard Adds Its First Global South Language](https://huggingface.co/blog/open-asr-leaderboard-global-south) (Hugging Face)
-- [Pandora's AI Model Routing Box: Efficient Allocation with Costly Value Estimation](https://arxiv.org/abs/2608.20316v2) (Mirella Lapata)
+- [Pandora's AI Model Routing Box: Efficient Allocation with Costly Value Estimation](https://arxiv.org/abs/2608.20316v2) (Adam Fisch et al.)
 - [Fall Semester Announcements](https://www.argmin.net/p/fall-semester-announcements) (Ben Recht)
-- [Context-Matched Distillation: Teacher Causality for Autoregressive Video Distillation](https://arxiv.org/abs/2608.13391v1) (Sanja Fidler)
+- [Context-Matched Distillation: Teacher Causality for Autoregressive Video Distillation](https://arxiv.org/abs/2608.13391v1) (Hmrishav Bandyopadhyay et al.)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

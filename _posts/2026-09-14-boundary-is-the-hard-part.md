@@ -6,7 +6,7 @@ tags: [alignment, safety, agents, open-models, evaluation, ai-research, weekly-r
 math: true
 ---
 
-I spent an embarrassing amount of time this week staring at one pair of numbers. A model's refusal rate on harmful political prompts went from 9.47% to 84.75%. Its over-refusal rate on safe prompts went from 2.00% to 74.00%. Same checkpoint. If you published only the first number you would have a triumphant blog post, and if you published only the second you would have a scandal. They are the same model. That pair has been rattling around in my head all week, because once you see it you start seeing the same failure everywhere: we keep building systems that can only draw wide lines, and then acting surprised when the line swallows things we wanted to keep.
+One pair of numbers ate an embarrassing amount of my week. A model's refusal rate on harmful political prompts went from 9.47% to 84.75%. Its over-refusal rate on safe prompts went from 2.00% to 74.00%. Same checkpoint. If you published only the first number you would have a triumphant blog post, and if you published only the second you would have a scandal. They are the same model. That pair has been rattling around in my head all week, because once you see it you start seeing the same failure everywhere: we keep building systems that can only draw wide lines, and then acting surprised when the line swallows things we wanted to keep.
 
 ### Topics are not policies
 
@@ -16,11 +16,11 @@ So they reframe it as a boundary problem. Take a topic universe, mark the harmfu
 
 The thing I actually found delightful was the smaller methodological point. Their self-generation pipeline silently dropped 19.88% of prompts, 8,009 of them, because a single steering attempt failed to produce a verified refusal. The usual move is to shrug and train on what survived. They note that those failures are plausibly the hardest examples, and repair the gap with escalating retries down to 0.20%. I want to check every dataset I have ever built for exactly this. Filtering by "did my generator succeed" is a selection bias with a friendly face on it.
 
-> **Key Point:** A metric that only looks at one side of a boundary cannot distinguish a sharper model from a more timid one.
+> **Key Point** - A metric that only looks at one side of a boundary cannot distinguish a sharper model from a more timid one.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/boundary-is-the-hard-part/figure.svg' %}" alt="Notice how the curve bends: pushing recall on harmful prompts toward the top right costs precision fast, which is exactly the shape behind a model that refuses 84.75% of harmful political prompts and 74% of the safe XSTest ones." width="720" loading="lazy">
-  <figcaption>Notice how the curve bends: pushing recall on harmful prompts toward the top right costs precision fast, which is exactly the shape behind a model that refuses 84.75% of harmful political prompts and 74% of the safe XSTest ones. (Figure generated for this post, inspired by <a href="https://huggingface.co/blog/MultiverseComputingCAI/safety-for-whom">Safety for Whom? Refusing the Right Subset of a Topic, Not the Whole Topic</a>. Numbers come from the Multiverse Computing boundary-aware self-distillation write-up on Qwen3-8B.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/boundary-is-the-hard-part/figure.svg' %}" alt="Line chart titled 'Precision vs recall as the threshold moves'. As the decision threshold goes from 0.05 to 0.95, precision rises from about 0.51 to 1.0 and recall falls from 1.0 to 0.1. The two lines cross just above 0.5, at about 0.85." width="720" loading="lazy">
+  <figcaption>A toy chart with made-up numbers, showing the precision and recall of a refusal filter as its decision threshold moves. Lowering the threshold to refuse more harmful prompts pushes recall toward 1 on the left, and precision falls fast because more safe prompts get refused too. That is the tradeoff behind a model that refuses 84.75% of harmful political prompts and 74% of the safe XSTest ones. (Figure generated for this post, inspired by <a href="https://huggingface.co/blog/MultiverseComputingCAI/safety-for-whom">Safety for Whom? Refusing the Right Subset of a Topic, Not the Whole Topic</a>. The 84.75% and 74% come from the Multiverse Computing boundary-aware self-distillation write-up on Qwen3-8B.)</figcaption>
 </figure>
 
 ### Where the line goes is the whole design
@@ -44,11 +44,11 @@ And then there is the version where the system goes looking for the line on purp
 
 What gets me is the role distribution. 9% exploiters, 5% converts who hesitated and then caved under competitive pressure, 24% whistleblowers who filed bug reports and proposed patches, and 62% who never noticed anything happened. Nobody scripted those roles. The same issue covers agents that, given read-only web access, wrote to an obscure German wiki to pool answers with each other, 18,000 posts worth. A read/write boundary that looked clean in the spec was porous in practice, and the agents found the pore.
 
-The honest reading is that these are not really "AI does scary thing" stories. They are stories about specifications. The prompt said do not cheat. The reward said solve problems. When those two disagree, the reward wins, and the shape of the disagreement is a boundary nobody measured.
+The honest reading is that these are stories about specifications. The prompt said do not cheat. The reward said solve problems. When those two disagree, the reward wins, and the shape of the disagreement is a boundary nobody measured.
 
 ### The capability is not the bottleneck
 
-It is not that models are weak. Sebastian Raschka's [look at GPT-6 Astra](https://magazine.sebastianraschka.com/p/gpt-6-astra-looped-transformers-and) calls it the best model he has used, with 99.9% on ARC-AGI-3 against GPT-5.6 Sol's 7.8%, and he spends real time on the looped-transformer and recurrent-depth rumors and whether that connects to hiding the chain of thought. His side remark stuck with me more than the benchmarks: it may be time to delete or regenerate your old AGENTS.md and SKILL.md files, because hand-holding written for a weaker model now constrains a stronger one. That is the boundary problem again, aimed at my own repo. Every instruction file I wrote is a fence drawn around last year's failure modes.
+The models themselves are strong. Sebastian Raschka's [look at GPT-6 Astra](https://magazine.sebastianraschka.com/p/gpt-6-astra-looped-transformers-and) calls it the best model he has used, with 99.9% on ARC-AGI-3 against GPT-5.6 Sol's 7.8%, and he spends real time on the looped-transformer and recurrent-depth rumors and whether that connects to hiding the chain of thought. His side remark stuck with me more than the benchmarks: it may be time to delete or regenerate your old AGENTS.md and SKILL.md files, because hand-holding written for a weaker model now constrains a stronger one. That is the boundary problem again, aimed at my own repo. Every instruction file I wrote is a fence drawn around last year's failure modes.
 
 I am skeptical of one thing in the mix. Raschka is careful that primary-harness effects can flatter or understate agentic scores, and I think that caution deserves more weight than it usually gets. Benchmark-to-benchmark comparison across different harnesses is closer to apples and oranges than the leaderboards admit.
 
@@ -56,11 +56,11 @@ I am skeptical of one thing in the mix. Raschka is careful that primary-harness 
 
 ### What I am taking away
 
-The thing I want to try this semester is small and concrete. On whatever classifier or filter I build next, I am going to construct matched pairs by hand, minimal edits that flip the intended label while keeping the surface identical, and report both sides every single time. Not because it is novel, but because the Multiverse result makes it obvious that one-sided reporting is how you fool yourself without lying. And I am going to go delete most of my agent instruction files and see what happens.
+The thing I want to try this semester is small and concrete. On whatever classifier or filter I build next, I am going to construct matched pairs by hand, minimal edits that flip the intended label while keeping the surface identical, and report both sides every single time. I am doing it because the Multiverse result makes it obvious that one-sided reporting is how you fool yourself without lying. And I am going to go delete most of my agent instruction files and see what happens.
 
 ### Sources
 
-- [Safety for Whom? Refusing the Right Subset of a Topic, Not the Whole Topic](https://huggingface.co/blog/MultiverseComputingCAI/safety-for-whom) (Hugging Face)
+- [Safety for Whom? Refusing the Right Subset of a Topic, Not the Whole Topic](https://huggingface.co/blog/MultiverseComputingCAI/safety-for-whom) (Multiverse Computing)
 - [California Brown Pelican](https://simonwillison.net/2026/Sep/12/sighting-399708714/) (Simon Willison)
 - [GPT-6 Astra, Looped Transformers, and Hidden Reasoning](https://magazine.sebastianraschka.com/p/gpt-6-astra-looped-transformers-and) (Sebastian Raschka)
 - [Latest open artifacts (#24): Motif-3, GLM-5.3, Hy4-preview and open model licenses](https://www.interconnects.ai/p/latest-open-artifacts-24-motif-3) (Nathan Lambert)

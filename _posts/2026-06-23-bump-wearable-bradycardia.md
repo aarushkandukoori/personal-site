@@ -1,5 +1,5 @@
 ---
-title: "BUMP: building a wearable for when a heart rate crashes"
+title: "BUMP: Building a Wearable for When a Heart Rate Crashes"
 date: 2026-06-23 09:00:00 -0400
 categories: [Building]
 tags: [bump, medical-devices, hardware, machine-learning, startups]
@@ -11,26 +11,26 @@ Crashing bradycardia kills people who are nowhere near a hospital. The heart rat
 
 I want to be precise about what BUMP is and is not, because the honest version is more convincing than the pitch-deck version. The long-term vision is a wearable that detects dangerous bradycardia and delivers a bridge therapy to buy time to reach care. Most of this post is about the engineering reality of getting there, and the order I think it has to happen in.
 
-## What I have built
+## What we have built
 
-The current prototype is a closed control loop on the bench. A PulseSensor on the index finger streams photoplethysmography data to an Arduino Uno. The microcontroller estimates beats per minute in real time, and when the rate crosses a threshold it drives a peristaltic pump connected to a reservoir, while firing a multi-modal alert: an LED, a piezo buzzer, a vibration motor, and an LCD that switches to a "bradycardia detected" state.
+Our prototype, built in 2023, is a closed control loop on the bench. A PulseSensor on the index finger streams photoplethysmography data to an Arduino Uno. The microcontroller estimates beats per minute in real time, and when the rate crosses a threshold it drives a peristaltic pump connected to a reservoir, while firing a multi-modal alert: an LED, a piezo buzzer, a vibration motor, and an LCD that switches to a "bradycardia detected" state.
 
 The dosing is modeled as a simple linear function of heart rate, calibrated to an average adult:
 
 $$f(x) = -0.05x + 3.5$$
 
-where $f(x)$ is the dose in milliliters and $x$ is the measured BPM, valid below 60. To characterize the actuator, I drove the input with a potentiometer to simulate a sweep of heart rates, pumped water as an atropine proxy into a graduated cylinder, and compared dispensed volume against the equation. The pump landed at **92.77% accuracy** (standard deviation of 7.23%), with more than half of the trials inside a 2.5% deviation band. The hypothesis going in was sub-5% deviation, so the prototype missed its own target, and writing that down honestly is the point of doing the experiment.
+where $f(x)$ is the dose in milliliters and $x$ is the measured BPM, valid below 60. To characterize the actuator, we drove the input with a potentiometer to simulate a sweep of heart rates, pumped water as an atropine proxy into a graduated cylinder, and compared dispensed volume against the equation. The pump landed at **92.77% accuracy**, meaning the dispensed volume was off from the expected dose by 7.23% on average. The hypothesis going in was sub-5% deviation, so the prototype missed its own target, and writing that down honestly is the point of doing the experiment.
 
 <div class="bump-poster" markdown="0">
   <a href="https://www.peeref.com/posters/10753/bump-a-novel-atropine-pump-for-patients-with-crashing-bradycardia-via-continuous-bpm-monitoring" target="_blank" rel="noopener noreferrer">
-    <img src="{% include asset-url.html path='/assets/img/bump/bump-poster.png' %}" alt="BUMP research poster: A Novel Atropine Pump for Patients with Crashing Bradycardia via Continuous BPM Monitoring" width="1200" height="1553" loading="lazy">
+    <img src="{% include asset-url.html path='/assets/img/bump/bump-poster.png' %}" alt="BUMP research poster: A Novel Atropine Pump for Patients with Crashing Bradycardia via Continuous BPM Monitoring" width="1024" height="768" loading="lazy">
   </a>
   <figcaption>Click the poster to view it on Peeref.</figcaption>
 </div>
 
-The full build, methods, and deviation analysis are written up in the [research poster on Peeref](https://www.peeref.com/posters/10753/bump-a-novel-atropine-pump-for-patients-with-crashing-bradycardia-via-continuous-bpm-monitoring).
+Ethan Gracias, one of my co-founders, and I wrote up the full build, methods, and deviation analysis in a [research poster on Peeref](https://www.peeref.com/posters/10753/bump-a-novel-atropine-pump-for-patients-with-crashing-bradycardia-via-continuous-bpm-monitoring).
 
-So the prototype proves a narrow thing: I can build closed-loop sense-decide-actuate hardware, model the dosing, and measure where it fails. The integrated system, from the finger sensor and threshold logic to the dosing pump and multi-modal alert, is covered by a [filed US provisional patent](/assets/files/bump-provisional-patent.pdf), and the work is advised by Dr. Gopal at Harvard Medical School.
+So the prototype proves a narrow thing: we can build closed-loop sense-decide-actuate hardware, model the dosing, and measure where it fails. The integrated system, from the finger sensor and threshold logic to the dosing pump and multi-modal alert, is covered by a [filed US provisional patent](/assets/files/bump-provisional-patent.pdf), and the work is advised by Harvard Medical School faculty.
 
 ## The hard problems, stated honestly
 
@@ -56,7 +56,7 @@ The north star is **supervised closed-loop delivery** in controlled clinical set
 
 ## Why me, why now
 
-I built a working closed-loop prototype and filed a patent on it before starting college, and I can carry the whole stack myself: the embedded hardware, the firmware, the machine learning on the sensor signal, and the statistics to validate it. I work on cardiovascular and ML research at Harvard Medical School and Brigham and Women's, the Stanford Cardiovascular Institute, and the UMD MIND Lab, and I have clinical advising on the medicine.
+I built a working closed-loop prototype and filed a patent on it before starting college. My co-founders, Aditya Kandukoori (CTO) and Ethan Gracias (COO), and I cover the whole stack: the embedded hardware, the firmware, the signal processing, and the statistics to validate it. I did research at Harvard Medical School and Brigham and Women's (multiple sclerosis biomarkers, 2024), the Stanford Cardiovascular Institute (cardiac fibrosis imaging, 2024), and the UMD MIND Lab (breathing signals, 2022 and 2023), and I have clinical advising on the medicine.
 
 The timing is the real unlock. Wearable biosensors and on-device models have only recently gotten good enough to make continuous, low-false-positive deterioration detection plausible outside a hospital. The detection layer that was science fiction a few years ago is now the tractable first product.
 

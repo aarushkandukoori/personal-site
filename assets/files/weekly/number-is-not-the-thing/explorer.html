@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speed versus success</title>
+  <title>One threshold, two numbers</title>
   <link rel="stylesheet" href="../../gradient-descent/interactive.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <h2 class="card-title">Speed versus success</h2>
-          <p class="card-subtitle">Move the threshold and watch what a single headline number quietly hides.</p>
+          <h2 class="card-title">One threshold, two numbers</h2>
+          <p class="card-subtitle">The same tension in a toy classifier with made-up curves. One threshold sets both precision and recall, so somebody has to pick the point.</p>
         </div>
       </div>
       
@@ -33,7 +33,7 @@
   </div>
   <script>
 
-    // Approximate curves with smooth formulas for a stable demo
+    // Made-up straight-line curves for a toy classifier (not data from any paper).
     function metrics(t) {
       const recall = Math.max(0, Math.min(1, 1.15 - 1.05*t));
       const precision = Math.max(0.05, Math.min(1, 0.35 + 0.7*t));

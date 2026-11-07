@@ -1,8 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-label="Two classes of points separated by a decision boundary line">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-label="Two classes of points on either side of a logistic regression decision boundary, with the background shading from low to high probability of class 1">
+  <defs>
+    <linearGradient id="pshade" gradientUnits="userSpaceOnUse" x1="231.8" y1="-24.2" x2="478.2" y2="364.2">
+      <stop offset="0" stop-color="#c2c2c2"/>
+      <stop offset="0.38" stop-color="#d3d3d3"/>
+      <stop offset="0.5" stop-color="#e2e2e2"/>
+      <stop offset="0.62" stop-color="#f1f1f1"/>
+      <stop offset="1" stop-color="#fbfbfb"/>
+    </linearGradient>
+  </defs>
   <rect width="720" height="360" fill="#f4f4f4"/>
-  <g stroke="#e6e6e6" stroke-width="1">
-    <line x1="60" y1="300" x2="660" y2="300"/>
-    <line x1="60" y1="300" x2="60" y2="40"/>
+  <rect x="60" y="40" width="600" height="260" fill="url(#pshade)"/>
+  <g stroke="#000" stroke-opacity="0.07" stroke-width="1">
     <line x1="160" y1="40" x2="160" y2="300"/>
     <line x1="260" y1="40" x2="260" y2="300"/>
     <line x1="360" y1="40" x2="360" y2="300"/>
@@ -14,20 +22,26 @@
     <line x1="60" y1="120" x2="660" y2="120"/>
     <line x1="60" y1="60" x2="660" y2="60"/>
   </g>
-  <line x1="120" y1="320" x2="620" y2="80" stroke="#111111" stroke-width="3"/>
-  <text x="630" y="74" font-family="Inter, Arial, sans-serif" font-size="14" fill="#111">w1x1 + w2x2 + b = 0</text>
-  <circle cx="180" cy="250" r="9" fill="#111"/>
-  <circle cx="220" cy="220" r="9" fill="#111"/>
-  <circle cx="250" cy="260" r="9" fill="#111"/>
-  <circle cx="300" cy="230" r="9" fill="#111"/>
-  <circle cx="340" cy="210" r="9" fill="#111"/>
-  <circle cx="430" cy="120" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
-  <circle cx="470" cy="90" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
-  <circle cx="510" cy="130" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
-  <circle cx="550" cy="100" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
-  <circle cx="590" cy="70" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
-  <text x="90" y="250" font-family="Inter, Arial, sans-serif" font-size="13" fill="#555">P(y=1) &lt; 0.5</text>
-  <text x="470" y="170" font-family="Inter, Arial, sans-serif" font-size="13" fill="#555">P(y=1) &gt; 0.5</text>
-  <text x="670" y="305" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">x1</text>
-  <text x="45" y="50" font-family="Inter, Arial, sans-serif" font-size="13" fill="#111">x2</text>
+  <g stroke="#555" stroke-width="1.5">
+    <line x1="60" y1="300" x2="660" y2="300"/>
+    <line x1="60" y1="300" x2="60" y2="40"/>
+  </g>
+  <line x1="150" y1="300" x2="560" y2="40" stroke="#111" stroke-width="3"/>
+  <text transform="translate(429.0 105.3) rotate(-32.38)" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" fill="#111">w<tspan dy="5" font-size="11">1</tspan><tspan dy="-5">x</tspan><tspan dy="5" font-size="11">1</tspan><tspan dy="-5"> + w</tspan><tspan dy="5" font-size="11">2</tspan><tspan dy="-5">x</tspan><tspan dy="5" font-size="11">2</tspan><tspan dy="-5"> + b = 0</tspan></text>
+  <circle cx="110" cy="95" r="9" fill="#111"/>
+  <circle cx="185" cy="150" r="9" fill="#111"/>
+  <circle cx="245" cy="85" r="9" fill="#111"/>
+  <circle cx="115" cy="215" r="9" fill="#111"/>
+  <circle cx="300" cy="150" r="9" fill="#111"/>
+  <circle cx="165" cy="245" r="9" fill="#111"/>
+  <circle cx="430" cy="255" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="505" cy="205" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="575" cy="240" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="612" cy="165" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="470" cy="150" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <circle cx="380" cy="282" r="9" fill="#ffffff" stroke="#111" stroke-width="2.5"/>
+  <text x="72" y="62" font-family="Inter, Arial, sans-serif" font-size="14" fill="#222">P(y=1) &gt; 0.5</text>
+  <text x="650" y="290" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="14" fill="#444">P(y=1) &lt; 0.5</text>
+  <text x="668" y="305" font-family="Inter, Arial, sans-serif" font-size="15" fill="#111">x<tspan dy="5" font-size="11">1</tspan></text>
+  <text x="60" y="30" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" fill="#111">x<tspan dy="5" font-size="11">2</tspan></text>
 </svg>

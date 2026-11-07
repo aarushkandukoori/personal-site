@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The defender&#x27;s head start</title>
+  <title>The deploy-or-withhold switch</title>
   <link rel="stylesheet" href="../../gradient-descent/interactive.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <h2 class="card-title">The defender&#x27;s head start</h2>
-          <p class="card-subtitle">Slide the release window and watch who wins the offense/defense race.</p>
+          <h2 class="card-title">The deploy-or-withhold switch</h2>
+          <p class="card-subtitle">Slide the release threshold and watch precision trade against recall. Moving it only changes which mistake you make.</p>
         </div>
       </div>
       
@@ -21,7 +21,7 @@
           <div class="control-top"><span class="control-label">Threshold</span><span class="control-value" id="th">0.50</span></div>
           <input id="t" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
         </div>
-        <div class="metric-row">
+        <div class="metric-row" style="margin-top:0.9rem">
           <div class="metric"><span class="metric-label">precision</span><span class="metric-value" id="pr">-</span></div>
           <div class="metric"><span class="metric-label">recall</span><span class="metric-value" id="rc">-</span></div>
           <div class="metric"><span class="metric-label">F1</span><span class="metric-value" id="f1">-</span></div>

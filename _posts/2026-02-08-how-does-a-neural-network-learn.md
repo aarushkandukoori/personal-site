@@ -1,5 +1,5 @@
 ---
-title: "So how does a neural network actually learn?"
+title: "So How Does a Neural Network Actually Learn?"
 date: 2026-02-08 09:00:00 -0500
 categories: [Learning Interactively]
 tags: [machine-learning, gradient-descent, neural-network, pytorch]
@@ -34,8 +34,14 @@ Say we have a dataset of $n$ points $(x_i, y_i)$, where $y_i$ is the true answer
 
 The most common choice is the **mean squared error (MSE)**. We square each error (so positives and negatives do not cancel, and big misses are punished harder), then average:
 
-> **Key Point:**
-> $L(w, b) = \dfrac{1}{n} \sum_{i=1}^{n} \left(\hat{y}_i - y_i\right)^2 = \dfrac{1}{n} \sum_{i=1}^{n} \left(wx_i + b - y_i\right)^2.$
+> **Key Point**
+>
+> $$
+> \begin{aligned}
+> L(w, b) &= \frac{1}{n} \sum_{i=1}^{n} \left(\hat{y}_i - y_i\right)^2 \\
+> &= \frac{1}{n} \sum_{i=1}^{n} \left(wx_i + b - y_i\right)^2.
+> \end{aligned}
+> $$
 
 We call $L$ the **loss function**. Notice something important about it: the data $(x_i, y_i)$ is fixed, so $L$ is really a function of the knobs $w$ and $b$. Different knob settings give different amounts of total wrongness.
 
@@ -66,7 +72,7 @@ $$\nabla L = \left( \frac{\partial L}{\partial w}, \; \frac{\partial L}{\partial
 
 The gradient has a crucial property: it points in the direction of steepest *increase* of $L$. We want to decrease the loss, so we step in the exact opposite direction, the negative gradient. That single observation is the whole engine.
 
-> First time seeing the gradient like this? 3Blue1Brown's video "Gradient descent, how neural networks learn" gives a gorgeous visual for why it points uphill. Highly recommend watching it alongside this.
+> First time seeing the gradient like this? 3Blue1Brown's video ["Gradient descent, how neural networks learn"](https://www.youtube.com/watch?v=IHZwWFHWa-w) gives a gorgeous visual for why it points uphill. Highly recommend watching it alongside this.
 
 ### Deriving the update rule
 
@@ -97,31 +103,43 @@ Take a second to read what these are saying. Each gradient is an average of the 
 
 Now we just step downhill. We move each knob a little bit in the negative gradient direction, scaled by a small number $\eta$ (the Greek letter "eta") that controls step size:
 
-> **Key Point:**
-> $w \leftarrow w - \eta \, \dfrac{\partial L}{\partial w}, \qquad b \leftarrow b - \eta \, \dfrac{\partial L}{\partial b}.$
+> **Key Point**
+>
+> $$
+> \begin{aligned}
+> w &\leftarrow w - \eta \, \frac{\partial L}{\partial w}, \\
+> b &\leftarrow b - \eta \, \frac{\partial L}{\partial b}.
+> \end{aligned}
+> $$
 
 That arrow means "update the knob to this new value." We call $\eta$ the **learning rate**, and repeating this step over and over is **gradient descent**. That is the entire algorithm.
 
-<details>
+<details markdown="1">
 <summary><strong>Click here for a worked step by hand</strong></summary>
 
-<br>
+Let's do one real step with one data point so you can see the gears turn. Suppose our single point is ${(x, y) = (2, 6)}$, our knobs start at ${w = 0}$ and ${b = 0}$, and our learning rate is ${\eta = 0.05}$.
 
-Let's do one real step with one data point so you can see the gears turn. Suppose our single point is $(x, y) = (2, 6)$, our knobs start at $w = 0$ and $b = 0$, and our learning rate is $\eta = 0.05$.
-
-<strong>Step 1: predict.</strong> $\hat{y} = wx + b = 0 \cdot 2 + 0 = 0$. The error is $\hat{y} - y = 0 - 6 = -6$.
+<strong>Step 1: predict.</strong> ${\hat{y} = wx + b = 0 \cdot 2 + 0 = 0}$. The error is ${\hat{y} - y = 0 - 6 = -6}$.
 
 <strong>Step 2: compute the gradients.</strong> With a single point the sum has one term:
 
-$$\frac{\partial L}{\partial w} = 2(\hat{y} - y)x = 2(-6)(2) = -24,$$
-$$\frac{\partial L}{\partial b} = 2(\hat{y} - y) = 2(-6) = -12.$$
+$$
+\begin{aligned}
+\frac{\partial L}{\partial w} &= 2(\hat{y} - y)x = 2(-6)(2) = -24, \\
+\frac{\partial L}{\partial b} &= 2(\hat{y} - y) = 2(-6) = -12.
+\end{aligned}
+$$
 
 <strong>Step 3: update the knobs.</strong>
 
-$$w \leftarrow 0 - 0.05(-24) = 1.2,$$
-$$b \leftarrow 0 - 0.05(-12) = 0.6.$$
+$$
+\begin{aligned}
+w &\leftarrow 0 - 0.05(-24) = 1.2, \\
+b &\leftarrow 0 - 0.05(-12) = 0.6.
+\end{aligned}
+$$
 
-<strong>Step 4: check our work.</strong> The new prediction is $\hat{y} = 1.2 \cdot 2 + 0.6 = 3.0$. Our error went from $-6$ to $-3$, exactly halfway to the target in a single step. Run this a few more times and the prediction creeps right up to $6$.
+<strong>Step 4: check our work.</strong> The new prediction is ${\hat{y} = 1.2 \cdot 2 + 0.6 = 3.0}$. Our error went from $-6$ to $-3$, exactly halfway to the target in a single step. Run this a few more times and the prediction creeps right up to $6$.
 
 That is gradient descent in miniature: predict, measure how wrong you are, nudge the knobs, repeat.
 
@@ -156,11 +174,16 @@ That is all the theory. Here is the part that made everything click for me back 
 for epoch in range(epochs):
     model.train()
 
-    y_pred = model(X_train)            # 1. forward pass: make predictions
-    loss = loss_fn(y_pred, y_train)    # 2. measure how wrong we are
-    optimizer.zero_grad()              # 3. reset gradients from last step
-    loss.backward()                    # 4. backpropagation: compute the gradients
-    optimizer.step()                   # 5. gradient descent: nudge every knob
+    # 1. forward pass: make predictions
+    y_pred = model(X_train)
+    # 2. measure how wrong we are
+    loss = loss_fn(y_pred, y_train)
+    # 3. reset gradients from last step
+    optimizer.zero_grad()
+    # 4. backpropagation: compute the gradients
+    loss.backward()
+    # 5. gradient descent: nudge every knob
+    optimizer.step()
 ```
 
 Look closely at what each line is doing, because we derived all of it:
@@ -178,9 +201,9 @@ Hope you got a deeper understanding of how neural networks learn. Thanks for rea
 
 ### Sources
 
-- *Learn PyTorch for Deep Learning in a Day* by Daniel Bourke [(link)](https://www.youtube.com/watch?v=Z_ikDlimN6A)
-- 3Blue1Brown, "Gradient descent, how neural networks learn" (Chapter 2 of his neural networks series)
-- StatQuest with Josh Starmer, "Gradient Descent, Step-by-Step"
-- *Why Machines Learn* by Anil Ananthaswamy
+- [*Learn PyTorch for Deep Learning in a Day*](https://www.youtube.com/watch?v=Z_ikDlimN6A) by Daniel Bourke
+- 3Blue1Brown, ["Gradient descent, how neural networks learn"](https://www.youtube.com/watch?v=IHZwWFHWa-w) (Chapter 2 of his neural networks series)
+- StatQuest with Josh Starmer, ["Gradient Descent, Step-by-Step"](https://www.youtube.com/watch?v=sDv4f4s2SB8)
+- [*Why Machines Learn*](https://anilananthaswamy.com/why-machines-learn) by Anil Ananthaswamy
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

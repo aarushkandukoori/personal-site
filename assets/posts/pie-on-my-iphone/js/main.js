@@ -1,5 +1,5 @@
 // The whole page's script. Each figure lives in its own small file.
-import { $, crashes, svgEl, whenNear, sleep, reducedMotion } from "./core.js";
+import { $, crashes, el, svgEl, whenNear, sleep, reducedMotion } from "./core.js";
 import { initHero } from "./hero.js";
 import { initBringup } from "./bringup.js";
 import { initSpeed } from "./speed.js";
@@ -37,11 +37,14 @@ function initTheme() {
 }
 
 // Reading progress, as thirteen slices, because the model was thirteen slices.
+// Phones get the same thirteen slices as a thin strip along the top (post.css).
 function initReadingPie() {
   const wrap = $("#reading-pie");
   const svg = $("svg", wrap);
+  const strip = $("#reading-strip");
   const C = 20, R = 18, N = 13;
   const slices = [];
+  const segments = [];
   for (let i = 0; i < N; i++) {
     const a0 = (i / N) * 2 * Math.PI - Math.PI / 2;
     const a1 = ((i + 1) / N) * 2 * Math.PI - Math.PI / 2;
@@ -49,6 +52,9 @@ function initReadingPie() {
     const path = svgEl("path", { d, fill: "var(--paper-2)", stroke: "var(--paper)", "stroke-width": 0.8 });
     svg.append(path);
     slices.push(path);
+    const segment = el("i");
+    strip.append(segment);
+    segments.push(segment);
   }
   let frame = 0;
   const draw = () => {
@@ -56,9 +62,12 @@ function initReadingPie() {
     const max = document.documentElement.scrollHeight - innerHeight;
     const p = max > 0 ? scrollY / max : 0;
     const past = scrollY > innerHeight * 0.8;
+    const done = Math.round(p * N);
     wrap.classList.toggle("on", past);
+    strip.classList.toggle("on", past);
     $("#crashbar").classList.toggle("on", past);
-    slices.forEach((s, i) => s.setAttribute("fill", i < Math.round(p * N) ? "var(--orange)" : "var(--paper-2)"));
+    slices.forEach((s, i) => s.setAttribute("fill", i < done ? "var(--orange)" : "var(--paper-2)"));
+    segments.forEach((s, i) => s.classList.toggle("done", i < done));
   };
   addEventListener("scroll", () => (frame ||= requestAnimationFrame(draw)), { passive: true });
   draw();

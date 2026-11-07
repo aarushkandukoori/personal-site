@@ -49,6 +49,8 @@
   .hand.gone { display: none; }
   @media (max-width: 599px) {
     .hand, .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* Two columns are narrow enough for a description to wrap. Reserve two lines so every drop box starts at the same height. */
+    .bdesc { min-height: 2.6em; }
   }
 
   .card {

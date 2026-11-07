@@ -6,7 +6,7 @@ tags: [multimodal, robotics, llm-systems, optimization, benchmarks, ai-research,
 math: true
 ---
 
-I spent most of Thursday night trying to make a tool-calling agent stop hallucinating column names, and my first three fixes were all the same fix wearing different hats: give the model more context, give it more examples, give it a bigger model. None of it worked particularly well. Then I read five papers this week that, without talking to each other, all said roughly the same thing back to me. The interesting design decision is not how much model you use. It is where you stop using it.
+I lost most of Thursday night to a tool-calling agent that kept hallucinating column names, and my first three fixes were all the same fix wearing different hats: give the model more context, give it more examples, give it a bigger model. None of it worked particularly well. Then I read five papers this week that, without talking to each other, all said roughly the same thing back to me. The interesting design decision is where you stop using the model.
 
 That sounds like a platitude until you look at how differently these groups drew that line.
 
@@ -14,7 +14,7 @@ That sounds like a platitude until you look at how differently these groups drew
 
 The cleanest version of the argument is [ANVIL](https://arxiv.org/abs/2609.19545v1), from Priyadarshan Patil, Abhishek Basu, Vikas Reddy, and Abhinav Gupta. The standard pipeline for natural-language-to-optimization uses an LLM at every stage, including the last one where a mathematical formulation becomes solver-ready code. ANVIL calls the language model a single time, to produce a LaTeX formulation, and then hands that off to an actual compiler: a normalizer, a recursive-descent parser, a typed intermediate representation, analysis passes that bind symbols to a dataset schema, and a code emitter. No model in the back half at all.
 
-The numbers are good (92.9% of formulations compiled, 98.9% accuracy on easy NLP4LP problems, 91.1% on hard ones), but the number I keep thinking about is the median compile time, which was below the 10ms resolution of their timer. A deterministic translation step is not just more reliable, it is free. And the error analysis is the part I would put on a poster: almost every failure traced back to the formulation, not the translation. They moved all the uncertainty into one place where they could see it.
+The numbers are good (92.9% of formulations compiled, 98.9% accuracy on easy NLP4LP problems, 91.1% on hard ones), but the number I keep thinking about is the median compile time, which was below the 10ms resolution of their timer. A deterministic translation step is more reliable, and it is free. And the error analysis is the part I would put on a poster: almost every failure traced back to the formulation, not the translation. They moved all the uncertainty into one place where they could see it.
 
 I am slightly suspicious of how much the "constraint guidance based on problem type" is doing here. That smells like a prior over the benchmark's problem distribution, and I would want to know how it holds up on a messy industrial problem that does not look like a textbook. But the architectural claim survives even if the benchmark is generous.
 
@@ -30,11 +30,11 @@ What I find honest about this paper is that the improvements show up on temporal
 
 [EyeRobot 2.0](https://arxiv.org/abs/2610.03710v1), from Kush Hari, Justin Kerr, and collaborators including Jitendra Malik, Ken Goldberg, and Angjoo Kanazawa, draws the line somewhere else entirely, and it is my favorite paper of the week. The problem: drop the wrist cameras from a bimanual manipulation policy and real-world success falls from 52% to 27%. The obvious fix is more cameras or more tokens. Their fix is to swivel two stereo eyes so they physically fixate on a 3D point, then process the resulting images foveally by allocating more visual tokens to the center.
 
-They recover almost all of the gap with stereo alone, beating passive stereo by 40% in real trials, matching ego-plus-wrist policies when the wrist view is clear (69% versus 64%), and more than doubling them when the grasped object occludes the wrist camera (48% versus 22%). The detail I keep coming back to is canonicalizing gripper information into a fixation-relative SE(3) frame. Once you know where you are looking, the action distribution you have to learn gets dramatically smaller. That is not a bigger model. That is a better coordinate system.
+They recover almost all of the gap with stereo alone, beating passive stereo by 40% in real trials, matching ego-plus-wrist policies when the wrist view is clear (69% versus 64%), and more than doubling them when the grasped object occludes the wrist camera (48% versus 22%). The detail I keep coming back to is canonicalizing gripper information into a fixation-relative SE(3) frame. Once you know where you are looking, the action distribution you have to learn gets dramatically smaller. That is a better coordinate system.
 
 <figure class="ml-figure" markdown="0">
-  <img src="{% include asset-url.html path='/assets/img/weekly/spend-the-model-where-it-earns-its-keep/figure.svg' %}" alt="An attention heatmap over a 10x10 image grid under foveal token allocation. Notice that the bright band is narrow and centered: almost all of the attention mass sits in a few central patches, and the periphery is nearly dark. That is the whole bet of active gaze, which is that you would rather aim a small budget than spread a large one." width="720" loading="lazy">
-  <figcaption>An attention heatmap over a 10x10 image grid under foveal token allocation. Notice that the bright band is narrow and centered: almost all of the attention mass sits in a few central patches, and the periphery is nearly dark. That is the whole bet of active gaze, which is that you would rather aim a small budget than spread a large one. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2610.03710v1">EyeRobot 2.0: Active Gaze for Precise Manipulation without Wrist Cameras</a>. EyeRobot 2.0 allocates more visual tokens to the image center and swivels the cameras so the fixation point lands there.)</figcaption>
+  <img src="{% include asset-url.html path='/assets/img/weekly/spend-the-model-where-it-earns-its-keep/figure.svg' %}" alt="Two-panel chart titled 'Toy foveal token budget: 100 tokens over a 10 x 10 grid of image patches'. Left, a heatmap of tokens per patch, darkest in the four central patches at about 6.3 tokens each and fading to 0.1 or less toward the edges, with a plus sign at the fixation point. Right, bars giving each ring of patches' share of the budget from the center outward, foveal versus an even spread: center 4 patches 25% versus 4%, next 12 patches 43% versus 12%, next 20 patches 24% versus 20%, next 28 patches 7% versus 28%, and the 36 edge patches 1% versus 36%." width="720" loading="lazy">
+  <figcaption>A toy illustration with a made-up falloff: 100 visual tokens spread over a 10x10 grid of image patches, with each patch's share shrinking with its distance from a fixation point at the center. The four central patches get about a quarter of the budget and the 36 edge patches about 1%, against 4% and 36% for an even spread. That is the bet of active gaze: put the budget where you are looking instead of spreading it evenly. (Figure generated for this post, inspired by <a href="https://arxiv.org/abs/2610.03710v1">EyeRobot 2.0: Active Gaze for Precise Manipulation without Wrist Cameras</a>. EyeRobot 2.0 allocates more visual tokens to the image center and swivels the cameras so the fixation point lands there.)</figcaption>
 </figure>
 
 <iframe
@@ -56,17 +56,16 @@ And then there is the benchmark from [Noah Schroeder, Yessy Eka Ambarwati, Yuji 
 
 ### What I am taking away
 
-My agent problem was never a model problem. I was asking a sampler to be a type checker. The fix I am going to try this week is embarrassingly close to ANVIL: have the model emit a declarative spec once, validate it against the schema deterministically, and refuse to let a token anywhere near the final query. If that works, the next thing I want to try is the EyeRobot trick on a project where I have been throwing resolution at a problem that was really a framing problem.
+My agent problem came down to one mistake: I was asking a sampler to be a type checker. The fix I am going to try this week is embarrassingly close to ANVIL: have the model emit a declarative spec once, validate it against the schema deterministically, and refuse to let a token anywhere near the final query. If that works, the next thing I want to try is the EyeRobot trick on a project where I have been throwing resolution at a problem that was really a framing problem.
 
-> **Key Point:**
-> Learn the parts you cannot specify. Compile the parts you can.
+> **Key Point** - Learn the parts you cannot specify. Compile the parts you can.
 
 ### Sources
 
-- [PixelUMM: Encoder-Free Unified Image and Video Understanding and Generation](https://arxiv.org/abs/2609.38597v1) (Sanja Fidler)
-- [EyeRobot 2.0: Active Gaze for Precise Manipulation without Wrist Cameras](https://arxiv.org/abs/2610.03710v1) (Jitendra Malik)
-- [Where the LLM Ends and Reliable Decisions Begin](https://arxiv.org/abs/2609.19545v1) (Abhinav Gupta)
-- [What, When, and How: Audio Description as Constrained Global Optimization](https://arxiv.org/abs/2609.30121v1) (Mirella Lapata)
-- [A Benchmark for LLM's Understanding of Middle School and High School Science Topics](https://arxiv.org/abs/2609.32020v1) (ChengXiang Zhai)
+- [PixelUMM: Encoder-Free Unified Image and Video Understanding and Generation](https://arxiv.org/abs/2609.38597v1) (Cong Wei et al.)
+- [EyeRobot 2.0: Active Gaze for Precise Manipulation without Wrist Cameras](https://arxiv.org/abs/2610.03710v1) (Kush Hari et al.)
+- [Where the LLM Ends and Reliable Decisions Begin](https://arxiv.org/abs/2609.19545v1) (Priyadarshan Patil et al.)
+- [What, When, and How: Audio Description as Constrained Global Optimization](https://arxiv.org/abs/2609.30121v1) (Igor Sterner et al.)
+- [A Benchmark for LLM's Understanding of Middle School and High School Science Topics](https://arxiv.org/abs/2609.32020v1) (Noah L. Schroeder et al.)
 
 <script defer src="/assets/js/interactive-embed-resize.js"></script>

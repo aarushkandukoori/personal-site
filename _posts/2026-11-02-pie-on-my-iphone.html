@@ -47,7 +47,7 @@ toc: false
 
 <section class="prose">
   <p>That's the app. It opens, then it's gone. No error, no dialog, just the home screen again. Other times it sat on a spinner forever. Meanwhile in the iOS Simulator, the same build booted in <button type="button" class="num" data-r="sim-boot">about 3 seconds</button> and chatted happily.</p>
-  <p>This is the story of getting it working. As of my last run on October 8, Pie answers on my phone in <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> at <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button> with nothing leaving the device, and the same runtime runs in a browser tab. At the bottom of this page you can boot it in <em>this</em> tab and fork its sentences with your mouse.</p>
+  <p>This is the story of getting it working. As of my last benchmark on October 8, Pie answers on my phone in <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> at <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button> with nothing leaving the device, and the same runtime runs in a browser tab. At the bottom of this page you can boot it in <em>this</em> tab and fork its sentences with your mouse.</p>
   <p class="how-to-read">Numbers with a dotted line under them have receipts. Tap one to see where it came from.</p>
 
   <h2 id="what">What Pie is</h2>
@@ -83,7 +83,7 @@ toc: false
   <div class="fig-split">
     <div class="phone-slot small" data-phone></div>
     <div class="fig-main">
-      <p class="fig-note">Swift's <code>try?</code> turns an error into nothing, and <code>_ =</code> throws the nothing away. Tap the line.</p>
+      <p class="fig-note">Swift's <code>try?</code> turns an error into nothing, and <code>_&nbsp;=</code> throws the nothing away. Tap the line.</p>
       <button type="button" class="codeline" data-line><span data-code>_ = try? await run(text: "hello", ...)</span></button>
       <div class="console" data-console role="log"></div>
     </div>
@@ -193,7 +193,7 @@ ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
     </div>
     <div class="real-shot">
       <div class="phone-frame"><img src="../../assets/posts/pie-on-my-iphone/img/03-answered.webp" width="603" height="1311" loading="lazy" alt="Screenshot of the Pie app on the iPhone, showing the question, the model's reply and the stats line: 0.24 s to first token, 76 tok/s, 0 of 111 prompt tokens reused."></div>
-      <p class="shot-note">The screenshot the app took of itself on my phone. The one on the left is redrawn so it can replay.</p>
+      <p class="shot-note">The screenshot the app took of itself on my phone. The other one is redrawn so it can replay.</p>
     </div>
   </div>
   <figcaption>Figure 5. It's over before you can read it. Now read it.</figcaption>
@@ -207,7 +207,7 @@ ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
 </section>
 
 <figure class="fig narrow">
-  <pre class="logblock"><span class="prompt">$</span> cargo check -p pie --features metal --target aarch64-apple-ios
+  <pre class="logblock"><span class="prompt">$</span> cargo check <span class="nowrap">-p pie</span> <span class="nowrap">--features metal</span> <span class="nowrap">--target aarch64-apple-ios</span>
     Checking runtime v0.5.4
     Checking worker v0.5.4
     Checking pie v0.5.4
@@ -216,7 +216,7 @@ ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
 </figure>
 
 <section class="prose">
-  <p>The only engine code that needed changing was the Wasmtime setup from Death 3. My side took more: a new inferlet, a rewritten shim and config, and a new model, because 0.5 has no Qwen3-0.6B. On October 8 it was running on the phone's GPU: <button type="button" class="num" data-r="boot-05">0.30 to 0.63 s</button> to boot, <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> to first token, <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button>, <button type="button" class="num" data-r="peak-05">981 MiB</button> at peak.</p>
+  <p>The only engine code that needed changing was the Wasmtime setup from Death 3. My side took more: a new inferlet, a rewritten shim and config, and a new model, because 0.5 has no Qwen3-0.6B. On October 8 it was running on the phone's GPU. My benchmark runs that day: <button type="button" class="num" data-r="boot-05">0.30 to 0.63 s</button> to boot, <button type="button" class="num" data-r="ttft-05">0.11 to 0.25 s</button> to first token, <button type="button" class="num" data-r="tps-05">59 to 72 tok/s</button>, <button type="button" class="num" data-r="peak-05">981 MiB</button> at peak.</p>
   <p>Later that same day, In merged iOS support into Pie's mainline himself (<a href="https://github.com/pie-project/pie/pull/838">#838</a>). I want to be clear about this: his Swift package is the right way to use Pie on iOS today, and my fork isn't. What I got out of it was an app, a measuring harness and a good list of ways a phone is different.</p>
   <p>Here's what a token passes through in the app I ended up with.</p>
 </section>
@@ -238,7 +238,7 @@ ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
   <div class="kv">
     <div class="kv-q" data-q aria-live="polite"></div>
     <div class="kv-tape" data-tape aria-hidden="true"></div>
-    <div class="kv-legend"><span class="sw reused"></span> reused from KV <span class="sw prefill"></span> read this turn <span class="sw gen"></span> written this turn</div>
+    <div class="kv-legend"><span class="key"><span class="sw reused"></span> reused from KV</span> <span class="key"><span class="sw prefill"></span> read this turn</span> <span class="key"><span class="sw gen"></span> written this turn</span></div>
     <div class="kv-stats" data-stats aria-live="polite"></div>
     <div class="kv-ghost" data-ghost></div>
     <p class="fig-buttons"><button type="button" class="btn" data-next>Ask the first question</button></p>
@@ -361,5 +361,6 @@ ggml_backend_sched_split_graph &lt;- ggml_backend_sched_alloc_graph</pre>
 </div>
 
 <div class="reading-pie" id="reading-pie" aria-hidden="true"><svg viewBox="0 0 40 40"></svg></div>
+<div class="reading-strip" id="reading-strip" aria-hidden="true"></div>
 
 <noscript><p class="prose">The figures on this page need JavaScript. The story above still reads fine without them.</p></noscript>

@@ -21,12 +21,12 @@
           <div class="control-top"><span class="control-label">Threshold</span><span class="control-value" id="th">0.50</span></div>
           <input id="t" type="range" min="0.05" max="0.95" step="0.01" value="0.5">
         </div>
-        <div class="metric-row">
+        <div class="metric-row" style="margin-top:0.9rem">
           <div class="metric"><span class="metric-label">precision</span><span class="metric-value" id="pr">-</span></div>
           <div class="metric"><span class="metric-label">recall</span><span class="metric-value" id="rc">-</span></div>
           <div class="metric"><span class="metric-label">F1</span><span class="metric-value" id="f1">-</span></div>
         </div>
-        <p class="hint">Raise the threshold: fewer false positives, more missed positives. There is no free lunch.</p>
+        <p class="hint">A release is blocked when its risk score clears the threshold. Precision is the share of blocked releases that were really dangerous, and recall is the share of dangerous releases that get blocked. Raise the threshold and you block fewer benign releases but ship more dangerous ones.</p>
       </div>
     
     </section>

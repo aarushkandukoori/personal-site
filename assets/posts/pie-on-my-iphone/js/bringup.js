@@ -208,6 +208,12 @@ function zoomFigure() {
     const Y = (v) => h / 2 + (v - cy) * scale;
 
     ctx.clearRect(0, 0, w, h);
+    const lx = X(0);
+    const ly = Y(0);
+    const ls = limit * scale;
+    // The limit's red fill goes under the slots, so the slot inside it stays blue.
+    ctx.fillStyle = "rgba(235,50,40,.34)";
+    ctx.fillRect(lx, ly, ls, ls);
     const lit = Math.round(Math.pow(1000, p));
     const gap = 0.07;
     let n = 0;
@@ -224,11 +230,6 @@ function zoomFigure() {
       ctx.fillStyle = n <= lit ? "#4f8bd6" : "rgba(255,255,255,.06)";
       ctx.fillRect(x, y, s, s);
     }
-    const lx = X(0);
-    const ly = Y(0);
-    const ls = limit * scale;
-    ctx.fillStyle = "rgba(235,50,40,.34)";
-    ctx.fillRect(lx, ly, ls, ls);
     ctx.lineWidth = Math.max(1.5, Math.min(3, ls / 60));
     ctx.strokeStyle = "#ff5247";
     ctx.strokeRect(lx, ly, ls, ls);
@@ -256,7 +257,7 @@ function zoomFigure() {
       ctx.fillText(label, tx, ty);
     }
 
-    count.textContent = `${lit.toLocaleString("en-US")} slot${lit === 1 ? "" : "s"}`;
+    count.textContent = `${lit} slot${lit === 1 ? "" : "s"}`; // "1000", like the rest of the post
     size.textContent = bytes(lit * 4096);
     caption.textContent = captions.filter(([at]) => p >= at).pop()[1];
   }
@@ -407,15 +408,19 @@ function halveFigure() {
   const bar = $("[data-bar]", fig);
   const line = $("[data-line]", fig);
   const go = $("[data-go]", fig);
-  const KB_PER_NODE = 19.7; // 30 x 2 tensors of 336 bytes per node, from ggml-backend.cpp
+  // Per node, from ggml-backend.cpp: 30 x 2 tensors of 336 bytes, plus the
+  // graph's own bookkeeping, which grows with the node count and is about 21 MB
+  // at 2^19 nodes. That makes 2^19 nodes 10.59 GB, the 9.9 GiB in the text.
+  const BYTES_PER_NODE = 30 * 2 * 336 + 21e6 / 2 ** 19;
   let power = 19;
 
-  const mib = (p) => (2 ** p * KB_PER_NODE) / 1024;
+  const mib = (p) => (2 ** p * BYTES_PER_NODE) / 2 ** 20;
   line.style.bottom = `${(CEILING_MIB / mib(19)) * 100}%`;
 
   function show() {
     num.replaceChildren(`2`, el("sup", { text: String(power) }), " nodes");
-    size.textContent = `${(2 ** power).toLocaleString("en-US")} × about 20 KB = ${bytes(mib(power))}`;
+    // No-break spaces keep "20 KB" and "9.9 GiB" whole when a phone wraps the line.
+    size.textContent = `${(2 ** power).toLocaleString("en-US")} × about 20\u00a0KB = ${bytes(mib(power)).replace(" ", "\u00a0")}`;
     bar.style.height = `${(mib(power) / mib(19)) * 100}%`;
   }
   show();

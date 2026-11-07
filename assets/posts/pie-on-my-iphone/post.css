@@ -73,6 +73,7 @@ a { color: var(--accent); text-underline-offset: .14em; text-decoration-thicknes
 a:hover { text-decoration-thickness: 2px; }
 code { font: 400 .8em/1 var(--mono); background: var(--paper-2); padding: .12em .32em; border-radius: 2px; overflow-wrap: anywhere; }
 button { font: inherit; color: inherit; }
+.nowrap { white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 img, svg, canvas { display: block; max-width: 100%; }
 
@@ -149,7 +150,7 @@ img, svg, canvas { display: block; max-width: 100%; }
 .fig { max-width: var(--wide); margin: 34px auto; padding: 0 16px; }
 .fig.narrow { max-width: var(--col); margin: 22px auto; }
 .fig.wide { max-width: 1240px; }
-.fig figcaption { max-width: var(--col); margin: 12px auto 0; font-size: 16px; line-height: 1.4; font-style: italic; color: var(--muted); }
+.fig figcaption { max-width: calc(var(--col) - 32px); margin: 12px auto 0; font-size: 16px; line-height: 1.4; font-style: italic; color: var(--muted); }
 .fig.narrow figcaption { margin-left: 0; }
 .fig figcaption code { font-style: normal; }
 .fig-split { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 32px; align-items: center; max-width: 880px; margin: 0 auto; }
@@ -164,6 +165,7 @@ img, svg, canvas { display: block; max-width: 100%; }
 
 .logblock { margin: 0; padding: 14px 16px; background: var(--term-bg); color: var(--term-ink); font: 400 13.5px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .logblock .prompt { color: var(--term-dim); }
+.hex { white-space: nowrap; }
 .hex button { font: inherit; border: 0; padding: 0 1px; cursor: pointer; color: #fff; }
 .hex-a { background: #c25a00; }
 .hex-b { background: #24619f; }
@@ -200,12 +202,12 @@ img, svg, canvas { display: block; max-width: 100%; }
 .pad-read.fits b { color: var(--green); }
 
 /* Figure 4: tower */
-.halve { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 24px; align-items: end; min-height: 300px; }
+.halve { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 60px; align-items: end; min-height: 300px; } /* the gap holds the 5.2 GiB label */
 .halve-tower { position: relative; height: 300px; border-bottom: 2px solid var(--ink); }
 .halve-bar { position: absolute; left: 14%; right: 14%; bottom: 0; background: var(--red); height: 100%; transition: height .42s cubic-bezier(.3, 1.3, .5, 1), background .3s; }
 .halve-bar.ok { background: var(--green); }
 .halve-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--muted); }
-.halve-line::after { content: "5.2 GiB"; position: absolute; right: 0; top: -1.5em; font: 400 11px/1 var(--mono); color: var(--muted); }
+.halve-line::after { content: "5.2 GiB"; position: absolute; left: 100%; top: -.55em; margin-left: 6px; white-space: nowrap; font: 400 11px/1 var(--mono); color: var(--muted); }
 .halve-num { margin: 0; font-size: clamp(34px, 5vw, 54px); line-height: 1.05; font-variant-numeric: tabular-nums; }
 .halve-bytes { margin: 6px 0 14px; font: 400 14px/1.45 var(--mono); color: var(--muted); }
 
@@ -244,9 +246,9 @@ img, svg, canvas { display: block; max-width: 100%; }
 .kv-cell.reused { background: var(--accent-2); }
 .kv-cell.prefill { background: var(--orange); }
 .kv-cell.gen { background: var(--green); }
-.kv-legend { font: 400 12px/1.4 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
-.sw { display: inline-block; width: 10px; height: 10px; margin-left: 8px; }
-.sw:first-child { margin-left: 0; }
+.kv-legend { font: 400 12px/1.4 var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+.kv-legend .key { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.sw { display: inline-block; width: 10px; height: 10px; }
 .sw.reused { background: var(--accent-2); }
 .sw.prefill { background: var(--orange); }
 .sw.gen { background: var(--green); }
@@ -259,7 +261,7 @@ img, svg, canvas { display: block; max-width: 100%; }
 /* Figure 8: echo */
 .echo { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 30px; align-items: start; max-width: 960px; margin: 0 auto; }
 .echo-loop { width: 100%; height: auto; }
-.echo-loop text { font: 400 12px var(--mono); fill: var(--ink); text-anchor: middle; }
+.echo-loop text { font-family: var(--mono); font-weight: 400; fill: var(--ink); text-anchor: middle; }
 .echo-log { min-height: 320px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
 .echo-msg { max-width: 88%; padding: 8px 12px; font-size: 17px; line-height: 1.32; animation: rise .22s ease-out; }
 .echo-msg.assistant { background: var(--paper-2); align-self: flex-start; }
@@ -336,6 +338,7 @@ body { --heat: 189, 83, 25; }
 /* Reading progress, as thirteen slices */
 .reading-pie { position: fixed; z-index: 20; left: 12px; bottom: 12px; width: 30px; height: 30px; opacity: 0; transition: opacity .3s; pointer-events: none; }
 .reading-pie.on { opacity: 1; }
+.reading-strip { display: none; }
 .crashbar { position: fixed; z-index: 21; left: 50px; bottom: 16px; font: 400 11.5px/1.3 var(--mono); color: var(--muted); background: var(--paper); padding: 2px 6px; opacity: 0; transition: opacity .3s; pointer-events: none; }
 .crashbar.on { opacity: 1; }
 .crashbar[hidden] { display: none; }
@@ -355,7 +358,7 @@ body { --heat: 189, 83, 25; }
   .tree-body { grid-template-columns: minmax(0, 1fr); }
   .tree-detail { border-left: 0; border-top: 1px solid var(--rule); padding: 12px 0 0; }
   .tree-rows { max-height: 480px; min-height: 240px; }
-  .echo-loop { max-width: 240px; margin: 0 auto; }
+  .echo-loop { max-width: 280px; margin: 0 auto; }
   .echo-log { min-height: 220px; }
   .slices svg { max-width: 300px; margin: 0 auto; }
   .stack { max-width: 460px; margin: 0 auto; }
@@ -363,9 +366,21 @@ body { --heat: 189, 83, 25; }
   .kv-page { grid-template-columns: repeat(8, 5px); grid-auto-rows: 5px; }
   body { font-size: 19px; }
   .receipt { right: 12px; left: 12px; bottom: 12px; width: auto; }
+  /* No margin to park a pie in, so the thirteen slices become a thin strip on
+     the top edge, and the crash count only shows for a moment after a crash. */
+  .reading-pie { display: none; }
+  .reading-strip { display: flex; gap: 2px; position: fixed; z-index: 20; top: 0; left: 0; right: 0; height: 3px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .reading-strip.on { opacity: 1; }
+  .reading-strip i { flex: 1; background: var(--rule); }
+  .reading-strip i.done { background: var(--orange); }
+  .crashbar { left: 12px; bottom: 12px; }
+  .crashbar.on:not(.fresh) { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* JetBrains Mono draws "->", "!=" and "--" as single symbols. Logs and code should read exactly as typed. */
+code, pre, .logblock { font-variant-ligatures: none !important; }

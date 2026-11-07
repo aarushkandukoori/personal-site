@@ -98,15 +98,20 @@ export class Console {
 }
 
 // How many times this reader has crashed my phone, shown at the bottom left
-// and read back at the end of the post.
+// and read back at the end of the post. On a phone it would sit on the text,
+// so there it only shows for a few seconds after each crash (post.css).
 export const crashes = {
   count: 0,
+  timer: 0,
   add() {
     this.count++;
     const bar = $("#crashbar");
     if (bar) {
       bar.hidden = false;
       bar.textContent = `You've crashed my phone ${this.count} time${this.count === 1 ? "" : "s"}.`;
+      bar.classList.add("fresh");
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => bar.classList.remove("fresh"), 3000);
     }
   },
 };

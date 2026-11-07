@@ -5,6 +5,7 @@ import { $, $$, el } from "./core.js";
 const DATA = new URL("../data/receipts.json", import.meta.url);
 
 export async function initReceipts() {
+  keepPunctuation();
   const box = $("#receipt");
   const value = $("[data-value]", box);
   const what = $("[data-what]", box);
@@ -51,4 +52,18 @@ export async function initReceipts() {
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !box.hidden) close(true);
   });
+}
+
+// A number is a button, and a line can break between a button and the period
+// after it. Glue each number to the punctuation that follows it.
+function keepPunctuation() {
+  for (const num of $$(".num")) {
+    const after = num.nextSibling;
+    const mark = after?.nodeType === Node.TEXT_NODE && after.data.match(/^[.,;:!?)]+/);
+    if (!mark) continue;
+    after.data = after.data.slice(mark[0].length);
+    const glue = el("span", { class: "nowrap" });
+    num.replaceWith(glue);
+    glue.append(num, mark[0]);
+  }
 }
