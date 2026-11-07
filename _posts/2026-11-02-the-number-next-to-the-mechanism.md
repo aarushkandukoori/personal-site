@@ -2,7 +2,7 @@
 title: "The Number Next to the Mechanism"
 date: 2026-11-02 12:00:15 -05:00
 categories: [Writing, Research]
-tags: [diffusion models, AI security, open weights, evaluation, AI progress, ai-research, weekly-reads, machine-learning]
+tags: [diffusion-models, ai-security, open-weights, evaluation, ai-progress, ai-research, weekly-reads, machine-learning]
 math: true
 ---
 

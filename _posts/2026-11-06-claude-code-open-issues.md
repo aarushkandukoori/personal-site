@@ -4,7 +4,6 @@ date: 2026-11-06 21:50:00 -05:00
 categories: [Writing, Research]
 tags: [claude-code, ai-agents, open-source, github, triage, statistics]
 description: "I triaged 1,000 of Claude Code's open GitHub issues with sandboxed Claude agents, and found the cleanup bot spending 94% of every run on issues it isn't allowed to touch."
-pin: true
 image:
   path: /assets/files/claude-code-open-issues/social.png
   alt: "One run of the cleanup bot: 941 issues it is told to skip, 59 it can label."
@@ -139,7 +138,7 @@ Now try being the triage bot yourself. Sort six real issues, then check your cal
 
 ### What I'd change
 
-If I could send Anthropic one pull request, it would be the sweep fix with rule 2 built in. The search change alone would put about 8,000 issues on a two-week clock within a few weeks, bugs like the ones above included. No outside pull request has ever been merged in that repo, so I filed the fix as an issue instead: [anthropics/claude-code#108082](https://github.com/anthropics/claude-code/issues/108082).
+If I could send Anthropic one pull request, it would be the sweep fix with rule 2 built in. The search change alone would put about 8,000 issues on a two-week clock within a few weeks, bugs like the ones above included. I filed it as an issue: [anthropics/claude-code#108082](https://github.com/anthropics/claude-code/issues/108082).
 
 1. **Let search do the skipping** - the query above, capped and paced, so every slot goes to an issue the sweep can act on.
 2. **Never close for silence what's already labeled important** - skip data-loss, high-priority and reproduced.

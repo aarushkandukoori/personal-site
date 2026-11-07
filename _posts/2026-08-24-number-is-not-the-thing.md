@@ -2,7 +2,7 @@
 title: "The Number Is Not the Thing: A Week of Metrics Standing In for What We Want"
 date: 2026-08-24 09:10:15 -04:00
 categories: [Writing, Research]
-tags: [metrics, benchmarks, robotics, evaluation, AI-policy, forecasting, ai-research, weekly-reads, machine-learning]
+tags: [metrics, benchmarks, robotics, evaluation, ai-policy, forecasting, ai-research, weekly-reads, machine-learning]
 math: true
 ---
 

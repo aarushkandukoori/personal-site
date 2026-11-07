@@ -1,6 +1,8 @@
 (function () {
-  function resizeFrame(frame, height) {
-    const next = Math.max(height, 320);
+  // Frames that report their own height (postMessage) get exactly that height.
+  // Frames we can only measure on load keep a 320px floor in case they measure early.
+  function resizeFrame(frame, height, floor = 320) {
+    const next = Math.max(height, floor);
     frame.style.height = `${next}px`;
     frame.style.minHeight = `${next}px`;
     frame.setAttribute("scrolling", "no");
@@ -31,7 +33,7 @@
 
     document.querySelectorAll("iframe.interactive-embed").forEach((frame) => {
       if (frame.contentWindow === event.source) {
-        resizeFrame(frame, data.height + 8);
+        resizeFrame(frame, data.height + 8, 120);
       }
     });
   });

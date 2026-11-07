@@ -2,7 +2,7 @@
 title: "The Student Beats the Teacher: Where Supervision Actually Hides"
 date: 2026-10-26 05:45:01 -04:00
 categories: [Writing, Research]
-tags: [self-supervised learning, reinforcement learning, world models, forecasting, robotics, ai-research, weekly-reads, machine-learning]
+tags: [self-supervised-learning, reinforcement-learning, world-models, forecasting, robotics, ai-research, weekly-reads, machine-learning]
 math: true
 ---
 

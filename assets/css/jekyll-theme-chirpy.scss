@@ -778,3 +778,69 @@ a {
   height: 720px;
   min-height: 720px;
 }
+
+/* 2026-11-07 site audit fixes */
+
+/* Heading "#" anchors: on touch screens they can't be hovered, and when a heading
+   fills its line the anchor wraps onto a line of its own and leaves a gap. */
+@media (hover: none) {
+  .content :is(h2, h3, h4, h5) > a.anchor {
+    display: none;
+  }
+}
+
+/* Wide figures (720-900px SVGs) shrink to ~45% on phones and their labels become
+   unreadable. Show them at a readable size and let them scroll sideways. */
+@media (max-width: 576px) {
+  .ml-figure {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    img {
+      width: 640px;
+      max-width: none;
+    }
+
+    figcaption {
+      position: sticky;
+      left: 0;
+      width: calc(100vw - 2rem);
+    }
+  }
+}
+
+/* Art: a masonry layout so landscape and portrait paintings don't leave holes. */
+.art-gallery {
+  display: block;
+  column-width: 200px;
+  column-gap: 1rem;
+
+  a.popup,
+  a.img-link {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Home cards: show the whole 1200x630 share image instead of cropping its sides.
+   On the home page the image sits inside a .preview-img box, so that box must
+   shrink to the image and the column centers it. */
+@media (min-width: 768px) {
+  #post-list .post-preview > .col-md-5 {
+    display: flex;
+    align-items: center;
+
+    .preview-img {
+      width: 100%;
+      height: auto;
+      background: transparent;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 40 / 21;
+      object-fit: cover;
+    }
+  }
+}
