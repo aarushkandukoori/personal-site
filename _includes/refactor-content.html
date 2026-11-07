@@ -204,7 +204,20 @@
       <!-- make sure the `<img>` is wrapped by `<a>` -->
       {% assign _after_img = _right | remove_first: '>' | strip %}
 
+      <!--
+        The <img> is already linked only when the tag right before it opens an <a>.
+        Checking for any '</a>' later in the page also matched images with no link
+        (like the post header image) and broke the markup around them.
+      -->
+      {% assign _wrapped_by_link = false %}
       {% if _after_img contains '</a>' %}
+        {% assign _tag_before = _img_content | strip | split: '<' | last | slice: 0, 2 %}
+        {% if _tag_before == 'a ' or _tag_before == 'a>' %}
+          {% assign _wrapped_by_link = true %}
+        {% endif %}
+      {% endif %}
+
+      {% if _wrapped_by_link %}
         <!-- add class to existing <a> tag (insert before its closing >) -->
         {% assign _img_content_stripped = _img_content | strip %}
         {% capture _anchor_class %}

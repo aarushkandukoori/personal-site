@@ -3,10 +3,11 @@ title: "Claude Code Has 16,112 Open Issues. Its Cleanup Bot Can Reach 59 a Run."
 date: 2026-11-06 21:50:00 -05:00
 categories: [Writing, Research]
 tags: [claude-code, ai-agents, open-source, github, triage, statistics]
-description: "A Reddit thread asked why 98% of Claude Code's open GitHub issues have nobody assigned. I used Claude Code to triage 1,000 of them with sandboxed agents, with fresh agents double-checking every fixed, duplicate and security call. The best find was the cleanup script, which spends more than 90% of every run on issues it isn't allowed to touch."
+description: "I triaged 1,000 of Claude Code's open GitHub issues with sandboxed Claude agents, and found the cleanup bot spending 94% of every run on issues it isn't allowed to touch."
+pin: true
 image:
   path: /assets/files/claude-code-open-issues/social.png
-  alt: "A grid of 1,000 cells, one per open issue the cleanup bot reads each run. 941 are gray, issues it is told to skip, and 59 are blue, issues it can label."
+  alt: "One run of the cleanup bot: 941 issues it is told to skip, 59 it can label."
 ---
 
 A post on r/ClaudeAI this week, by u/nseavia71501, asked Anthropic a fair question. Citing the company's own engineering blog, it said Anthropic merges more than 30,000 code changes a day. So why are 98% of the open issues in the public [Claude Code repo](https://github.com/anthropics/claude-code) unassigned, some of them serious security bugs?
@@ -50,7 +51,10 @@ The popular issues jamming the window are mostly old bug reports. 442 of the 599
 The code fix is to let GitHub's search do the skipping. One query returns only the issues the sweep is allowed to label:
 
 ```text
-is:issue is:open is:unlocked no:assignee -label:stale -label:autoclose updated:<CUTOFF reactions:<10
+is:issue is:open is:unlocked
+no:assignee
+-label:stale -label:autoclose
+updated:<CUTOFF reactions:<10
 ```
 
 In plain words, it asks for open issues that aren't locked, assigned or already marked stale, haven't changed since the cutoff date, and have fewer than 10 reactions. On the evening of November 6 it returned 8,000. With it, every issue the sweep looks at is one it can label. GitHub limits how fast one bot can write, so my version caps each run at 300 labels, a couple of seconds apart. That's five times today's rate, and it works through today's pile in about three weeks. I haven't run it live yet, because GitHub rate-limited my read-only test runs, so those numbers come from the snapshot and that one live count.
