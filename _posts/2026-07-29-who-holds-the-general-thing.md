@@ -4,6 +4,11 @@ date: 2026-07-29 19:57:03 -04:00
 categories: [Writing, Research]
 tags: [open-weights, scaling, robotics, world-models, ai-policy, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/who-holds-the-general-thing.jpg
+  alt: "A PR2 robot's two grippers reaching toward a red mug, a blue travel mug and an orange cup on a table."
+  credit: "Photo by Willow Garage, CC BY-SA 3.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:PR2_Tabletop.jpg"
 ---
 
 Most of Tuesday went into trying to convince a small manipulation policy to pick up a mug it had not seen before. By evening I had a longer dataloader, three augmentation tricks, and basically nothing to show for it. Then I read that Claude Opus 4.7, with no robotics-specific training, autonomously finished all but one task in a quadruped suite in nine minutes and thirty-five seconds, work that last August took humans assisted by a weaker model 181 minutes ([Import AI 466](https://importai.substack.com/p/import-ai-466-the-bitter-lesson-for)). Anthropic's own framing is the part that stung: this fell out of general scaling, with no concerted robotics effort behind it. That is the week's real story. The specialty keeps getting absorbed by the general thing, and the question that is actually still open is who gets to hold the general thing.

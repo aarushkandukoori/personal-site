@@ -4,6 +4,11 @@ date: 2025-11-15 09:00:00 -0500
 categories: [Writing, Research]
 tags: [machine-learning, nlp, tf-idf, education]
 math: true
+image:
+  path: /assets/img/previews/stem-equity-nlp-school-board.jpg
+  alt: "The Carver Educational Services Center in Rockville, Maryland, where the Montgomery County Board of Education is based."
+  credit: "Photo by G. Edward Johnson, CC BY 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Carver_Educational_Services_Center_east_entrance_Rockville_MD_MCPS_2023-07-04_07-48-16.jpg"
 ---
 
 A couple of years ago, in high school, I presented my own research to the Montgomery County Public Schools budget committee, the group that helps steer a multi-billion-dollar budget. The pitch: STEM access in our county is unequal, and the budget can fix it. The part worth writing about is the machine learning behind one survey question.

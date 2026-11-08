@@ -4,6 +4,10 @@ date: 2026-10-05 05:45:06 -04:00
 categories: [Writing, Research]
 tags: [multimodal, robotics, llm-systems, optimization, benchmarks, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/spend-the-model-where-it-earns-its-keep.png
+  alt: "Toy heatmap of 100 visual tokens on a 10 by 10 patch grid, densest at the center, beside bars comparing each ring's share to an even spread."
+  hide: true
 ---
 
 I lost most of Thursday night to a tool-calling agent that kept hallucinating column names, and my first three fixes were all the same fix wearing different hats: give the model more context, give it more examples, give it a bigger model. None of it worked particularly well. Then I read five papers this week that, without talking to each other, all said roughly the same thing back to me. The interesting design decision is where you stop using the model.

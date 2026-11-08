@@ -4,6 +4,11 @@ date: 2026-08-31 05:45:03 -04:00
 categories: [Writing, Research]
 tags: [agent-security, evaluation, routing, video-generation, forecasting, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/information-sets-and-costly-judgment.jpg
+  alt: "A hand lifts the corners of two playing cards, the nine and ten of clubs, in front of a pile of poker chips."
+  credit: "Photo by Santeri Viinamäki, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Two_poker_cards_and_poker_chips_20170611.jpg"
 ---
 
 I kept rereading one sentence from a security writeup this week, and I think it accidentally explains four other things I read.

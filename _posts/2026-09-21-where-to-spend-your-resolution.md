@@ -4,6 +4,11 @@ date: 2026-09-21 05:45:06 -04:00
 categories: [Writing, Research]
 tags: [adaptive-meshes, forecasting, spatial-reasoning, ai-safety, modeling, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/where-to-spend-your-resolution.jpg
+  alt: "A long rift cuts across the Larsen C ice shelf in Antarctica, seen from a NASA research plane in November 2016."
+  credit: "Photo by NASA/John Sonntag (public domain)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:LarsenC_photo_2016315_lrg.jpg"
 ---
 
 For an hour this week I stared at a picture of a crack propagating through a simulated block of material, and what I could not stop thinking about was the mesh behind the crack. Not the tip, where all the interesting physics lives, but the wake: the part that already broke, that is not going to un-break, and that a naive simulation keeps resolving at full resolution forever. It is a very expensive way to remember something you already know.

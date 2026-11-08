@@ -4,6 +4,11 @@ date: 2025-07-12 10:00:00 -0400
 categories: [Reading, Books]
 tags: [books, leadership, ai, medicine, startups]
 pin: true
+image:
+  path: /assets/img/previews/readings-i-think-are-important.jpg
+  alt: "Stacks of hardcover books seen from the side, a few with red ribbon bookmarks."
+  credit: "Photo by freestocks.org, CC0 via Wikimedia Commons"
+  credit_url: "https://commons.wikimedia.org/wiki/File:A_pile_of_books_(29767858348).jpg"
 ---
 
 **The Emperor of All Maladies** by Siddhartha Mukherjee. I started building a medical device before I had any right to, and this book is the reason I slowed down. It is a biography of cancer, which sounds grim, but what stuck with me is how slow and humbling the wins are. Centuries of brilliant people being confidently wrong, killing patients with treatments that made sense on paper. The lesson for anyone pointing software or hardware at the human body: the body does not care how elegant your solution is, and the graveyard of medicine is full of smart people who forgot that. Move fast and break things is a fine motto until the thing is a person.

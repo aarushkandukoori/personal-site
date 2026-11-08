@@ -5,6 +5,9 @@ categories: [Building]
 tags: [bump, medical-devices, hardware, machine-learning, startups]
 pin: true
 math: true
+image:
+  path: /assets/img/previews/bump-wearable-bradycardia.jpg
+  alt: "The 2023 BUMP bench prototype, with its fingertip pulse sensor lit green, the peristaltic pump, and a screen showing a bradycardia alert."
 ---
 
 Crashing bradycardia kills people who are nowhere near a hospital. The heart rate drops, cardiac output falls with it, and the patient gets dizzy, faints, or arrests. The definitive treatment lives inside an emergency department: atropine first, then pacing if the patient is unstable. The emergency itself happens on a flight, in a rural county, or alone at home. That gap between when the heart fails and when a clinician can intervene is what I am building BUMP to close.

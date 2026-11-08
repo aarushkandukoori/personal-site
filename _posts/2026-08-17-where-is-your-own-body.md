@@ -4,6 +4,11 @@ date: 2026-08-17 08:45:06 -04:00
 categories: [Writing, Research]
 tags: [embodiment, evaluation, robot-learning, kernels, ai-safety, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/where-is-your-own-body.jpg
+  alt: "A tightrope walker's feet in soft leather shoes balance on the rope during a show in Las Vegas."
+  credit: "Photo by Quinn Daedal, CC BY-SA 2.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Balancing_act_(5892760393).jpg"
 ---
 
 This week I walked around my apartment with my eyes half closed for an embarrassingly long time, trying to notice the moment I knew I had arrived at the kitchen, which is different from seeing it. That distinction sounds like a philosophy seminar question until you read [HumanCLAW](https://arxiv.org/abs/2607.27180v2), where nine state-of-the-art vision-language models are handed a physical body with gravity and collisions, asked to find and navigate and interact across 41 indoor scenes, and the best one succeeds 16.8% of the time. The part that stuck with me is the diagnosis. The models can see the target. What they lack, in the authors' phrase, is embodied self-awareness: they lose track of where their own body is, whether they have reached the goal, whether they just walked into a wall.

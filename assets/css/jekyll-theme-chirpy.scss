@@ -871,3 +871,16 @@ a {
     }
   }
 }
+
+/* Photo credit under a post's preview image (see _layouts/post.html, image.credit). */
+.post-meta .image-credit {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  opacity: 0.8;
+
+  a {
+    color: inherit;
+    border-bottom: 1px dotted currentColor;
+  }
+}

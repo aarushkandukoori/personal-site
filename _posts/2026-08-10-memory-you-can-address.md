@@ -4,6 +4,11 @@ date: 2026-08-10 08:45:01 -04:00
 categories: [Writing, Research]
 tags: [world-models, kv-cache, distillation, kernels, open-source, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/memory-you-can-address.jpg
+  alt: "Wooden card catalog drawers, each with a brass holder labeled with a drawer number and a range of headings."
+  credit: "Photo by bookfinch, CC BY 2.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Card_Catalog_2.jpg"
 ---
 
 This week's reading looked unrelated on the surface: a video world model paper, a systems post about KL losses, a kernel search project, a policy argument about open weights, and a two-paragraph note that a free API is dead. By Sunday I could not stop noticing that all five are about the same problem. Everyone already knows how to make things smaller. The problem is whether the smaller thing is still *reachable*.

@@ -4,6 +4,10 @@ date: 2026-10-26 05:45:01 -04:00
 categories: [Writing, Research]
 tags: [self-supervised-learning, reinforcement-learning, world-models, forecasting, robotics, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/where-supervision-hides.png
+  alt: "Toy plot of 128 noisy teacher error curves fanning out over 4 seconds while the teal student line, their average, stays near zero."
+  hide: true
 ---
 
 A model trained only on short-window velocity changes ends up predicting velocity more accurately than the teacher that supervised it. That is the claim in [SSIO: Self-Supervised Inertial Odometry](https://arxiv.org/abs/2610.25988v2), and I have not stopped thinking about it. The teacher is deliberately dumb. It just integrates the IMU over each short window independently, with no memory of what came before. The student learns from those myopic targets and somehow comes out ahead.

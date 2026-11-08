@@ -3,6 +3,11 @@ title: "Confessions of Stever House's President"
 date: 2026-05-22 09:00:00 -0400
 categories: [Writing, Campus Life]
 tags: [cmu, stever, leadership, community]
+image:
+  path: /assets/img/previews/life-as-stever-house-president.jpg
+  alt: "The Cut, a lawn on Carnegie Mellon's campus, at dusk with string lights on the trees."
+  credit: "Photo by Sdkb, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:The_Cut,_Carnegie_Mellon_University.jpg"
 ---
 
 If you had told me a year ago that I'd spend my Friday nights mediating a dispute over a stolen shower caddy and organizing a house-wide hunt for a missing air fryer, I would've laughed and gone back to refreshing Piazza. But here we are.

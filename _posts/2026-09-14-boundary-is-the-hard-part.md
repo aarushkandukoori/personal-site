@@ -4,6 +4,11 @@ date: 2026-09-14 05:46:02 -04:00
 categories: [Writing, Research]
 tags: [alignment, safety, agents, open-models, evaluation, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/boundary-is-the-hard-part.jpg
+  alt: "White crosses on a brick footpath in Baarle mark the border between Belgium and the Netherlands, with a B tile on one side and NL on the other."
+  credit: "Photo by Jack Soley, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:B-NL_International_Border_at_Baarle.jpg"
 ---
 
 One pair of numbers ate an embarrassing amount of my week. A model's refusal rate on harmful political prompts went from 9.47% to 84.75%. Its over-refusal rate on safe prompts went from 2.00% to 74.00%. Same checkpoint. If you published only the first number you would have a triumphant blog post, and if you published only the second you would have a scandal. They are the same model. That pair has been rattling around in my head all week, because once you see it you start seeing the same failure everywhere: we keep building systems that can only draw wide lines, and then acting surprised when the line swallows things we wanted to keep.

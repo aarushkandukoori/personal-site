@@ -4,6 +4,11 @@ date: 2026-02-08 09:00:00 -0500
 categories: [Learning Interactively]
 tags: [machine-learning, gradient-descent, neural-network, pytorch]
 math: true
+image:
+  path: /assets/img/previews/how-does-a-neural-network-learn.jpg
+  alt: "An autumn hillside drops into a valley filled with fog in Synevyr National Nature Park, Ukraine."
+  credit: "Photo by Rbrechko, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg"
 ---
 
 Recently I have been working through a massive PyTorch course (Daniel Bourke's "Learn PyTorch for Deep Learning in a Day"), and somewhere around hour six it hit me. I had written a training loop, watched the loss number tick down, and ended up with a model that made good predictions, all without ever stopping to ask the obvious question: what is the model *doing* when it "learns"?

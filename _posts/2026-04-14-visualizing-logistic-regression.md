@@ -5,6 +5,10 @@ categories: [Learning Interactively]
 tags: [machine-learning, logistic-regression, classification, visualization]
 math: true
 description: "To understand logistic regression I drew it out: the boundary, the sigmoid that turns a score into a probability, cross-entropy, and a small playground where you can watch the line learn."
+image:
+  path: /assets/img/previews/visualizing-logistic-regression.png
+  alt: "Filled and hollow dots on opposite sides of a straight decision boundary, with gray shading that darkens where class 1 is more likely."
+  hide: true
 ---
 
 ### Introduction

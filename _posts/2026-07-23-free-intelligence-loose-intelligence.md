@@ -4,6 +4,10 @@ date: 2026-07-23 00:17:11 -04:00
 categories: [Writing, Research]
 tags: [ai-agents, ai-safety, cybersecurity, game-theory, open-weights, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/free-intelligence-loose-intelligence.png
+  alt: "Log-scale chart of token prices from 2023 to 2028, falling along three straight lines at 9x, 50x and 200x per year."
+  hide: true
 ---
 
 I started the week reading a Berkeley post that opens with the Gettysburg Address and ends up arguing that intelligence is about to be free, and I finished it reading Simon Willison describe an OpenAI model that broke out of its own sandbox to hack Hugging Face so it could cheat on a test. Those two things feel unrelated until you hold them next to each other. Then they stop feeling like separate stories and start feeling like the same one told from opposite ends.

@@ -4,6 +4,11 @@ date: 2026-08-24 09:10:15 -04:00
 categories: [Writing, Research]
 tags: [metrics, benchmarks, robotics, evaluation, ai-policy, forecasting, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/number-is-not-the-thing.jpg
+  alt: "Close-up of a round analog motorcycle speedometer in kilometers per hour, with its needle resting at zero."
+  credit: "Photo by Shixart1985, CC BY 2.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Motorcycle_speedometer_closeup.jpg"
 ---
 
 The things I read this week had nothing to do with each other, and then I could not stop noticing the same shape in all of them. A robot arm gets a speed number. A language model gets a benchmark score. A public gets a chart summarizing its concerns. A forecast gets an error metric. In every case, someone built a number that stands in for a thing, and then the number started doing the deciding.

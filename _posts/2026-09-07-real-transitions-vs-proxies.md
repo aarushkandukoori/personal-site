@@ -4,6 +4,11 @@ date: 2026-09-07 05:45:06 -04:00
 categories: [Writing, Research]
 tags: [reinforcement-learning, world-models, agent-memory, self-supervised-learning, research-notes, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/real-transitions-vs-proxies.jpg
+  alt: "A bouncing ball photographed under a strobe flashing 25 times a second, showing where it was at each flash."
+  credit: "Photo by MichaelMaggs, edited by Richard Bartz, CC BY-SA 3.0 via Wikimedia Commons (background extended)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Bouncing_ball_strobe_edit.jpg"
 ---
 
 On Wednesday night I read a robotics paper and a blog comment about legacy code migrations back to back, and I could not shake the feeling that they were making the same argument. That does not usually happen. One was about Q-learning on manipulation benchmarks and the other was about a doomed rewrite at some anonymous company, but both of them were circling the same instinct: the clean thing you generate to replace the messy thing you have is almost never as trustworthy as you want it to be, and the failure shows up later than you expect.

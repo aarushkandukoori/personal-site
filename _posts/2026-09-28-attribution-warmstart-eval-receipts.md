@@ -4,6 +4,11 @@ date: 2026-09-28 18:57:20 -04:00
 categories: [Writing, Research]
 tags: [interpretability, evaluation, robot-learning, verification, fine-tuning, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/attribution-warmstart-eval-receipts.jpg
+  alt: "Seven painted matryoshka dolls stand in a row from largest to smallest on a wooden table."
+  credit: "Photo by René Hourdry, CC0 via Wikimedia Commons"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Poup%C3%A9es_russes_10.jpg"
 ---
 
 I spent Tuesday night trying to figure out why a fine-tune I ran over the summer got *worse* at something I never touched: quietly, embarrassingly worse on a handful of facts it used to get right. I had no story for it. I had a loss curve going down and a behavior going sideways, and the only tool I reached for was running the whole thing again with a different learning rate.

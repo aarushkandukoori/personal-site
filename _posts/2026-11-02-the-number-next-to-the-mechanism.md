@@ -4,6 +4,10 @@ date: 2026-11-02 12:00:15 -05:00
 categories: [Writing, Research]
 tags: [diffusion-models, ai-security, open-weights, evaluation, ai-progress, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/the-number-next-to-the-mechanism.png
+  alt: "Dial set to a paired-pass cost of 1.22x, showing a +16.3% throughput gain in the post's toy model."
+  hide: true
 ---
 
 A 42.3% gain in tokens per forward pass turns into a 16.3% gain in throughput. That gap comes from [One Block Ahead](https://arxiv.org/abs/2610.19510v1), a decoding method for diffusion language models, and I keep coming back to it because it is the cleanest example of a pattern running through all five pieces here. The number closest to the mechanism is the easiest one to move, and it can drift a long way from the outcome you wanted.

@@ -4,6 +4,11 @@ date: 2025-09-28 10:00:00 -0400
 categories: [Writing, Research]
 tags: [research, data-analysis, imagej, wrapped]
 pin: true
+image:
+  path: /assets/img/previews/research-wrapped.jpg
+  alt: "Heart muscle stained with Mallory's trichrome, photographed through a microscope eyepiece."
+  credit: "Photo by Alessandro Scalese, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Cardiac_Muscle.jpg"
 ---
 
 I keep a journal for every research internship I do. Most of it is dated logistics, the kind of thing only my past self cares about. But reading back through three summers of entries, I realized there was a fun retrospective buried in the boring parts. So here is my Spotify Wrapped, except instead of top songs it is the data I stared at, the software I basically lived inside, and the experiments that worked (plus the ones that absolutely did not).

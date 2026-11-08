@@ -4,6 +4,11 @@ date: 2026-10-19 05:45:06 -04:00
 categories: [Writing, Research]
 tags: [coding-agents, context-windows, robot-learning, forecasting, open-weights, representation-learning, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/show-me-the-real-thing.jpg
+  alt: "A green-bar printout of 1979 assembly source code used to set up a mainframe operating system."
+  credit: "Photo by Jonathan Schilling, CC BY-SA 4.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:OS_VS1_SYSGEN_Stage_1_Input_source_for_IBM_370_Model_148.jpg"
 ---
 
 With the same token budget, a coding agent resolves 6.3 more points' worth of issues when it sees a few whole files exactly as written than when it sees a larger slice of the repository squeezed through the best prompt compressor. That is the headline of [Skip the Compressor](https://arxiv.org/abs/2610.21073v1) by Xiaocong Yang, ChengXiang Zhai and coauthors, and I keep coming back to how unglamorous the winning method is. No trained compression model. Just choose the files, then show every line of them.

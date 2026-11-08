@@ -4,6 +4,11 @@ date: 2026-10-14 15:08:44 -04:00
 categories: [Writing, Research]
 tags: [verification, imitation-learning, robotics, algorithms, on-device-models, evaluation, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/where-human-attention-goes.jpg
+  alt: "A mathematician writes on a blackboard full of equations at the Centre de mathématiques Laurent-Schwartz, École polytechnique."
+  credit: "Photo by Jérémy Barande / École polytechnique, CC BY-SA 2.0 via Wikimedia Commons (cropped)"
+  credit_url: "https://commons.wikimedia.org/wiki/File:Centre_de_math%C3%A9matiques_Laurent-Schwartz_(53246271519).jpg"
 ---
 
 Here is the number I keep coming back to this week: 10¹⁰⁰. In [Ben Recht's post on OpenAI's claimed faster Fourier transform](https://www.argmin.net/p/faster-fourier-transforms), that is the estimated hidden constant C when N is 10¹². The new algorithm is asymptotically faster than Cooley-Tukey, technically. In practice, Recht points out, even at N = 10¹⁰⁰ the classic FFT would still be 10⁹⁹ times faster. The claim is true on paper. It is also useless.

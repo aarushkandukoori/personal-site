@@ -4,6 +4,11 @@ date: 2026-08-03 15:16:49 -04:00
 categories: [Writing, Research]
 tags: [amortized-inference, 3d-gaussian-splatting, encoders, optimization, goodharts-law, ai-research, weekly-reads, machine-learning]
 math: true
+image:
+  path: /assets/img/previews/when-the-cost-collapses.jpg
+  alt: "An eight-tube circuit unit from an IBM 701, the 1950s computer model Dantzig used at RAND."
+  credit: "Photo by Grudnick, CC0 via Flickr"
+  credit_url: "https://www.flickr.com/photos/9716802@N02/7435756778"
 ---
 
 I keep a scratch file called "things that got cheap." It is mostly a junk drawer, but this week it filled up fast enough that I started to think the entries were the same entry wearing different clothes. A driving simulator that used to take per-scene tuning now runs in a forward pass. A long-context encoder that used to need a GPU now runs on my laptop CPU. Reading an unfamiliar codebase, which used to cost an afternoon, now costs a prompt. Every one of those is a win. Every one of those also quietly hands you a new problem, which is that when the expensive part stops being expensive, the thing you chose to optimize for becomes the whole story.
