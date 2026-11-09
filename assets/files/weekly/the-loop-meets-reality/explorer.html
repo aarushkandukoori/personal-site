@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Feedback Loop Machine</title>
+<style>
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --ink: #10151d; --muted: #5f6b7a;
+  --accent: #3b5bdb; --accent2: #f76707; --accent3: #0ca678;
+  --line: rgba(16, 21, 29, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1117; --surface: #151a22; --ink: #e9eef5; --muted: #8d99a8;
+    --accent: #748ffc; --accent2: #ffa94d; --accent3: #38d9a9;
+    --line: rgba(233, 238, 245, 0.14);
+  }
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; overflow: hidden; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.wrap { padding: 14px 14px 12px; max-width: 760px; margin: 0 auto; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+h2 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+.lede { margin: 0 0 10px; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 8px; }
+.slider { display: flex; align-items: center; gap: 8px; flex: 1 1 230px; min-width: 0; font-size: 13px; }
+.slider input { flex: 1; min-width: 80px; accent-color: var(--accent); }
+.kval { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 34px; }
+.zone { font-size: 11px; color: var(--muted); min-width: 66px; }
+.btns { display: flex; gap: 6px; flex-wrap: wrap; }
+button {
+  font: inherit; font-size: 12.5px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+button:hover { border-color: var(--accent); }
+button.on { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+.canvasBox { position: relative; width: 100%; }
+canvas { display: block; width: 100%; touch-action: none; }
+.readout {
+  margin-top: 6px; font-size: 13px; line-height: 1.5; font-variant-numeric: tabular-nums;
+  display: flex; flex-wrap: wrap; gap: 2px 14px;
+}
+.readout b { font-weight: 700; }
+#status { transition: color 0.3s; }
+.note { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h2>The Feedback Loop Machine</h2>
+    <p class="lede">Set the feedback strength. Click <b>Gate</b> to correct only failing turns, click <b>Policy</b> to shove the learner, or drag the target line up and down.</p>
+    <div class="controls">
+      <label class="slider">Feedback strength k
+        <input id="k" type="range" min="0.05" max="2.4" step="0.05" value="0.35">
+        <span class="kval" id="kval">0.35</span>
+        <span class="zone" id="zone">gentle</span>
+      </label>
+      <div class="btns">
+        <button id="gateBtn" type="button">Gate: all turns</button>
+        <button id="play" type="button">Pause</button>
+        <button id="step" type="button">Step</button>
+        <button id="reset" type="button">Reset</button>
+      </div>
+    </div>
+    <div class="canvasBox"><canvas id="cv"></canvas></div>
+    <div class="readout">
+      <span>Turn <b id="rTurn">0</b></span>
+      <span>Gap to target <b id="rGap">0</b></span>
+      <span>Corrections <b id="rFix">0</b></span>
+      <span>Skipped <b id="rSkip">0</b></span>
+      <span>Status <b id="status">Starting</b></span>
+    </div>
+    <p class="note">Toy model, illustrative only. Every turn the policy samples y = x + noise, the judge passes it if y lands within 4 of the target T, and the update moves x by k times (T minus y). The failing-turns gate comes from an idea in Frans et al. (limit feedback to turns where the policy fails). This is not their method, and none of these numbers come from their paper.</p>
+  </div>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  var cv = document.getElementById("cv");
+  var ctx = cv.getContext("2d");
+  var kInput = document.getElementById("k");
+  var gateBtn = document.getElementById("gateBtn");
+  var playBtn = document.getElementById("play");
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var TURN_MS = reduced ? 1500 : 560;
+  var NOISE = 3;      // spread of the policy's samples (toy units)
+  var TOL = 4;        // judge's pass band: |y - T| <= TOL
+  var START_X = 15;
+  var PIPE_H = 118;   // pixel height of the machine diagram
+
+  var W = 0, H = 0, dpr = 1;
+  var S;
+
+  // ---------- state ----------
+  function freshState() {
+    return {
+      x: START_X, target: 70, k: parseFloat(kInput.value),
+      gate: S ? S.gate : false,
+      turn: 0, hist: [{ t: 0, x: START_X, y: null, fail: true }],
+      fixes: 0, skips: 0, playing: true, stepping: false,
+      cur: null, phase: 0, blown: false, flash: 0, flashStage: -1
+    };
+  }
+  S = freshState();
+
+  function gauss() {
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function startTurn() {
+    var y = S.x + NOISE * gauss();
+    var err = S.target - y;
+    var fail = Math.abs(err) > TOL;
+    var pass = !S.gate || fail; // gate lets this feedback through?
+    S.cur = { y: y, err: err, fail: fail, pass: pass, x0: S.x, x1: pass ? S.x + S.k * err : S.x };
+    S.phase = 0;
+  }
+
+  function endTurn() {
+    var c = S.cur;
+    S.x = c.x1;
+    S.turn++;
+    if (c.pass) S.fixes++; else S.skips++;
+    S.hist.push({ t: S.turn, x: S.x, y: c.y, fail: c.fail });
+    if (S.hist.length > 300) S.hist.shift();
+    if (Math.abs(S.x - S.target) > 400) { S.blown = true; S.playing = false; }
+    S.cur = null;
+    updateReadout();
+  }
+
+  // ---------- status ----------
+  function classify() {
+    if (S.blown) return { text: "Blew up (press Reset)", col: "accent2" };
+    var h = S.hist.slice(-12);
+    if (h.length < 5) return { text: "Starting", col: "muted" };
+    var e = h.map(function (p) { return p.x - S.target; });
+    var abs = e.map(Math.abs);
+    var flips = 0;
+    for (var i = 1; i < e.length; i++) {
+      if (Math.sign(e[i]) !== Math.sign(e[i - 1]) && abs[i] > TOL) flips++;
+    }
+    var early = Math.max.apply(null, abs.slice(0, 4));
+    var late = Math.max.apply(null, abs.slice(-4));
+    var amp = Math.max.apply(null, abs);
+    if (late > early * 1.3 && late > 15) return { text: "Diverging", col: "accent2" };
+    if (flips >= 3 && amp > TOL * 1.5) return { text: "Oscillating", col: "accent2" };
+    var tail = abs.slice(-8);
+    if (Math.max.apply(null, tail) <= TOL * 1.5) {
+      var move = 0;
+      for (var j = h.length - 7; j < h.length; j++) move += Math.abs(h[j].x - h[j - 1].x);
+      move /= 7;
+      return move < 0.3
+        ? { text: "Settled cleanly", col: "accent3" }
+        : { text: "On target, still twitching", col: "accent" };
+    }
+    return { text: "Creeping toward target", col: "accent" };
+  }
+
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue("--" + name).trim();
+  }
+
+  function updateReadout() {
+    document.getElementById("rTurn").textContent = S.turn;
+    document.getElementById("rGap").textContent = (S.target - S.x).toFixed(1);
+    document.getElementById("rFix").textContent = S.fixes;
+    document.getElementById("rSkip").textContent = S.skips;
+    var st = classify();
+    var el = document.getElementById("status");
+    el.textContent = st.text;
+    el.style.color = cssVar(st.col);
+  }
+
+  // ---------- layout ----------
+  function resize() {
+    var r = cv.parentElement.getBoundingClientRect();
+    W = Math.max(300, r.width);
+    H = Math.round(Math.max(350, Math.min(420, W * 0.58)));
+    dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    cv.style.height = H + "px";
+  }
+  new ResizeObserver(resize).observe(cv.parentElement);
+  resize();
+
+  function stages() {
+    var pad = 4, gap = Math.max(14, W * 0.045);
+    var bw = (W - 2 * pad - 3 * gap) / 4, bh = 54, y = 10;
+    var out = [];
+    for (var i = 0; i < 4; i++) {
+      var x = pad + i * (bw + gap);
+      out.push({ x: x, y: y, w: bw, h: bh, cx: x + bw / 2, cy: y + bh / 2 });
+    }
+    return out;
+  }
+  function returnY() { return 10 + 54 + 30; }
+
+  function chartBox() {
+    return { top: PIPE_H + 10, bot: H - 24, left: 38, right: W - 8 };
+  }
+  var VMIN = -20, VMAX = 120;
+  function vy(v, c) {
+    var cl = Math.max(VMIN, Math.min(VMAX, v));
+    return c.bot - (cl - VMIN) / (VMAX - VMIN) * (c.bot - c.top);
+  }
+  function yToV(py, c) {
+    return VMIN + (c.bot - py) / (c.bot - c.top) * (VMAX - VMIN);
+  }
+
+  // ---------- drawing helpers ----------
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function arrow(x1, y1, x2, y2, col) {
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    var a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - 6 * Math.cos(a - 0.5), y2 - 6 * Math.sin(a - 0.5));
+    ctx.lineTo(x2 - 6 * Math.cos(a + 0.5), y2 - 6 * Math.sin(a + 0.5));
+    ctx.fill();
+  }
+  function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function fit(text, maxW) {
+    if (ctx.measureText(text).width <= maxW) return text;
+    while (text.length > 1 && ctx.measureText(text + ".").width > maxW) text = text.slice(0, -1);
+    return text + ".";
+  }
+
+  // where the token is at a given phase of the turn
+  function tokenPos(st, p, pass) {
+    var ry = returnY();
+    if (p < 0.3) { var t = ease(p / 0.3); return { x: lerp(st[0].cx, st[1].cx, t), y: st[0].cy, a: Math.min(1, p / 0.08) }; }
+    if (p < 0.55) { var t2 = ease((p - 0.3) / 0.25); return { x: lerp(st[1].cx, st[2].cx, t2), y: st[1].cy, a: 1 }; }
+    if (p < 0.75) {
+      var t3 = ease((p - 0.55) / 0.2);
+      if (pass) return { x: lerp(st[2].cx, st[3].cx, t3), y: st[2].cy, a: 1 };
+      return { x: st[2].cx, y: st[2].cy + t3 * 26, a: 1 - t3 };
+    }
+    if (!pass) return null;
+    // back along the feedback path: down, left, up
+    var t4 = ease((p - 0.75) / 0.25);
+    var segA = ry - st[3].cy, segB = st[3].cx - st[0].cx, segC = ry - st[0].cy;
+    var d = t4 * (segA + segB + segC);
+    if (d < segA) return { x: st[3].cx, y: st[3].cy + d, a: 1 };
+    d -= segA;
+    if (d < segB) return { x: st[3].cx - d, y: ry, a: 1 };
+    d -= segB;
+    return { x: st[0].cx, y: ry - d, a: 1 - d / segC * 0.6 };
+  }
+
+  // ---------- main draw ----------
+  function draw() {
+    var C = {
+      bg: cssVar("bg"), surface: cssVar("surface"), ink: cssVar("ink"), muted: cssVar("muted"),
+      a1: cssVar("accent"), a2: cssVar("accent2"), a3: cssVar("accent3"), line: cssVar("line")
+    };
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    var st = stages();
+    var p = S.cur ? S.phase : -1;
+    var ry = returnY();
+
+    // feedback return path
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(st[3].cx, st[3].y + st[3].h);
+    ctx.lineTo(st[3].cx, ry); ctx.lineTo(st[0].cx, ry); ctx.lineTo(st[0].cx, st[0].y + st[0].h + 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    arrow(st[0].cx, ry - 8, st[0].cx, st[0].y + st[0].h + 2, C.muted);
+    ctx.fillStyle = C.muted; ctx.font = "11px system-ui, sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("feedback loop: the update changes what the policy does next", W / 2, ry + 14 > PIPE_H ? ry - 4 : ry + 14);
+
+    for (var i = 0; i < 3; i++) arrow(st[i].x + st[i].w + 2, st[i].cy, st[i + 1].x - 3, st[i + 1].cy, C.muted);
+
+    // stage boxes
+    var names = ["Policy", "Judge", "Gate", "Update"];
+    var subs = ["click to shove", "pass band \u00b1" + TOL, S.gate ? "failing only" : "all turns", "x += k\u00b7gap"];
+    for (var s = 0; s < 4; s++) {
+      var b = st[s];
+      var active = S.cur && ((s === 0 && p < 0.12) || (s === 1 && p >= 0.25 && p < 0.38) ||
+        (s === 2 && p >= 0.5 && p < 0.62) || (s === 3 && p >= 0.7 && p < 0.82 && S.cur.pass));
+      var flash = S.flashStage === s ? S.flash : 0;
+      roundRect(b.x, b.y, b.w, b.h, 9);
+      ctx.fillStyle = C.surface; ctx.fill();
+      ctx.lineWidth = active || flash > 0 ? 2.4 : 1.2;
+      ctx.strokeStyle = (s === 2 && S.gate) ? C.a2 : (active || flash > 0 ? C.a1 : C.line);
+      ctx.stroke();
+      if (flash > 0) { ctx.globalAlpha = flash * 0.25; ctx.fillStyle = C.a1; ctx.fill(); ctx.globalAlpha = 1; }
+      ctx.fillStyle = C.ink; ctx.font = "600 13px system-ui, sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(names[s], b.cx, b.y + 22);
+      ctx.font = "10.5px system-ui, sans-serif";
+      ctx.fillStyle = (s === 2 && S.gate) ? C.a2 : C.muted;
+      ctx.fillText(fit(subs[s], b.w - 8), b.cx, b.y + 39);
+    }
+
+    // judge verdict + token
+    if (S.cur) {
+      var c = S.cur;
+      var tp = tokenPos(st, p, c.pass);
+      var judged = p >= 0.3;
+      var col = !judged ? C.a1 : (c.fail ? C.a2 : C.a3);
+      if (judged && p < 0.75) {
+        ctx.font = "600 10.5px system-ui, sans-serif"; ctx.fillStyle = col; ctx.textAlign = "center";
+        ctx.fillText(c.fail ? "FAIL" : "PASS", st[1].cx, st[1].y - 1 + 0.5);
+      }
+      if (p >= 0.55 && p < 0.8 && !c.pass) {
+        ctx.font = "600 10.5px system-ui, sans-serif"; ctx.fillStyle = C.a2; ctx.textAlign = "center";
+        ctx.fillText("no update", st[2].cx, st[2].y + st[2].h + 14);
+      }
+      if (tp) {
+        ctx.globalAlpha = Math.max(0, tp.a);
+        ctx.beginPath(); ctx.arc(tp.x, tp.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = col; ctx.fill();
+        ctx.strokeStyle = C.surface; ctx.lineWidth = 2; ctx.stroke();
+        if (p < 0.75) {
+          ctx.font = "10px system-ui, sans-serif"; ctx.fillStyle = C.ink; ctx.textAlign = "center";
+          ctx.fillText("y=" + c.y.toFixed(0), tp.x, tp.y - 11);
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    drawChart(C);
+  }
+
+  function drawChart(C) {
+    var c = chartBox();
+    var tNow = S.turn + (S.cur ? S.phase : 0);
+    var N = W < 520 ? 30 : 48;
+    var t0 = Math.max(0, tNow - N);
+    function tx(t) { return c.left + (t - t0) / N * (c.right - c.left - 70); }
+
+    // frame and grid
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.font = "10px system-ui, sans-serif"; ctx.fillStyle = C.muted; ctx.textAlign = "right";
+    [0, 50, 100].forEach(function (g) {
+      var y = vy(g, c);
+      ctx.beginPath(); ctx.moveTo(c.left, y); ctx.lineTo(c.right, y); ctx.stroke();
+      ctx.fillText(g, c.left - 5, y + 3);
+    });
+    ctx.save();
+    ctx.translate(10, (c.top + c.bot) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "center"; ctx.fillText("output (toy units)", 0, 0);
+    ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillText("turn \u2192   (line = learner's average output x, dots = sampled y)", c.left, H - 7);
+
+    // pass band and target
+    var tyTop = vy(S.target + TOL, c), tyBot = vy(S.target - TOL, c), ty = vy(S.target, c);
+    ctx.fillStyle = C.a3; ctx.globalAlpha = 0.13;
+    ctx.fillRect(c.left, tyTop, c.right - c.left, tyBot - tyTop);
+    ctx.globalAlpha = 1;
+    ctx.setLineDash([6, 4]); ctx.strokeStyle = C.a3; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(c.left, ty); ctx.lineTo(c.right, ty); ctx.stroke();
+    ctx.setLineDash([]);
+    // drag handle
+    var hx = c.right - 64;
+    roundRect(hx, ty - 10, 62, 20, 10);
+    ctx.fillStyle = dragging ? C.a3 : C.surface; ctx.fill();
+    ctx.strokeStyle = C.a3; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = dragging ? C.surface : C.a3; ctx.font = "600 10.5px system-ui, sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("\u2195 T=" + S.target.toFixed(0), hx + 31, ty + 4);
+
+    ctx.save();
+    ctx.beginPath(); ctx.rect(c.left, c.top - 4, c.right - c.left - 68, c.bot - c.top + 8); ctx.clip();
+
+    // sample dots
+    S.hist.forEach(function (pt) {
+      if (pt.y === null || pt.t < t0 - 1) return;
+      ctx.beginPath(); ctx.arc(tx(pt.t), vy(pt.y, c), 2.6, 0, Math.PI * 2);
+      ctx.fillStyle = pt.fail ? C.a2 : C.a3; ctx.globalAlpha = 0.75; ctx.fill(); ctx.globalAlpha = 1;
+    });
+
+    // learner line, with the in-flight update animated
+    var curX = S.x;
+    if (S.cur && S.cur.pass && S.phase > 0.75) curX = lerp(S.cur.x0, S.cur.x1, ease((S.phase - 0.75) / 0.25));
+    ctx.strokeStyle = C.a1; ctx.lineWidth = 2.4; ctx.lineJoin = "round";
+    ctx.beginPath();
+    var started = false;
+    S.hist.forEach(function (pt) {
+      if (pt.t < t0 - 1) return;
+      var X = tx(pt.t), Y = vy(pt.x, c);
+      if (!started) { ctx.moveTo(X, Y); started = true; } else ctx.lineTo(X, Y);
+    });
+    ctx.lineTo(tx(tNow), vy(curX, c));
+    ctx.stroke();
+    ctx.restore();
+
+    // head of the line
+    var headX = Math.min(tx(tNow), c.right - 70);
+    ctx.beginPath(); ctx.arc(headX, vy(curX, c), 5, 0, Math.PI * 2);
+    ctx.fillStyle = C.a1; ctx.fill();
+    if (curX > VMAX || curX < VMIN) {
+      ctx.fillStyle = C.a2; ctx.font = "600 11px system-ui, sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(curX > VMAX ? "\u2191 off chart" : "\u2193 off chart", headX, curX > VMAX ? c.top + 12 : c.bot - 6);
+    }
+
+    // big status label
+    var stt = classify();
+    ctx.font = "600 13px system-ui, sans-serif"; ctx.textAlign = "left";
+    ctx.fillStyle = cssVar(stt.col);
+    ctx.fillText(stt.text, c.left + 6, c.top + 14);
+    ctx.font = "10.5px system-ui, sans-serif"; ctx.fillStyle = C.muted;
+    ctx.fillText("toy model", c.left + 6, c.top + 28);
+  }
+
+  // ---------- loop ----------
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(64, now - last); last = now;
+    if ((S.playing || S.stepping) && !S.blown) {
+      if (!S.cur) startTurn();
+      S.phase += dt / TURN_MS;
+      if (S.phase >= 1) { endTurn(); S.stepping = false; }
+    }
+    if (S.flash > 0) S.flash = Math.max(0, S.flash - dt / 500);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- controls ----------
+  function zoneFor(k) {
+    if (k < 0.5) return "gentle";
+    if (k <= 1.2) return "firm";
+    if (k <= 2) return "overshoots";
+    return "too strong";
+  }
+  function onK() {
+    S.k = parseFloat(kInput.value);
+    document.getElementById("kval").textContent = S.k.toFixed(2);
+    document.getElementById("zone").textContent = zoneFor(S.k);
+  }
+  kInput.addEventListener("input", onK);
+
+  function setGate(on) {
+    S.gate = on;
+    gateBtn.textContent = on ? "Gate: failing only" : "Gate: all turns";
+    gateBtn.classList.toggle("on", on);
+    S.flashStage = 2; S.flash = 1;
+  }
+  gateBtn.addEventListener("click", function () { setGate(!S.gate); });
+
+  function setPlaying(on) {
+    S.playing = on;
+    playBtn.textContent = on ? "Pause" : "Play";
+  }
+  playBtn.addEventListener("click", function () {
+    if (S.blown) return;
+    setPlaying(!S.playing);
+  });
+  document.getElementById("step").addEventListener("click", function () {
+    if (S.blown) return;
+    setPlaying(false);
+    if (!S.cur) S.stepping = true; else S.stepping = true;
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    var gate = S.gate;
+    S = freshState();
+    S.gate = gate;
+    setPlaying(true);
+    updateReadout();
+  });
+
+  // ---------- direct manipulation on the canvas ----------
+  var dragging = false;
+  function localPos(e) {
+    var r = cv.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function inside(pt, b) { return pt.x >= b.x && pt.x <= b.x + b.w && pt.y >= b.y && pt.y <= b.y + b.h; }
+
+  function setTargetFromY(py) {
+    var v = Math.round(yToV(py, chartBox()));
+    S.target = Math.max(10, Math.min(100, v));
+    updateReadout();
+  }
+
+  cv.addEventListener("pointerdown", function (e) {
+    var pt = localPos(e);
+    var st = stages();
+    if (inside(pt, st[0])) {
+      // shove the learner 35 units away from the target
+      var dir = S.x >= S.target ? 1 : -1;
+      S.x += 35 * dir;
+      if (S.cur) { S.cur.x0 += 35 * dir; S.cur.x1 += 35 * dir; }
+      S.hist.push({ t: S.turn + (S.cur ? S.phase : 0) - 0.001, x: S.x, y: null, fail: true });
+      S.flashStage = 0; S.flash = 1;
+      updateReadout();
+      return;
+    }
+    if (inside(pt, st[2])) { setGate(!S.gate); return; }
+    var c = chartBox();
+    if (pt.y >= c.top - 10 && pt.y <= c.bot + 10) {
+      dragging = true;
+      cv.setPointerCapture(e.pointerId);
+      setTargetFromY(pt.y);
+    }
+  });
+  cv.addEventListener("pointermove", function (e) {
+    var pt = localPos(e);
+    if (dragging) { setTargetFromY(pt.y); return; }
+    var st = stages(), c = chartBox();
+    var hot = inside(pt, st[0]) || inside(pt, st[2]);
+    cv.style.cursor = hot ? "pointer" : (pt.y >= c.top - 10 && pt.y <= c.bot ? "ns-resize" : "default");
+  });
+  function endDrag() { dragging = false; }
+  cv.addEventListener("pointerup", endDrag);
+  cv.addEventListener("pointercancel", endDrag);
+
+  onK();
+  updateReadout();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+</script>
+</body>
+</html>

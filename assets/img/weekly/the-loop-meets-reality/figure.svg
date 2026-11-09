@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520">
+<style>
+.bg{fill:#f4f6f9}
+.sf{fill:#ffffff}
+.ink{fill:#10151d}
+.mu{fill:#5f6b7a}
+.a1{fill:#3b5bdb}
+.a2{fill:#f76707}
+.a3{fill:#0ca678}
+.ln{fill:none;stroke-width:2.5;stroke-linecap:round}
+.same{stroke:#5f6b7a;opacity:.55}
+.hint{stroke:#f76707}
+.drift{stroke:#3b5bdb}
+.flow{stroke-dasharray:7 7;animation:flow 1.6s linear infinite}
+.ghost{fill:none;stroke:#5f6b7a;stroke-width:1.5;stroke-dasharray:3 3}
+.band{fill:#f76707;opacity:.08;animation:pulse 3s ease-in-out infinite}
+.bandedge{fill:none;stroke:#f76707;stroke-width:1;opacity:.45}
+.pill{fill:#f76707;opacity:.12}
+.rule{stroke:#5f6b7a;stroke-width:1;opacity:.25}
+text{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.t{font-size:22px;font-weight:700}
+.s{font-size:13px}
+.h{font-size:15px;font-weight:650}
+.l{font-size:13px}
+.b{font-weight:650}
+.k{font-size:12px;letter-spacing:.08em;font-weight:700}
+@keyframes flow{to{stroke-dashoffset:-28}}
+@keyframes pulse{0%,100%{opacity:.06}50%{opacity:.16}}
+@media (prefers-color-scheme: dark){
+.bg{fill:#0e1117}.sf{fill:#151a22}.ink{fill:#e9eef5}.mu{fill:#8d99a8}
+.a1{fill:#748ffc}.a2{fill:#ffa94d}.a3{fill:#38d9a9}
+.same{stroke:#8d99a8}.hint{stroke:#ffa94d}.drift{stroke:#748ffc}
+.ghost{stroke:#8d99a8}.band{fill:#ffa94d}.bandedge{stroke:#ffa94d}.pill{fill:#ffa94d}.rule{stroke:#8d99a8}
+}
+@media (prefers-reduced-motion: reduce){.flow,.band{animation:none}}
+</style>
+<rect class="bg" x="0" y="0" width="900" height="520" rx="16"/>
+<text class="t ink" x="40" y="44">One bad hint, two evaluations</text>
+<text class="s mu" x="40" y="66">Toy model, illustrative. Each line is one time step of a cooking task.</text>
+<rect class="pill" x="335" y="80" width="230" height="24" rx="12"/>
+<text class="l a2 b" x="450" y="97" text-anchor="middle">Bad hint at t3: "add salt now"</text>
+<text class="h ink" x="300" y="128" text-anchor="middle">Offline replay</text>
+<text class="s mu" x="300" y="146" text-anchor="middle">recorded user ignores it</text>
+<text class="h ink" x="600" y="128" text-anchor="middle">Closed loop</text>
+<text class="s mu" x="600" y="146" text-anchor="middle">simulated user reacts</text>
+<line class="rule" x1="300" y1="156" x2="300" y2="372"/>
+<line class="rule" x1="600" y1="156" x2="600" y2="372"/>
+<rect class="band" x="585" y="392" width="295" height="94" rx="10"/>
+<rect class="bandedge" x="585" y="392" width="295" height="94" rx="10"/>
+<text class="k a2" x="866" y="412" text-anchor="end">OFF PLAN</text>
+<path class="ln same" d="M300 170 L600 170"/>
+<path class="ln same" d="M300 210 L600 210"/>
+<path class="ln hint flow" d="M300 250 C450 250 450 412 600 412"/>
+<path class="ln drift flow" d="M300 290 C450 290 450 250 600 250"/>
+<path class="ln drift flow" d="M300 330 C450 330 450 442 600 442"/>
+<path class="ln drift flow" d="M300 370 C450 370 450 470 600 470"/>
+<g class="mu">
+<circle cx="300" cy="170" r="5"/><circle cx="300" cy="210" r="5"/>
+<circle cx="300" cy="290" r="5"/><circle cx="300" cy="330" r="5"/><circle cx="300" cy="370" r="5"/>
+</g>
+<circle class="a2" cx="300" cy="250" r="6"/>
+<text class="l ink" x="285" y="174" text-anchor="end">t1 Heat pan</text>
+<text class="l ink" x="285" y="214" text-anchor="end">t2 Add oil</text>
+<text class="l ink b" x="285" y="254" text-anchor="end">t3 Add onions</text>
+<text class="l ink" x="285" y="294" text-anchor="end">t4 Add salt</text>
+<text class="l ink" x="285" y="334" text-anchor="end">t5 Stir</text>
+<text class="l ink" x="285" y="374" text-anchor="end">t6 Plate</text>
+<circle class="a3" cx="600" cy="170" r="5"/>
+<circle class="a3" cx="600" cy="210" r="5"/>
+<circle class="a3" cx="600" cy="250" r="5"/>
+<circle class="ghost" cx="600" cy="290" r="5"/>
+<circle class="ghost" cx="600" cy="330" r="5"/>
+<circle class="ghost" cx="600" cy="370" r="5"/>
+<circle class="a2" cx="600" cy="412" r="6"/>
+<circle class="a2" cx="600" cy="442" r="5"/>
+<circle class="a2" cx="600" cy="470" r="5"/>
+<text class="l ink" x="615" y="174">t1 Heat pan</text>
+<text class="l ink" x="615" y="214">t2 Add oil</text>
+<text class="l ink" x="615" y="254">t4 Add onions, late</text>
+<text class="l mu" x="615" y="334">plan steps 4 to 6 never happen</text>
+<text class="l ink b" x="615" y="416">t3 Salt too early</text>
+<text class="l ink" x="615" y="446">t5 Salt again</text>
+<text class="l ink" x="615" y="474">t6 Fix the taste</text>
+<text class="l ink b" x="40" y="420">Replay</text>
+<text class="l mu" x="40" y="438">grades every step as if</text>
+<text class="l mu" x="40" y="455">the hint changed nothing.</text>
+<text class="l a1 b" x="300" y="420">Closed loop</text>
+<text class="l mu" x="300" y="438">one hint compounds</text>
+<text class="l mu" x="300" y="455">into three off-plan steps.</text>
+</svg>
