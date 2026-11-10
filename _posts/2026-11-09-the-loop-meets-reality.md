@@ -71,9 +71,9 @@ Every model of behavior is a bet, and the bet only gets graded inside a loop wit
 
 ### Sources
 
-- [Stabilizing On-Policy Targeted Guidance in Agentic Reinforcement Learning](https://arxiv.org/abs/2611.05266v2) (Pieter Abbeel)
+- [Stabilizing On-Policy Targeted Guidance in Agentic Reinforcement Learning](https://arxiv.org/abs/2611.05266v2) (Kevin Frans et al.)
 - [Limits to Simulated Growth](https://www.argmin.net/p/limits-to-simulated-growth) (Ben Recht)
-- [Interactive Visual Gym: Evaluating Visual Interaction Models with Simulated Users in Interactive Worlds](https://arxiv.org/abs/2611.08286v1) (Ranjay Krishna)
+- [Interactive Visual Gym: Evaluating Visual Interaction Models with Simulated Users in Interactive Worlds](https://arxiv.org/abs/2611.08286v1) (Chenhao Zheng et al.)
 - [Was I wrong about open models & cyber risks?](https://www.interconnects.ai/p/was-i-wrong-about-open-models-and) (Nathan Lambert)
 - [datasette #3046: Don't serve link: rel=next HTTP headers to Firefox for HTML pages](https://simonwillison.net/2026/Nov/7/link-rel-next/) (Simon Willison)
 
