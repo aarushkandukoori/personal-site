@@ -606,6 +606,8 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 .mlist{list-style:none;margin-top:6px}
 .mlist li{padding:9px 0;border-bottom:1px solid var(--iconbg);font-weight:600;font-size:clamp(13px,2.1vmin,17px)}
 .mlist li:last-child{border-bottom:none}
+.dsec{margin-top:16px;font-size:clamp(11px,1.7vmin,13px);font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.dline{margin-top:3px;font-weight:500;color:var(--ink2);font-size:clamp(12px,1.9vmin,15px);overflow-wrap:anywhere}
 #mslide a{color:var(--work)}
 .mbtn{
   display:inline-block;background:var(--work);color:#fff !important;border-radius:999px;
@@ -1199,9 +1201,23 @@ function sentenceFor(a, totals, doctor){
       (a.metrics || []).forEach(function(x){ m[x.label] = x.value; });
       if(m["Sent total"] !== undefined && m["Queue remaining"] !== undefined)
         return m["Sent total"] + " sent · " +
-               m["Queue remaining"] + " queued";
+               (String(m["Queue remaining"]) === "0" ? "nothing left to send"
+                                                     : m["Queue remaining"] + " queued");
       if(m["Companies ranked"])
         return m["Companies ranked"] + " ranked";
+      return doneFallback(a);
+    case "research-forge":
+      /* nothing reaches a professor until he replies to the approval email,
+         so "Finished on Monday" said nothing about whether anything went out */
+      var rf = {};
+      (a.metrics || []).forEach(function(x){ rf[x.label] = x.value; });
+      var rfWait = parseInt(rf["Awaiting approval"], 10) || 0;
+      if(rfWait > 0)
+        return rfWait + " " + plural(rfWait,"email","emails") + " waiting for your OK";
+      var rfSent = parseInt(rf["Professors contacted"], 10);
+      if(!isNaN(rfSent))
+        return rfSent === 0 ? "0 sent · none approved yet"
+                            : rfSent + " " + plural(rfSent,"professor","professors") + " emailed";
       return doneFallback(a);
     case "yc-demo-outreach":
       var y = {};
@@ -1948,10 +1964,12 @@ var SUBTITLE = {
   "opportunity-radar": "Tracked opportunities — newest first",
   "cot-distribution": "Paper outreach emails sent",
   "github-presence": "Open-source contributions",
-  "inbox-apply": "Applications from inbox scanning",
-  "startup-outreach": "Personalized startup outreach",
+  "inbox-apply": "What it found in your inbox — submitted ones first",
+  "startup-outreach": "Emails sent to founders — newest first",
   "yc-demo-outreach": "Built demos — approve to send, waiting ones first",
-  "usage-watch": "The queue right now, then every prompt it has run"
+  "usage-watch": "The queue right now, then every prompt it has run",
+  "research-forge": "Proposal emails it built — newest first",
+  "daily-digest": "Each morning’s summary — newest first"
 };
 
 function el(tag, cls, text){
@@ -1985,8 +2003,9 @@ function emailSlide(it){
   var f = document.createDocumentFragment();
   var grid = el("div", "mailhead");
   if(it.sent_at) headRow(grid, "Sent", whenStr(it.sent_at));
-  else headRow(grid, "Status", "Draft — not yet sent");
-  var toBits = (it.researcher || "") + (it.school ? " · " + it.school : "");
+  else headRow(grid, "Status", it.status_note || "Draft — not yet sent");
+  if(it.built_at) headRow(grid, "Built", whenStr(it.built_at));
+  var toBits = (it.researcher || "") + (it.school ? (it.researcher ? " · " : "") + it.school : "");
   headRow(grid, "To", toBits + (it.to ? (toBits ? " — " : "") + it.to : ""));
   if(it.from) headRow(grid, "From", it.from);
   if(it.post_title) headRow(grid, "About", it.post_link
@@ -1998,7 +2017,8 @@ function emailSlide(it){
     f.appendChild(el("div", "mailbody", it.body));
   } else {
     f.appendChild(el("div", "mnote", DETAILS && DETAILS.sanitized
-      ? "Addresses and full text stay on the home Mac — this view shows the send record."
+      ? "Addresses and full text stay on the home Mac" +
+        (it.sent_at ? " — this view shows the send record." : ".")
       : "Full text isn’t archived for this one — only the newest week’s drafts are kept on disk. The send record above is from the sent log."));
   }
   return f;
@@ -2032,10 +2052,12 @@ function appSlide(it){
   var f = document.createDocumentFragment();
   f.appendChild(el("div", "mailsubj", it.name || "?"));
   var tags = el("div");
-  tags.appendChild(el("span", "mtag", it.kind === "award" ? "🏆 Award" : "🎓 Scholarship"));
+  tags.appendChild(el("span", "mtag", it.kind === "award" ? "🏆 Award"
+    : it.kind === "opportunity" ? "📬 From your inbox" : "🎓 Scholarship"));
   if(it.amount) tags.appendChild(el("span", "mtag", it.amount));
   if(it.applied_at) tags.appendChild(el("span", "mtag", "Applied " + whenStr(it.applied_at)));
-  else tags.appendChild(el("span", "mtag", "Queued"));
+  else tags.appendChild(el("span", it.status_label === "Waiting for you" ? "mtag wait" : "mtag",
+                           it.status_label || "Queued"));
   if(it.deadline) tags.appendChild(el("span", "mtag", "Deadline " + it.deadline));
   f.appendChild(tags);
   var conf = el("div", "mconf");
@@ -2045,7 +2067,8 @@ function appSlide(it){
   f.appendChild(conf);
   if(it.notes) f.appendChild(el("div", "mnote", it.notes));
   if(it.url){
-    var btn = link(it.url, "Open scholarship page ↗", "mbtn");
+    var btn = link(it.url, it.kind === "opportunity" ? "Open the page ↗"
+                                                     : "Open scholarship page ↗", "mbtn");
     f.appendChild(btn);
   }
   (it.shots || []).forEach(function(s){
@@ -2285,7 +2308,48 @@ function watchSlide(it){
   return f;
 }
 
+/* daily-digest: one card per morning summary — what every automation
+   reported that day, grouped like the digest email (NEEDS YOU / DONE /
+   QUIET), and whether that day's summary was actually emailed */
+function digestRows(rows){
+  var ul = el("ul", "mlist");
+  (rows || []).forEach(function(r){
+    var li = el("li");
+    li.appendChild(el("b", null, r.name));
+    li.appendChild(document.createTextNode(" — " + r.headline +
+      (r.count > 1 ? " (" + r.count + " times)" : "")));
+    (r.lines || []).forEach(function(l){ li.appendChild(el("div", "dline", l)); });
+    if(r.link && /^https?:\/\//.test(r.link)){
+      var d = el("div", "dline"); d.appendChild(link(r.link, r.link)); li.appendChild(d);
+    }
+    ul.appendChild(li);
+  });
+  return ul;
+}
+function digestSlide(it){
+  var f = document.createDocumentFragment();
+  var day = parseISO(it.day + "T12:00:00");
+  f.appendChild(el("div", "mailsubj", day
+    ? day.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})
+    : it.day));
+  var tags = el("div");
+  tags.appendChild(el("span", it.emailed ? "mtag ok" : "mtag muted",
+    it.emailed ? "✓ Emailed to you" : "Saved here, not emailed (email is off)"));
+  var n = (it.needs_you || []).length;
+  tags.appendChild(el("span", n ? "mtag wait" : "mtag",
+    n ? n + " " + plural(n,"thing","things") + " needed you" : "Nothing needed you"));
+  f.appendChild(tags);
+  if(n){ f.appendChild(el("div", "dsec", "Needs you")); f.appendChild(digestRows(it.needs_you)); }
+  if((it.done || []).length){ f.appendChild(el("div", "dsec", "Done")); f.appendChild(digestRows(it.done)); }
+  if((it.quiet || []).length){
+    f.appendChild(el("div", "dsec", "Quiet"));
+    f.appendChild(el("div", "mconf", "Ran clean, nothing to report: " + it.quiet.join(", ")));
+  }
+  return f;
+}
+
 var SLIDE = {
+  digests: digestSlide,
   emails: emailSlide,
   watch_runs: watchSlide,
   yc_emails: ycSlide,
