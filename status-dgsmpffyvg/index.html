@@ -785,12 +785,12 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the sixteen cards, fixed order
+/* ------------------------------------------------ the seventeen cards, fixed order
    (build() sizes the grid from ORDER.length, so every tile gets a real slot) */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
              "startup-outreach","yc-demo-outreach","inbox-apply","usage-watch","daily-digest",
-             "research-forge"];
+             "research-forge","grade-report"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -808,7 +808,8 @@ var NICE = {
   "usage-watch":"Usage Watch",
   "daily-digest":"Daily Digest",
   "research-forge":"Research Forge",
-  "xulab-intern-outreach":"Xu Lab Intern Recruiting"
+  "xulab-intern-outreach":"Xu Lab Intern Recruiting",
+  "grade-report":"Grade Report"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -834,6 +835,8 @@ var ICONS = {
   "research-forge": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><path d="M19 6h10"/><path d="M21 6v11L11.5 33a6 6 0 0 0 5.3 8.8h14.4A6 6 0 0 0 36.5 33L27 17V6"/><path d="M15.5 30h17"/><circle cx="21.5" cy="35.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="27.5" cy="34" r="1.5" fill="currentColor" stroke="none"/></svg>',
   "xulab-intern-outreach": '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="17" cy="16" r="6"/><path d="M5 38c0-7 5.4-11 12-11s12 4 12 11"/><circle cx="34" cy="19" r="4.5"/><path d="M31 27.5c5.6 0 10 3.4 10 8.5"/><path d="M24 9.5v-5M21.5 7h5"/></svg>',
 };
+/* report card: a big A with three score lines beside it */
+ICONS["grade-report"] = '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="5" width="32" height="38" rx="5"/><path d="M14.5 31l5-14 5 14"/><path d="M16.3 26h6.4"/><path d="M29.5 18h4M29.5 24.5h4M29.5 31h4"/></svg>';
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
   in_progress:   {cls:"c-work", html:'<span class="spin" aria-hidden="true"></span><span>Working…</span>'},
@@ -1219,6 +1222,13 @@ function sentenceFor(a, totals, doctor){
         return rfSent === 0 ? "0 sent yet · Claude reviews Monday"
                             : rfSent + " " + plural(rfSent,"professor","professors") + " emailed";
       return doneFallback(a);
+    case "grade-report":
+      /* the morning's verdict straight from the snapshot, e.g.
+         "all A's, 21-241 passing" (grades stay on the private board:
+         the public copy carries no metrics, so it falls back) */
+      var gr = {};
+      (a.metrics || []).forEach(function(x){ gr[x.label] = x.value; });
+      return gr["Summary"] ? String(gr["Summary"]) : doneFallback(a);
     case "yc-demo-outreach":
       var y = {};
       (a.metrics || []).forEach(function(x){ y[x.label] = x.value; });
@@ -1969,7 +1979,8 @@ var SUBTITLE = {
   "yc-demo-outreach": "Built demos — approve to send, waiting ones first",
   "usage-watch": "The queue right now, then every prompt it has run",
   "research-forge": "Proposal emails it built and Claude’s call on each — newest first",
-  "daily-digest": "Each morning’s summary — newest first"
+  "daily-digest": "Each morning’s summary — newest first",
+  "grade-report": "Each morning’s grade report — newest first"
 };
 
 function el(tag, cls, text){
@@ -2348,7 +2359,32 @@ function digestSlide(it){
   return f;
 }
 
+/* one morning's grade report: verdict, every class, changes, watch-outs */
+function gradeSlide(it){
+  var f = document.createDocumentFragment();
+  var day = parseISO(it.day + "T12:00:00");
+  f.appendChild(el("div", "mailsubj", day
+    ? day.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"})
+    : it.day));
+  var tags = el("div");
+  tags.appendChild(el("span", it.emailed ? "mtag ok" : "mtag muted",
+    it.emailed ? "✓ Emailed to you" : "Not emailed"));
+  if(!it.fresh) tags.appendChild(el("span", "mtag wait", "Some grades not refreshed"));
+  f.appendChild(tags);
+  if(it.headline) f.appendChild(el("div", "mconf", it.headline));
+  function plainRows(lines){
+    return (lines || []).map(function(t){ return {name:"•", headline:t, lines:[]}; });
+  }
+  if((it.problems || []).length){ f.appendChild(el("div", "dsec", "Problems")); f.appendChild(digestRows(plainRows(it.problems))); }
+  f.appendChild(el("div", "dsec", "Classes"));
+  f.appendChild(digestRows(it.classes));
+  if((it.changes || []).length){ f.appendChild(el("div", "dsec", "New that day")); f.appendChild(digestRows(plainRows(it.changes))); }
+  if((it.watch || []).length){ f.appendChild(el("div", "dsec", "Watch-outs")); f.appendChild(digestRows(plainRows(it.watch))); }
+  return f;
+}
+
 var SLIDE = {
+  grades: gradeSlide,
   digests: digestSlide,
   emails: emailSlide,
   watch_runs: watchSlide,
