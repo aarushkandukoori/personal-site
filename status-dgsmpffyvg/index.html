@@ -785,12 +785,12 @@ body[data-overall="down"]{background:var(--tint-down);--glow:var(--bad)}
 </div>
 <script>
 "use strict";
-/* ------------------------------------------------ the seventeen cards, fixed order
+/* ------------------------------------------------ the eighteen cards, fixed order
    (build() sizes the grid from ORDER.length, so every tile gets a real slot) */
 var ORDER = ["scholarship-daily","parent-weekly","prof-outreach","ai-outreach","blog","doctor",
              "reply-tracker","opportunity-radar","cot-distribution","github-presence",
              "startup-outreach","yc-demo-outreach","inbox-apply","usage-watch","daily-digest",
-             "research-forge","grade-report"];
+             "research-forge","grade-report","dots"];
 var NICE = {
   "scholarship-daily":"Scholarships",
   "parent-weekly":"Email to Parents",
@@ -809,7 +809,8 @@ var NICE = {
   "daily-digest":"Daily Digest",
   "research-forge":"Research Forge",
   "xulab-intern-outreach":"Xu Lab Intern Recruiting",
-  "grade-report":"Grade Report"
+  "grade-report":"Grade Report",
+  "dots":"Dots"
 };
 /* friendly rounded inline icons — stroke follows ink color, never status color */
 var IC = 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"';
@@ -837,6 +838,8 @@ var ICONS = {
 };
 /* report card: a big A with three score lines beside it */
 ICONS["grade-report"] = '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><rect x="8" y="5" width="32" height="38" rx="5"/><path d="M14.5 31l5-14 5 14"/><path d="M16.3 26h6.4"/><path d="M29.5 18h4M29.5 24.5h4M29.5 31h4"/></svg>';
+/* three dots in a row — the always-on agents */
+ICONS["dots"] = '<svg viewBox="0 0 48 48" '+IC+' aria-hidden="true"><circle cx="10" cy="24" r="5"/><circle cx="24" cy="24" r="5"/><circle cx="38" cy="24" r="5"/></svg>';
 var CHIP = {
   ok:            {cls:"c-ok",   html:'<span class="sym">✓</span><span>Done</span>'},
   in_progress:   {cls:"c-work", html:'<span class="spin" aria-hidden="true"></span><span>Working…</span>'},
@@ -1229,6 +1232,18 @@ function sentenceFor(a, totals, doctor){
       var gr = {};
       (a.metrics || []).forEach(function(x){ gr[x.label] = x.value; });
       return gr["Summary"] ? String(gr["Summary"]) : doneFallback(a);
+    case "dots":
+      /* open decisions first, else how many agents are awake ("3 of 8"
+         -> "3 dots working"); the public copy carries no metrics */
+      var dt = {};
+      (a.metrics || []).forEach(function(x){ dt[x.label] = x.value; });
+      var dtWait = parseInt(dt["Waiting on you"], 10) || 0;
+      if(dtWait > 0) return dtWait + " " + plural(dtWait,"needs","need") + " you";
+      var dtAwake = parseInt(dt["Dots awake"], 10);
+      if(!isNaN(dtAwake))
+        return dtAwake === 0 ? "No dots awake yet"
+                             : dtAwake + " " + plural(dtAwake,"dot","dots") + " working";
+      return doneFallback(a);
     case "yc-demo-outreach":
       var y = {};
       (a.metrics || []).forEach(function(x){ y[x.label] = x.value; });
@@ -1980,7 +1995,8 @@ var SUBTITLE = {
   "usage-watch": "The queue right now, then every prompt it has run",
   "research-forge": "Proposal emails it built and Claude’s call on each — newest first",
   "daily-digest": "Each morning’s summary — newest first",
-  "grade-report": "Each morning’s grade report — newest first"
+  "grade-report": "Each morning’s grade report — newest first",
+  "dots": "What needs you, each dot, then what they did"
 };
 
 function el(tag, cls, text){
@@ -2383,7 +2399,59 @@ function gradeSlide(it){
   return f;
 }
 
+/* dots: one "Needs you" card (open decisions, titles only), one card per
+   dot (state, last run, next wake, last summary), then "What they did" */
+function dotsSlide(it){
+  var f = document.createDocumentFragment();
+  if(it.type === "needs"){
+    var n = (it.items || []).length;
+    f.appendChild(el("div", "mailsubj", "Needs you"));
+    var t = el("div");
+    t.appendChild(el("span", n ? "mtag wait" : "mtag ok",
+      n ? n + " " + plural(n,"decision","decisions") + " waiting" : "✓ Nothing waiting on you"));
+    f.appendChild(t);
+    if(n){
+      f.appendChild(digestRows((it.items || []).map(function(w){
+        return {name:"#" + w.id + " " + (w.dot || ""), headline:w.title,
+                lines:[[w.urgency ? "urgency " + w.urgency : "", w.age ? w.age + " old" : ""]
+                       .filter(Boolean).join(" · ")].filter(Boolean)};
+      })));
+      f.appendChild(el("div", "mnote", "Answer with dots.py answer on the Mac."));
+    }
+    return f;
+  }
+  if(it.type === "feed"){
+    var rows = it.items || [];
+    f.appendChild(el("div", "mailsubj", "What they did"));
+    if(!rows.length){ f.appendChild(el("div", "mnote", "Nothing logged yet.")); return f; }
+    f.appendChild(digestRows(rows.map(function(r){
+      var d = parseISO(r.at);
+      return {name:(r.dot || "dots") + (r.status ? " (" + r.status + ")" : ""),
+              headline:r.text || r.event,
+              lines:[d ? whenStr(r.at) : ""].filter(Boolean)};
+    })));
+    return f;
+  }
+  f.appendChild(el("div", "mailsubj", it.name || "Dot"));
+  var tags = el("div");
+  var cls = {ok:"mtag ok", waiting:"mtag wait", issue:"mtag bad", paused:"mtag muted"}[it.light] || "mtag";
+  tags.appendChild(el("span", cls, it.state || it.light || "Unknown"));
+  if(it.waiting > 0)
+    tags.appendChild(el("span", "mtag wait", it.waiting + " " + plural(it.waiting,"needs","need") + " you"));
+  f.appendChild(tags);
+  var g = el("div", "mailhead");
+  if(it.schedule) headRow(g, "Wakes", it.schedule);
+  headRow(g, "Last run", it.last);
+  headRow(g, "Next wake", it.next);
+  f.appendChild(g);
+  if(it.issue) f.appendChild(el("div", "mconf", "Issue: " + it.issue));
+  if(it.summary) f.appendChild(el("div", "mailbody", it.summary));
+  else f.appendChild(el("div", "mnote", "No summary yet."));
+  return f;
+}
+
 var SLIDE = {
+  dots: dotsSlide,
   grades: gradeSlide,
   digests: digestSlide,
   emails: emailSlide,
