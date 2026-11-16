@@ -1207,16 +1207,16 @@ function sentenceFor(a, totals, doctor){
         return m["Companies ranked"] + " ranked";
       return doneFallback(a);
     case "research-forge":
-      /* nothing reaches a professor until he replies to the approval email,
-         so "Finished on Monday" said nothing about whether anything went out */
+      /* "Finished on Monday" said nothing about whether anything went out.
+         Since 2026-11-15 Claude approves or denies each email itself. */
       var rf = {};
       (a.metrics || []).forEach(function(x){ rf[x.label] = x.value; });
       var rfWait = parseInt(rf["Awaiting approval"], 10) || 0;
       if(rfWait > 0)
-        return rfWait + " " + plural(rfWait,"email","emails") + " waiting for your OK";
+        return rfWait + " " + plural(rfWait,"email","emails") + " waiting for review";
       var rfSent = parseInt(rf["Professors contacted"], 10);
       if(!isNaN(rfSent))
-        return rfSent === 0 ? "0 sent · none approved yet"
+        return rfSent === 0 ? "0 sent yet · Claude reviews Monday"
                             : rfSent + " " + plural(rfSent,"professor","professors") + " emailed";
       return doneFallback(a);
     case "yc-demo-outreach":
@@ -1968,7 +1968,7 @@ var SUBTITLE = {
   "startup-outreach": "Emails sent to founders — newest first",
   "yc-demo-outreach": "Built demos — approve to send, waiting ones first",
   "usage-watch": "The queue right now, then every prompt it has run",
-  "research-forge": "Proposal emails it built — newest first",
+  "research-forge": "Proposal emails it built and Claude’s call on each — newest first",
   "daily-digest": "Each morning’s summary — newest first"
 };
 
