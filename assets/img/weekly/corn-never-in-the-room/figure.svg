@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500">
+<style>
+.bg{fill:#f3f4ff}.card{fill:#ffffff;stroke:#5d5f86;stroke-opacity:.18}
+.ink{fill:#0f1030}.mut{fill:#5d5f86}.acc{fill:#d6336c}.acc2{fill:#4263eb}.acc3{fill:#f59f00}
+.t{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.title{font-size:21px;font-weight:700}.h{font-size:17px;font-weight:700}.s{font-size:13px}.lab{font-size:13.5px;font-weight:600}.sm{font-size:12px}
+.frozen{fill:none;stroke:#5d5f86;stroke-width:3;stroke-dasharray:3 7;stroke-linecap:round;opacity:.7}
+.live{fill:none;stroke:#4263eb;stroke-width:4;stroke-dasharray:14 10;stroke-linecap:round}
+.halo{fill:none;stroke:#4263eb;stroke-width:14;opacity:.1}
+.nodeF{fill:#ffffff;stroke:#5d5f86;stroke-width:2.5}
+.nodeL{fill:#ffffff;stroke:#4263eb;stroke-width:3}
+.nodeA{fill:#ffffff;stroke:#d6336c;stroke-width:3}
+.x{stroke:#d6336c;stroke-width:3.5;stroke-linecap:round}
+.gap{fill:#ffffff}
+.core{fill:#f59f00;opacity:.16}
+.dot{fill:#d6336c}
+.live{animation:flow 1.6s linear infinite}
+.core{animation:pulse 2.4s ease-in-out infinite;transform-origin:655px 270px}
+.spin{animation:spin 6s linear infinite;transform-origin:655px 270px}
+@keyframes flow{to{stroke-dashoffset:-48}}
+@keyframes pulse{0%,100%{transform:scale(.85);opacity:.12}50%{transform:scale(1.08);opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.live,.core,.spin{animation:none}}
+@media (prefers-color-scheme: dark){
+.bg{fill:#0b0c1d}.card{fill:#13152e;stroke:#9496c2;stroke-opacity:.2}
+.ink{fill:#eef0ff}.mut{fill:#9496c2}.acc{fill:#ff4d9a}.acc2{fill:#5c7cfa}.acc3{fill:#fcc419}
+.frozen{stroke:#9496c2}.live{stroke:#5c7cfa}.halo{stroke:#5c7cfa}
+.nodeF{fill:#13152e;stroke:#9496c2}.nodeL{fill:#13152e;stroke:#5c7cfa}.nodeA{fill:#13152e;stroke:#ff4d9a}
+.x{stroke:#ff4d9a}.gap{fill:#13152e}.core{fill:#fcc419}.dot{fill:#ff4d9a}
+}
+</style>
+<rect class="bg" x="0" y="0" width="900" height="500" rx="18"/>
+<text class="t title ink" x="450" y="44" text-anchor="middle">Replay vs. loop: does the answer get to matter?</text>
+
+<rect class="card" x="30" y="66" width="410" height="362" rx="14"/>
+<rect class="card" x="460" y="66" width="410" height="362" rx="14"/>
+
+<text class="t h ink" x="245" y="96" text-anchor="middle">Offline replay</text>
+<text class="t s mut" x="245" y="116" text-anchor="middle">the user's next move is already fixed</text>
+<text class="t h acc2" x="655" y="96" text-anchor="middle">Closed loop</text>
+<text class="t s mut" x="655" y="116" text-anchor="middle">a slow or wrong answer changes what happens</text>
+
+<circle class="frozen" cx="245" cy="270" r="100"/>
+<circle class="gap" cx="316" cy="341" r="13"/>
+<line class="x" x1="309" y1="334" x2="323" y2="348"/>
+<line class="x" x1="323" y1="334" x2="309" y2="348"/>
+<circle class="nodeF" cx="245" cy="170" r="8"/>
+<circle class="nodeF" cx="345" cy="270" r="8"/>
+<circle class="nodeF" cx="245" cy="370" r="8"/>
+<circle class="nodeF" cx="145" cy="270" r="8"/>
+<text class="t lab ink" x="245" y="156" text-anchor="middle">Recorded frame</text>
+<text class="t lab ink" x="358" y="275">Answer</text>
+<text class="t lab ink" x="245" y="394" text-anchor="middle">Next step: fixed</text>
+<text class="t sm mut" x="245" y="411" text-anchor="middle">(already recorded)</text>
+<text class="t lab ink" x="132" y="275" text-anchor="end">Score</text>
+<text class="t s mut" x="245" y="266" text-anchor="middle">frozen</text>
+<text class="t s mut" x="245" y="283" text-anchor="middle">tape</text>
+
+<circle class="halo" cx="655" cy="270" r="100"/>
+<circle class="live" cx="655" cy="270" r="100"/>
+<circle class="core" cx="655" cy="270" r="52"/>
+<g class="spin"><circle class="dot" cx="655" cy="170" r="5"/></g>
+<circle class="nodeL" cx="655" cy="170" r="8"/>
+<circle class="nodeL" cx="755" cy="270" r="8"/>
+<circle class="nodeA" cx="655" cy="370" r="9"/>
+<circle class="nodeL" cx="555" cy="270" r="8"/>
+<text class="t lab ink" x="655" y="156" text-anchor="middle">User acts</text>
+<text class="t lab ink" x="768" y="266">Assistant</text>
+<text class="t lab ink" x="768" y="283">sees</text>
+<text class="t lab acc" x="655" y="394" text-anchor="middle">Answer</text>
+<text class="t sm mut" x="655" y="411" text-anchor="middle">(fast? right?)</text>
+<text class="t lab ink" x="542" y="266" text-anchor="end">Next action</text>
+<text class="t lab ink" x="542" y="283" text-anchor="end">changes</text>
+<text class="t lab acc3" x="655" y="266" text-anchor="middle">Task</text>
+<text class="t lab acc3" x="655" y="283" text-anchor="middle">outcome</text>
+<text class="t sm acc" x="738" y="362">late = no help</text>
+
+<text class="t sm mut" x="450" y="466" text-anchor="middle">Illustrative diagram, after Interactive Visual Gym (Zheng, Krishna et al.). Not data.</text>
+</svg>

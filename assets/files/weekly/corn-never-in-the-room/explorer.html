@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certify or Decline</title>
+<style>
+:root{
+  --bg:#f3f4ff; --surface:#ffffff; --ink:#0f1030; --muted:#5d5f86;
+  --accent:#d6336c; --accent2:#4263eb; --accent3:#f59f00;
+  --line:rgba(15,16,48,.12);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b0c1d; --surface:#13152e; --ink:#eef0ff; --muted:#9496c2;
+    --accent:#ff4d9a; --accent2:#5c7cfa; --accent3:#fcc419;
+    --line:rgba(238,240,255,.14);
+  }
+}
+html,body{margin:0;padding:0;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+*{box-sizing:border-box}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 12px}
+header h2{margin:0;font-size:17px;letter-spacing:.2px}
+header p{margin:3px 0 10px;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:6px 11px;border-radius:999px;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s}
+button:hover{border-color:var(--accent2)}
+button:active{transform:scale(.96)}
+button[aria-pressed="true"]{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+#sc[aria-pressed="true"]{background:var(--accent);border-color:var(--accent)}
+.spacer{flex:1}
+.stage{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+canvas{display:block;width:100%;height:380px;touch-action:none;cursor:ew-resize}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;margin-top:10px;font-size:12.5px}
+.track{height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.fill{height:100%;border-radius:7px;transition:width .18s linear}
+#pFill{background:var(--accent2)}
+#cFill{background:var(--accent3)}
+.val{font-variant-numeric:tabular-nums;min-width:44px;text-align:right;font-weight:600}
+.readout{margin-top:8px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.readout b{color:var(--ink)}
+.note{margin-top:6px;font-size:12px;color:var(--ink);background:var(--surface);border-left:3px solid var(--accent3);
+  padding:6px 9px;border-radius:6px;min-height:30px}
+.note.sc{border-left-color:var(--accent)}
+.slider{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-top:8px}
+.slider input{flex:1;accent-color:var(--accent2)}
+.foot{margin-top:6px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h2>Certify or decline: the price of certainty</h2>
+    <p>Drag the glowing handle left to make the verifier stricter. Watch how many attempts still get through.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Benchmark">
+    <button data-ds="aime" aria-pressed="true">AIME</button>
+    <button data-ds="gpqa" aria-pressed="false">GPQA</button>
+    <button data-ds="math" aria-pressed="false">MATH-500</button>
+    <button id="snap">Jump to paper point</button>
+    <span class="spacer"></span>
+    <button id="sc" aria-pressed="false">Self-consistency baseline</button>
+    <button id="reset">Reset</button>
+  </div>
+
+  <div class="stage"><canvas id="cv" aria-label="Precision versus coverage chart with a draggable strictness handle"></canvas></div>
+
+  <div class="slider"><label for="strict">Strictness</label>
+    <input id="strict" type="range" min="0" max="100" value="45"></div>
+
+  <div class="bars">
+    <span>Precision (toy)</span><div class="track"><div class="fill" id="pFill"></div></div><span class="val" id="pVal">0%</span>
+    <span>Coverage</span><div class="track"><div class="fill" id="cFill"></div></div><span class="val" id="cVal">0%</span>
+  </div>
+
+  <div class="readout" id="readout"></div>
+  <div class="note" id="note"></div>
+  <div class="foot">Toy model: the curves are illustrative, shaped so each one passes through the gain and coverage Gupta et al. report. Baseline precision levels are made up. Only the numbers labelled "Gupta et al." come from the paper.</div>
+</div>
+
+<script>
+(function(){
+  var DATA = {
+    aime: {cov:0.21, gain:46, b:40, top:94,
+      note:'Gupta et al.: on AIME, certification raises answer-key precision by 46 points, but only 21% of attempts get answered.'},
+    gpqa: {cov:0.35, gain:31, b:55, top:95,
+      note:'Gupta et al.: on GPQA, the gain is 31 points of precision at 35% coverage.'},
+    math: {cov:0.80, gain:5, b:92, top:98, band:[0.73,0.87],
+      note:'Gupta et al.: on near-ceiling MATH-500, the gain is at most 5 points while giving up 13 to 27 points of coverage (shaded band).'}
+  };
+  function kOf(d){ return Math.log((d.top-(d.b+d.gain))/(d.top-d.b))/Math.log(d.cov); }
+  for (var key in DATA) DATA[key].k = kOf(DATA[key]);
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var H = 380, W = 600, dpr = 1;
+  var STREAM_H = 86, L = 42, R = 16, T = 108, B = 36;
+
+  var ds = 'aime';
+  var cur = {b:DATA.aime.b, top:DATA.aime.top, k:DATA.aime.k};
+  var c = 0.6, target = 0.6, touched = false, dragging = false, showSC = false;
+  var parts = [], log = [], lastSpawn = 0, t0 = performance.now();
+  var col = {};
+
+  function readColors(){
+    var s = getComputedStyle(document.documentElement);
+    ['bg','surface','ink','muted','accent','accent2','accent3','line'].forEach(function(n){
+      col[n] = s.getPropertyValue('--'+n).trim();
+    });
+  }
+  readColors();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+
+  function resize(){
+    W = cv.clientWidth; dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  new ResizeObserver(resize).observe(cv);
+  resize();
+
+  function prec(cv_){ var x = Math.max(0.005, Math.min(1, cv_)); return cur.top - (cur.top-cur.b)*Math.pow(x, cur.k); }
+  function X(cov){ return L + cov*(W-L-R); }
+  function Y(p){ return T + (100-p)/70*(H-T-B); }
+  function covFromX(x){ return Math.max(0.02, Math.min(1, (x-L)/(W-L-R))); }
+
+  // pointer: drag anywhere on the chart, snap near the paper marker
+  function setFromPointer(e){
+    var r = cv.getBoundingClientRect();
+    var x = e.clientX - r.left, v = covFromX(x);
+    var mx = X(DATA[ds].cov);
+    if (Math.abs(x-mx) < 12) v = DATA[ds].cov;
+    target = v;
+  }
+  cv.addEventListener('pointerdown', function(e){
+    touched = true; dragging = true; cv.setPointerCapture(e.pointerId); setFromPointer(e);
+  });
+  cv.addEventListener('pointermove', function(e){ if (dragging) setFromPointer(e); });
+  cv.addEventListener('pointerup', function(){ dragging = false; });
+  cv.addEventListener('pointercancel', function(){ dragging = false; });
+
+  var slider = document.getElementById('strict');
+  slider.addEventListener('input', function(){ touched = true; target = Math.max(0.02, 1 - slider.value/100); });
+
+  document.querySelectorAll('[data-ds]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      ds = btn.getAttribute('data-ds');
+      document.querySelectorAll('[data-ds]').forEach(function(b){ b.setAttribute('aria-pressed', b===btn ? 'true':'false'); });
+      touched = true; target = DATA[ds].cov; updateNote();
+    });
+  });
+  document.getElementById('snap').addEventListener('click', function(){ touched = true; target = DATA[ds].cov; });
+  var scBtn = document.getElementById('sc');
+  scBtn.addEventListener('click', function(){
+    showSC = !showSC; scBtn.setAttribute('aria-pressed', showSC ? 'true':'false');
+    if (showSC){ touched = true; target = 0.35; }
+    updateNote();
+  });
+  document.getElementById('reset').addEventListener('click', function(){
+    ds = 'aime'; showSC = false; touched = false; scBtn.setAttribute('aria-pressed','false');
+    document.querySelectorAll('[data-ds]').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-ds')==='aime' ? 'true':'false'); });
+    parts = []; log = []; t0 = performance.now(); updateNote();
+  });
+
+  var noteEl = document.getElementById('note');
+  function updateNote(){
+    if (showSC){
+      noteEl.className = 'note sc';
+      noteEl.textContent = 'Gupta et al.: token-matched self-consistency gets 82.9% precision at 35% coverage, versus the verifier\'s pooled 87.6%. Paired difference +4.8 points, 95% interval [-8.2, 18.5], which crosses zero.';
+    } else {
+      noteEl.className = 'note';
+      noteEl.textContent = DATA[ds].note;
+    }
+  }
+  updateNote();
+
+  // stream of attempts through the verifier gate
+  function spawn(now){
+    parts.push({x:-6, y:16+Math.random()*(STREAM_H-40), vx:1.4+Math.random()*0.8, vy:0, state:'in', ok:true, a:1});
+    lastSpawn = now;
+  }
+  function stepParts(){
+    var gx = W*0.46, sp = reduce ? 0.35 : 1;
+    for (var i=parts.length-1;i>=0;i--){
+      var p = parts[i];
+      p.x += p.vx*sp; p.y += p.vy*sp;
+      if (p.state==='in' && p.x >= gx){
+        if (Math.random() < c){
+          p.state = 'cert'; p.ok = Math.random() < prec(c)/100; p.vx *= 1.25;
+        } else {
+          p.state = 'dec'; p.vy = 0.5; p.vx *= 0.35;
+        }
+        log.push(p.state==='cert' ? (p.ok ? 'ok':'bad') : 'dec');
+        if (log.length > 60) log.shift();
+      }
+      if (p.state==='dec'){ p.a -= 0.018*sp; p.vy *= 0.97; }
+      if (p.x > W+10 || p.a <= 0) parts.splice(i,1);
+    }
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  function drawStream(now){
+    var gx = W*0.46;
+    ctx.fillStyle = col.bg; roundRect(8,8,W-16,STREAM_H-12,10); ctx.fill();
+    ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = col.muted; ctx.textBaseline = 'top';
+    ctx.textAlign = 'left'; ctx.fillText('attempts', 16, 13);
+    ctx.textAlign = 'right'; ctx.fillText('certified \u2192', W-16, 13);
+    ctx.textAlign = 'center'; ctx.fillText('declined', gx+40, STREAM_H-20);
+    // gate: opening shrinks as strictness rises
+    var gTop = 14, gBot = STREAM_H-10, open = (gBot-gTop)*c;
+    var mid = (gTop+gBot)/2;
+    ctx.fillStyle = col.accent; ctx.globalAlpha = 0.85;
+    ctx.fillRect(gx-3, gTop, 6, (gBot-gTop-open)/2);
+    ctx.fillRect(gx-3, mid+open/2, 6, (gBot-gTop-open)/2);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = col.ink; ctx.textAlign = 'center'; ctx.fillText('verifier', gx, gTop-1 < 13 ? 13 : gTop);
+    for (var i=0;i<parts.length;i++){
+      var p = parts[i];
+      ctx.globalAlpha = Math.max(0, p.a);
+      ctx.fillStyle = p.state==='in' ? col.muted : p.state==='dec' ? col.muted : (p.ok ? col.accent2 : col.accent);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.state==='cert' ? 4.2 : 3.2, 0, Math.PI*2); ctx.fill();
+      if (p.state==='cert' && !p.ok){
+        ctx.strokeStyle = col.accent; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI*2); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawChart(now){
+    var x0 = L, x1 = W-R, y0 = Y(100), y1 = Y(30);
+    ctx.font = '11px system-ui, sans-serif'; ctx.textBaseline = 'middle';
+    // grid
+    ctx.strokeStyle = col.line; ctx.lineWidth = 1; ctx.fillStyle = col.muted; ctx.textAlign = 'right';
+    [40,60,80,100].forEach(function(p){
+      ctx.beginPath(); ctx.moveTo(x0, Y(p)); ctx.lineTo(x1, Y(p)); ctx.stroke();
+      ctx.fillText(p+'%', x0-6, Y(p));
+    });
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    [0,25,50,75,100].forEach(function(v){ ctx.fillText(v+'%', X(v/100), y1+5); });
+    ctx.fillText('coverage: share of attempts answered', (x0+x1)/2, y1+19);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('precision (answer-key match)', x0, y0-6);
+    ctx.textAlign = 'right'; ctx.fillText('\u2190 stricter   lenient \u2192', x1, y0-6);
+
+    var d = DATA[ds];
+    // MATH-500 band
+    if (d.band){
+      ctx.fillStyle = col.accent3; ctx.globalAlpha = 0.16;
+      ctx.fillRect(X(d.band[0]), y0, X(d.band[1])-X(d.band[0]), y1-y0);
+      ctx.globalAlpha = 1;
+    }
+    // answer-everything baseline
+    ctx.setLineDash([4,4]); ctx.strokeStyle = col.muted;
+    ctx.beginPath(); ctx.moveTo(x0, Y(cur.b)); ctx.lineTo(x1, Y(cur.b)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.muted; ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+    ctx.fillText('answer everything (illustrative)', x1-2, Y(cur.b)+3);
+
+    // certified region under curve, right edge at handle
+    ctx.beginPath(); ctx.moveTo(X(0.005), y1);
+    for (var v=0.005; v<=c; v+=0.01) ctx.lineTo(X(v), Y(prec(v)));
+    ctx.lineTo(X(c), Y(prec(c))); ctx.lineTo(X(c), y1); ctx.closePath();
+    ctx.fillStyle = col.accent2; ctx.globalAlpha = 0.12; ctx.fill(); ctx.globalAlpha = 1;
+
+    // curve
+    ctx.beginPath();
+    for (var u=0.005; u<=1.0001; u+=0.01){ var px = X(u), py = Y(prec(u)); if (u===0.005) ctx.moveTo(px,py); else ctx.lineTo(px,py); }
+    ctx.strokeStyle = col.accent2; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = col.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('toy curve', X(0.03), Y(prec(0.03))-4);
+
+    // paper marker
+    var mx = X(d.cov), my = Y(d.b + d.gain);
+    ctx.setLineDash([3,3]); ctx.strokeStyle = col.accent3; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(mx, y0); ctx.lineTo(mx, y1); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = col.accent3;
+    ctx.save(); ctx.translate(mx, my); ctx.rotate(Math.PI/4); ctx.fillRect(-5,-5,10,10); ctx.restore();
+    ctx.textAlign = mx > W*0.6 ? 'right' : 'left'; ctx.textBaseline = 'bottom'; ctx.fillStyle = col.ink;
+    var lab = (ds==='math' ? '\u2264+' : '+') + d.gain + ' pts @ ' + Math.round(d.cov*100) + '%';
+    if (ds==='math') lab = '\u2264+5 pts, band = coverage given up';
+    ctx.fillText(lab, mx + (mx > W*0.6 ? -8 : 8), my - 8);
+
+    // self-consistency points
+    if (showSC){
+      var sx = X(0.35);
+      [[82.9, col.accent, 'self-consistency 82.9%'],[87.6, col.accent2, 'verifier pooled 87.6%']].forEach(function(q, i){
+        ctx.fillStyle = q[1]; ctx.strokeStyle = col.surface; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(sx, Y(q[0]), 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = col.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(q[2], sx+10, Y(q[0]) + (i===0 ? 7 : -7));
+      });
+    }
+
+    // handle
+    var hx = X(c), hy = Y(prec(c));
+    ctx.strokeStyle = col.accent; ctx.lineWidth = 1; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx, y1); ctx.moveTo(hx, hy); ctx.lineTo(x0, hy); ctx.stroke();
+    ctx.globalAlpha = 1;
+    var pulse = 0.5 + 0.5*Math.sin(now/(reduce ? 900 : 300));
+    ctx.fillStyle = col.accent; ctx.globalAlpha = 0.18 + 0.15*pulse;
+    ctx.beginPath(); ctx.arc(hx, hy, 15 + 4*pulse, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(hx, hy, 8, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = col.surface; ctx.lineWidth = 2; ctx.stroke();
+    if (!touched){
+      ctx.fillStyle = col.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText('drag me', hx, hy-18);
+    }
+  }
+
+  var pFill = document.getElementById('pFill'), cFill = document.getElementById('cFill');
+  var pVal = document.getElementById('pVal'), cVal = document.getElementById('cVal');
+  var readout = document.getElementById('readout');
+  var lastTxt = '';
+  function updateDOM(){
+    var p = prec(c), cert = Math.round(c*100), wrong = Math.round(cert*(1-p/100));
+    pFill.style.width = p.toFixed(1)+'%'; cFill.style.width = (c*100).toFixed(1)+'%';
+    pVal.textContent = Math.round(p)+'%'; cVal.textContent = Math.round(c*100)+'%';
+    var ok=0,bad=0,dec=0; log.forEach(function(s){ if(s==='ok')ok++; else if(s==='bad')bad++; else dec++; });
+    var txt = 'Strictness <b>'+Math.round((1-c)*100)+'%</b> \u00b7 per 100 attempts (toy): <b>'+cert+'</b> certified, <b>'+wrong+'</b> of them wrong, <b>'+(100-cert)+'</b> declined. Live gate, last '+log.length+': '+ok+' right, '+bad+' wrong, '+dec+' declined.';
+    if (txt !== lastTxt){ readout.innerHTML = txt; lastTxt = txt; }
+    if (document.activeElement !== slider) slider.value = Math.round((1-c)*100);
+  }
+
+  function frame(now){
+    var d = DATA[ds], ease = reduce ? 0.04 : 0.1;
+    cur.b += (d.b-cur.b)*ease; cur.top += (d.top-cur.top)*ease; cur.k += (d.k-cur.k)*ease;
+    if (!touched){
+      var tt = (now - t0) * (reduce ? 0.00025 : 0.0007);
+      target = 0.55 - 0.4*Math.cos(tt);
+    }
+    c += (target-c)*(reduce ? 0.06 : 0.14);
+    if (now - lastSpawn > (reduce ? 320 : 85)) spawn(now);
+    stepParts();
+    ctx.clearRect(0,0,W,H);
+    drawStream(now);
+    drawChart(now);
+    updateDOM();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+</script>
+</body>
+</html>
