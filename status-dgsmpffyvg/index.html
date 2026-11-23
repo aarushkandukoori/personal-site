@@ -1391,6 +1391,17 @@ function attentionItems(){
     if(!a) return;
     if(a.state === "issue"){
       var lines = (a.issues || []).map(String);
+      /* 2026-11-23: the Doctor tile's own needs-you lines are listed once,
+         under the robot doctor below - not here as well (one line used to
+         read "2 things need attention"). Payloads without needs_human_own
+         (the public mirror) are unchanged. */
+      if(a.id === "doctor" && data.doctor && Array.isArray(data.doctor.needs_human_own)
+         && data.doctor.needs_human_own.length){
+        var ownLines = data.doctor.needs_human_own.map(String);
+        var hadLines = lines.length;
+        lines = lines.filter(function(l){ return ownLines.indexOf(l) === -1; });
+        if(hadLines && !lines.length) return;
+      }
       if(!lines.length) lines = ["Something went wrong on the last run"];
       items.push({icon:ICONS[a.id] || "", name:NICE[a.id] || a.id, lines:lines});
       return;
