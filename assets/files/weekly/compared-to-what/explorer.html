@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature explorer</title>
+  <link rel="stylesheet" href="../../gradient-descent/interactive.css">
+</head>
+<body>
+  <div class="shell">
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Temperature explorer</h2>
+          <p class="card-subtitle">Slide the temperature and watch the distribution sharpen or flatten.</p>
+        </div>
+      </div>
+      
+      <div class="canvas-wrap"><canvas id="canvas" width="760" height="300"></canvas></div>
+      <div class="controls">
+        <div class="control">
+          <div class="control-top">
+            <span class="control-label">Temperature T</span>
+            <span class="control-value" id="t-val">1.00</span>
+          </div>
+          <input id="t" type="range" min="0.2" max="3" step="0.05" value="1">
+        </div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">p1</span><span class="metric-value" id="p1">-</span></div>
+          <div class="metric"><span class="metric-label">p2</span><span class="metric-value" id="p2">-</span></div>
+          <div class="metric"><span class="metric-label">entropy</span><span class="metric-value" id="ent">-</span></div>
+        </div>
+        <p class="hint">Low T concentrates mass on the top logit. High T flattens the distribution.</p>
+      </div>
+    
+    </section>
+  </div>
+  <script>
+
+    const logits = [2.2, 1.1, 0.4, -0.3];
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const tInput = document.getElementById("t");
+    function softmax(zs, T) {
+      const s = zs.map(z => z / T);
+      const m = Math.max(...s);
+      const ex = s.map(v => Math.exp(v - m));
+      const sum = ex.reduce((a,b)=>a+b,0);
+      return ex.map(v => v / sum);
+    }
+    function entropy(p) {
+      return -p.reduce((a,v)=> a + (v>0 ? v*Math.log(v) : 0), 0);
+    }
+    function draw(T) {
+      const p = softmax(logits, T);
+      document.getElementById("t-val").textContent = T.toFixed(2);
+      document.getElementById("p1").textContent = p[0].toFixed(3);
+      document.getElementById("p2").textContent = p[1].toFixed(3);
+      document.getElementById("ent").textContent = entropy(p).toFixed(3);
+      const W = canvas.width, H = canvas.height, pad = 40;
+      ctx.clearRect(0,0,W,H);
+      const barW = (W - pad*2) / p.length * 0.6;
+      p.forEach((v,i) => {
+        const x = pad + i * ((W - pad*2) / p.length) + 18;
+        const h = v * (H - pad*2);
+        ctx.fillStyle = "#111";
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) ctx.fillStyle = "#f2f2f2";
+        ctx.fillRect(x, H - pad - h, barW, h);
+        ctx.fillStyle = "#666";
+        ctx.font = "12px sans-serif";
+        ctx.fillText("tok "+(i+1), x, H - 14);
+      });
+    }
+    tInput.addEventListener("input", () => draw(parseFloat(tInput.value)));
+    draw(parseFloat(tInput.value));
+    
+
+    function reportHeight() {
+      const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "chirpy-interactive-height", height }, "*");
+      }
+    }
+    reportHeight();
+    window.addEventListener("load", reportHeight);
+    window.addEventListener("resize", reportHeight);
+    if (window.ResizeObserver) new ResizeObserver(reportHeight).observe(document.documentElement);
+
+  </script>
+</body>
+</html>
